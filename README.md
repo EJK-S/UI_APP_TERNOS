@@ -5,7 +5,7 @@ Guía para Colaboradores
 Si es la primera vez que trabajas en el proyecto, necesitas descargar (clonar) el repositorio a tu computadora.
 
 # Reemplaza la URL por la URL HTTPS de este repositorio (la encuentras en el botón verde "Code")
-git clone https:https://github.com/EJK-S/Aplicaci-n_Venta_Alquiler_Ternos.git
+git clone https://github.com/EJK-S/Aplicaci-n_Venta_Alquiler_Ternos.git
 
 # Una vez clonado, entra a la carpeta del proyecto
 cd nombre-del-repo
