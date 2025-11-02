@@ -63,5 +63,5 @@ final List<InventarioItem> mockStock = [
 
 // Datos para devolucion_ternos_screen.dart
 // (Esta lista necesita ser una variable de clase en un StatefulWidget,
-// así que la dejaremos donde está por ahora, ya que el estado (daño, entregado) cambia.
-// Si solo fuera para mostrar, la moveríamos aquí.)
+// así que la dejaremos donde está solo por ahora, ya que el estado (daño, entregado) cambia.
+// Si solo fuera para mostrar, la moveríamos aquí mismo.)
