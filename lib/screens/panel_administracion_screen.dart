@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
 import 'package:proyecto_tienda_ternos/widgets/quick_action_card.dart';
 import 'package:proyecto_tienda_ternos/widgets/summary_stat_card.dart';
-import 'theme/app_theme.dart';
+import '../theme/app_theme.dart';
 import 'nuevo_alquiler_screen.dart';
 import 'nueva_venta_screen.dart';
 import 'devolucion_ternos_screen.dart';

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'theme.dart';
+import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
+import '../theme/app_theme.dart';
 
 class ConfiguracionSistemaScreen extends StatefulWidget {
   const ConfiguracionSistemaScreen({super.key});
@@ -11,12 +12,15 @@ class ConfiguracionSistemaScreen extends StatefulWidget {
 
 class _ConfiguracionSistemaScreenState
     extends State<ConfiguracionSistemaScreen> {
-  final TextEditingController _nombreNegocioCtrl =
-      TextEditingController(text: 'Mi Tienda de Ternos');
-  final TextEditingController _rucCtrl =
-      TextEditingController(text: '00000000000');
-  final TextEditingController _telefonoCtrl =
-      TextEditingController(text: '987654321');
+  final TextEditingController _nombreNegocioCtrl = TextEditingController(
+    text: 'Mi Tienda de Ternos',
+  );
+  final TextEditingController _rucCtrl = TextEditingController(
+    text: '00000000000',
+  );
+  final TextEditingController _telefonoCtrl = TextEditingController(
+    text: '987654321',
+  );
   bool _darkMode = false;
   bool _mensajeOk = false;
 
@@ -27,9 +31,7 @@ class _ConfiguracionSistemaScreenState
         : AppColors.borderLight;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Configuración del Sistema'),
-      ),
+      appBar: AppBar(title: const Text('Configuración del Sistema')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -47,10 +49,9 @@ class _ConfiguracionSistemaScreenState
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'Datos del Negocio',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w700),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -96,10 +97,9 @@ class _ConfiguracionSistemaScreenState
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'Preferencias de Interfaz',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w700),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -118,10 +118,9 @@ class _ConfiguracionSistemaScreenState
                       'Usar fondo oscuro y texto claro',
                       style: TextStyle(
                         fontSize: 12,
-                        color:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? AppColors.subtleDark
-                                : AppColors.subtleLight,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.subtleDark
+                            : AppColors.subtleLight,
                       ),
                     ),
                   ),

@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'theme.dart';
-import 'panel_administracion_screen.dart';
-import 'gestion_clientes_screen.dart';
-import 'nuevo_cliente_screen.dart';
-import 'gestion_alquileres_screen.dart';
-import 'nuevo_alquiler_screen.dart';
-import 'detalles_alquiler_screen.dart';
-import 'devolucion_ternos_screen.dart';
-import 'gestion_ventas_screen.dart';
-import 'nueva_venta_screen.dart';
-import 'detalles_venta_screen.dart';
-import 'inventario_ternos_screen.dart';
-import 'generar_reportes_screen.dart';
-import 'configuracion_sistema_screen.dart';
+import 'theme/app_theme.dart';
+import 'screens/panel_administracion_screen.dart';
+import 'screens/gestion_clientes_screen.dart';
+import 'screens/nuevo_cliente_screen.dart';
+import 'screens/gestion_alquileres_screen.dart';
+import 'screens/nuevo_alquiler_screen.dart';
+import 'screens/detalles_alquiler_screen.dart';
+import 'screens/devolucion_ternos_screen.dart';
+import 'screens/gestion_ventas_screen.dart';
+import 'screens/nueva_venta_screen.dart';
+import 'screens/detalles_venta_screen.dart';
+import 'screens/inventario_ternos_screen.dart';
+import 'screens/generar_reportes_screen.dart';
+import 'screens/configuracion_sistema_screen.dart';
 
 void main() {
   runApp(const AppRoot());

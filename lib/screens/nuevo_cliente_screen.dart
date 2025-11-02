@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'theme.dart';
+import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
+import '../theme/app_theme.dart';
 
 class NuevoClienteScreen extends StatefulWidget {
   const NuevoClienteScreen({super.key});
@@ -106,8 +107,9 @@ class _NuevoClienteScreenState extends State<NuevoClienteScreen> {
                       validator: (value) {
                         final v = value?.trim() ?? '';
                         if (v.isEmpty) return null;
-                        final emailRegex =
-                            RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+                        final emailRegex = RegExp(
+                          r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                        );
                         if (!emailRegex.hasMatch(v)) {
                           return 'Formato de correo inválido.';
                         }

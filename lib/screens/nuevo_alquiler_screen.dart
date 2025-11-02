@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'theme.dart';
+import '../theme/app_theme.dart';
 
 class NuevoAlquilerScreen extends StatefulWidget {
   const NuevoAlquilerScreen({super.key});
@@ -19,9 +19,7 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Nuevo Alquiler'),
-      ),
+      appBar: AppBar(title: const Text('Nuevo Alquiler')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),

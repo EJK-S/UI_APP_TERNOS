@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'theme.dart';
+import '../theme/app_theme.dart';
 
 class NuevaVentaScreen extends StatefulWidget {
   const NuevaVentaScreen({super.key});
@@ -10,7 +10,9 @@ class NuevaVentaScreen extends StatefulWidget {
 
 class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _clienteCtrl = TextEditingController(text: 'Mostrador');
+  final TextEditingController _clienteCtrl = TextEditingController(
+    text: 'Mostrador',
+  );
   final TextEditingController _itemsCtrl = TextEditingController();
   final TextEditingController _totalCtrl = TextEditingController();
   bool _ok = false;
@@ -18,9 +20,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Nueva Venta'),
-      ),
+      appBar: AppBar(title: const Text('Nueva Venta')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),

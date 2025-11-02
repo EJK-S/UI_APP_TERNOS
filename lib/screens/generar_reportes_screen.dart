@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'theme.dart';
+import '../theme/app_theme.dart';
 
 class GenerarReportesScreen extends StatefulWidget {
   const GenerarReportesScreen({super.key});
@@ -22,9 +22,7 @@ class _GenerarReportesScreenState extends State<GenerarReportesScreen> {
         : AppColors.borderLight;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Reportes'),
-      ),
+      appBar: AppBar(title: const Text('Reportes')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -44,9 +42,7 @@ class _GenerarReportesScreenState extends State<GenerarReportesScreen> {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         'Tipo de Reporte',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
+                        style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                     ),
@@ -83,9 +79,7 @@ class _GenerarReportesScreenState extends State<GenerarReportesScreen> {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         'Rango de Fechas',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
+                        style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                     ),
@@ -159,9 +153,9 @@ class _GenerarReportesScreenState extends State<GenerarReportesScreen> {
             const SizedBox(height: 24),
             Text(
               'Resultados',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
             Container(
@@ -175,8 +169,9 @@ class _GenerarReportesScreenState extends State<GenerarReportesScreen> {
                 _listo
                     ? 'Aquí mostrarías métricas y tabla detallada del reporte de $_tipo.'
                     : 'No hay datos aún. Genera un reporte.',
-                style:
-                    Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(height: 1.5),
               ),
             ),
           ],

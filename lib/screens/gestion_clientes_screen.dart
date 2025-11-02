@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
 import 'package:proyecto_tienda_ternos/data/mock_data.dart'; // <-- 1. IMPORTAMOS LOS DATOS
-import 'package:proyecto_tienda_ternos/models/cliente.dart';
 
 class GestionClientesScreen extends StatefulWidget {
   const GestionClientesScreen({super.key});

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:proyecto_tienda_ternos/theme.dart';
+import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 
 class MainBottomNav extends StatelessWidget {
   final int currentIndex;

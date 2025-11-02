@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'theme.dart';
+import '../theme/app_theme.dart';
 
 class DevolucionTernosScreen extends StatefulWidget {
   const DevolucionTernosScreen({super.key});
@@ -35,9 +35,7 @@ class _DevolucionTernosScreenState extends State<DevolucionTernosScreen> {
         : AppColors.borderLight;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Devolución de Ternos'),
-      ),
+      appBar: AppBar(title: const Text('Devolución de Ternos')),
       body: SafeArea(
         child: ListView.builder(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -46,15 +44,18 @@ class _DevolucionTernosScreenState extends State<DevolucionTernosScreen> {
             final p = _pendientes[index];
             return Container(
               margin: EdgeInsets.only(
-                  bottom: index == _pendientes.length - 1 ? 0 : 12),
+                bottom: index == _pendientes.length - 1 ? 0 : 12,
+              ),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: borderColor),
               ),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -70,10 +71,9 @@ class _DevolucionTernosScreenState extends State<DevolucionTernosScreen> {
                       '${p['cliente']} • Limite: ${p['fechaLimite']}',
                       style: TextStyle(
                         fontSize: 12,
-                        color:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? AppColors.subtleDark
-                                : AppColors.subtleLight,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.subtleDark
+                            : AppColors.subtleLight,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -94,7 +94,8 @@ class _DevolucionTernosScreenState extends State<DevolucionTernosScreen> {
                                 value: p['entregado'],
                                 onChanged: (v) {
                                   setState(() {
-                                    _pendientes[index]['entregado'] = v ?? false;
+                                    _pendientes[index]['entregado'] =
+                                        v ?? false;
                                   });
                                 },
                               ),
@@ -137,7 +138,7 @@ class _DevolucionTernosScreenState extends State<DevolucionTernosScreen> {
                         onPressed: () {},
                         child: const Text('Registrar Devolución'),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
