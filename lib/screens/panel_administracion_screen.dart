@@ -2,11 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
 import 'package:proyecto_tienda_ternos/widgets/quick_action_card.dart';
 import 'package:proyecto_tienda_ternos/widgets/summary_stat_card.dart';
-import '../theme/app_theme.dart';
-import 'nuevo_alquiler_screen.dart';
-import 'nueva_venta_screen.dart';
-import 'devolucion_ternos_screen.dart';
-import 'generar_reportes_screen.dart';
 
 class PanelAdministracionScreen extends StatelessWidget {
   const PanelAdministracionScreen({super.key});
@@ -35,16 +30,19 @@ class PanelAdministracionScreen extends StatelessWidget {
               children: [
                 QuickActionCard(
                   icon: Icons.add_shopping_cart,
-                  label: 'Registrar Alquiler',
+                  label: 'Alquileres',
                   onTap: () {
-                    Navigator.pushNamed(context, '/alquileres/nuevo');
+                    Navigator.pushNamed(context, '/alquileres');
                   },
                 ),
                 QuickActionCard(
                   icon: Icons.sell_outlined,
-                  label: 'Registrar Venta',
+                  label: 'Ventas', // <-- 1. Texto cambiado
                   onTap: () {
-                    Navigator.pushNamed(context, '/ventas/nueva');
+                    Navigator.pushNamed(
+                      context,
+                      '/ventas',
+                    ); // <-- 2. Ruta cambiada
                   },
                 ),
                 QuickActionCard(

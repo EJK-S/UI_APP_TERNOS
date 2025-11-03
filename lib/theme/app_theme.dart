@@ -29,8 +29,6 @@ ThemeData buildTheme({bool dark = false}) {
     onSecondary: Colors.white,
     surface: dark ? AppColors.backgroundDark : Colors.white,
     onSurface: dark ? AppColors.foregroundDark : AppColors.foregroundLight,
-    background: dark ? AppColors.backgroundDark : AppColors.backgroundLight,
-    onBackground: dark ? AppColors.foregroundDark : AppColors.foregroundLight,
     error: Colors.red,
     onError: Colors.white,
   );

@@ -1,45 +1,66 @@
-// lib/data/mock_data.dart
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/models/alquiler.dart';
 import 'package:proyecto_tienda_ternos/models/venta.dart';
 import 'package:proyecto_tienda_ternos/models/inventario_item.dart';
 
-// Datos para gestion_alquileres_screen.dart
+// ----- LISTA DE ALQUILERES ACTUALIZADA -----
 final List<Alquiler> mockAlquileres = [
   const Alquiler(
     codigo: 'ALQ-0015',
     cliente: 'Juan Pérez',
-    fechaDevolucion: '2025-10-30',
-    estado: AlquilerEstado.pendiente, // <-- Usamos el enum
+    producto: 'Esmoquin Clásico', // <-- CAMBIO: Añadido
+    fechaInicio: '15/07/24', // <-- CAMBIO: Añadido
+    fechaDevolucion: '20/07/24',
+    estado: AlquilerEstado.activo,
   ),
   const Alquiler(
     codigo: 'ALQ-0016',
-    cliente: 'María López',
-    fechaDevolucion: '2025-10-29',
-    estado: AlquilerEstado.atrasado, // <-- Usamos el enum
+    cliente: 'Carlos Sánchez',
+    producto: 'Traje de Gala Azul', // <-- CAMBIO: Añadido
+    fechaInicio: '10/07/24', // <-- CAMBIO: Añadido
+    fechaDevolucion: '14/07/24',
+    estado: AlquilerEstado.activo,
+  ),
+  const Alquiler(
+    codigo: 'ALQ-0017',
+    cliente: 'Miguel Rodríguez',
+    producto: 'Frac Negro', // <-- CAMBIO: Añadido
+    fechaInicio: '01/07/24', // <-- CAMBIO: Añadido
+    fechaDevolucion: '05/07/24',
+    estado: AlquilerEstado.atrasado, // "En Mora" en tu imagen
   ),
 ];
 
+// ----- LISTA DE VENTAS ACTUALIZADA -----
+final List<Venta> mockVentas = [
+  const Venta(
+    codigo: 'VEN-1021',
+    producto: 'Traje Clásico Negro', // <-- CAMBIO: Añadido
+    total: 'S/ 250.00',
+    cliente: 'Daniel',
+    fecha: '26 de Julio, 2024',
+  ),
+  const Venta(
+    codigo: 'VEN-1020',
+    producto: 'Esmoquin Moderno', // <-- CAMBIO: Añadido
+    total: 'S/ 300.00',
+    cliente: 'Sofia',
+    fecha: '25 de Julio, 2024',
+  ),
+  const Venta(
+    codigo: 'VEN-1019',
+    producto: 'Traje de Lino Beige', // <-- CAMBIO: Añadido
+    total: 'S/ 200.00',
+    cliente: 'Mateo',
+    fecha: '24 de Julio, 2024',
+  ),
+];
+
+// --- (El resto de tus listas siguen igual) ---
 // Datos para gestion_clientes_screen.dart
 final List<Cliente> mockClientes = [
   const Cliente(nombre: 'Juan Pérez', dni: '12345678', telefono: '987654321'),
   const Cliente(nombre: 'María López', dni: '87654321', telefono: '912345678'),
-];
-
-// Datos para gestion_ventas_screen.dart
-final List<Venta> mockVentas = [
-  const Venta(
-    codigo: 'VEN-1021',
-    total: 'S/ 480.00',
-    cliente: 'Mostrador',
-    fecha: '2025-10-27',
-  ),
-  const Venta(
-    codigo: 'VEN-1020',
-    total: 'S/ 320.00',
-    cliente: 'Juan Pérez',
-    fecha: '2025-10-27',
-  ),
 ];
 
 // Datos para inventario_ternos_screen.dart
@@ -60,8 +81,3 @@ final List<InventarioItem> mockStock = [
     usos: '12',
   ),
 ];
-
-// Datos para devolucion_ternos_screen.dart
-// (Esta lista necesita ser una variable de clase en un StatefulWidget,
-// así que la dejaremos donde está solo por ahora, ya que el estado (daño, entregado) cambia.
-// Si solo fuera para mostrar, la moveríamos aquí mismo.)
