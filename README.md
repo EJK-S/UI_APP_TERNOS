@@ -13,6 +13,7 @@ nota: No hay problema si usas VSCode, puedes usar la opción New Terminal en la 
 
 # Instala todas las dependencias de Flutter
 flutter pub get
+
 ¡Listo! Ya tienes el proyecto y puedes empezar a trabajar.
 
 2. Flujo de Trabajo Diario para Subir Cambios
@@ -29,17 +30,21 @@ Paso B: Añadir tus Cambios
 Prepara los archivos que modificaste para "tomarles la foto" (commit).
 
 # El "." significa "añadir todos los archivos que he cambiado"
+
 git add .
+
 Paso C: Crear un "Commit"
 Crea un punto de guardado con un mensaje que describa qué hiciste.
 
 # ¡Cambia el mensaje por uno descriptivo!
 git commit -m "Ej: Añadido el botón de login en la pantalla de inicio"
+
 Paso D: Subir tus Cambios a GitHub
 Finalmente, envía tu "commit" a la nube para que todos puedan verlo.
 
 # Sube tus cambios a la rama principal (main)
 git push origin main
+
 Resumen Rápido (El "Cheatsheet")
 Una vez que ya tienes el proyecto clonado, tu día a día será este ciclo:
 
@@ -49,13 +54,15 @@ git pull origin main
 # 2. (Trabajas en tu código...)
 
 # 3. Añades tus archivos
+
 git add .
 
 # 4. Creas el commit
+
 git commit -m "Mi mensaje descriptivo"
 
 # 5. Subes tus cambios
 git push origin main
+
 Este flujo de trabajo asume que todos trabajan directamente sobre la rama main.
 
-#aaaa
