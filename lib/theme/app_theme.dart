@@ -114,6 +114,7 @@ class Routes {
   static const String gestionVentas = '/ventas';
   static const String nuevaVenta = '/ventas/nueva';
   static const String detallesVenta = '/ventas/detalle';
+  static const String pagos = '/pagos';
   static const String inventario = '/inventario';
   static const String reportes = '/reportes';
   static const String configuracionSistema = '/config';

@@ -1,7 +1,11 @@
+// lib/screens/gestion_alquileres_screen.dart (Actualizado)
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart'; // <-- 1. IMPORTAMOS PROVIDER
+import 'package:proyecto_tienda_ternos/providers/alquiler_provider.dart'; // <-- 2. IMPORTAMOS EL CEREBRO
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
-import 'package:proyecto_tienda_ternos/data/mock_data.dart';
+// import 'package:proyecto_tienda_ternos/data/mock_data.dart'; // <-- 3. YA NO NECESITAMOS LOS DATOS MOCK
 import 'package:proyecto_tienda_ternos/models/alquiler.dart';
 
 class GestionAlquileresScreen extends StatelessWidget {
@@ -9,63 +13,76 @@ class GestionAlquileresScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Usamos DefaultTabController para manejar las pestañas
-    return DefaultTabController(
-      length: 2, // Dos pestañas: Activos y Finalizados
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Alquileres'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Activos'),
-              Tab(text: 'Finalizados'),
-            ],
-            // Estilos para que coincida con la imagen
-            indicatorColor: AppColors.primary,
-            labelColor: AppColors.primary,
-            unselectedLabelColor: AppColors.stone600,
-          ),
-        ),
-        body: SafeArea(
-          // TabBarView para mostrar el contenido de cada pestaña
-          child: TabBarView(
-            children: [
-              // Contenido de la pestaña "Activos"
-              _AlquilerListView(
-                alquileres: mockAlquileres
-                    .where(
-                      (a) => a.estado != AlquilerEstado.pendiente,
-                    ) // Ejemplo de filtro
-                    .toList(),
+    // 4. PEDIMOS LA INSTANCIA DEL PROVIDER
+    // (Esto NO escucha cambios, solo es para leer datos iniciales si fuera necesario)
+    // final alquilerProvider = Provider.of<AlquilerProvider>(context);
+
+    // 5. USAMOS UN CONSUMER PARA "ESCUCHAR" CAMBIOS
+    return Consumer<AlquilerProvider>(
+      builder: (context, alquilerProvider, child) {
+        // 'alquilerProvider' es la instancia de nuestro cerebro.
+        // 'child' es un widget que podemos pasar si no queremos que se redibuje (no lo usamos aquí).
+
+        // Ahora, en lugar de usar 'mockAlquileres', usamos la lista VIVA del provider:
+        final alquileresActivos = alquilerProvider.alquileres
+            .where((a) => a.estado != AlquilerEstado.pendiente)
+            .toList();
+        final alquileresFinalizados = alquilerProvider.alquileres
+            .where((a) => a.estado == AlquilerEstado.pendiente)
+            .toList();
+
+        return DefaultTabController(
+          length: 2,
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('Alquileres'),
+              bottom: const TabBar(
+                tabs: [
+                  Tab(text: 'Activos'),
+                  Tab(text: 'Finalizados'),
+                ],
+                indicatorColor: AppColors.primary,
+                labelColor: AppColors.primary,
+                unselectedLabelColor: AppColors.stone600,
               ),
-              // Contenido de la pestaña "Finalizados" (ponemos una lista vacía como ejemplo)
-              _AlquilerListView(
-                alquileres: mockAlquileres
-                    .where(
-                      (a) => a.estado == AlquilerEstado.pendiente,
-                    ) // Ejemplo de filtro
-                    .toList(),
+            ),
+            body: SafeArea(
+              child: TabBarView(
+                children: [
+                  // Contenido de la pestaña "Activos"
+                  _AlquilerListView(
+                    alquileres:
+                        alquileresActivos, // <-- 6. Usamos la lista del provider
+                  ),
+                  // Contenido de la pestaña "Finalizados"
+                  _AlquilerListView(
+                    alquileres:
+                        alquileresFinalizados, // <-- 7. Usamos la lista del provider
+                  ),
+                ],
               ),
-            ],
+            ),
+            floatingActionButton: FloatingActionButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/alquileres/nuevo');
+              },
+              backgroundColor: AppColors.primary,
+              child: const Icon(Icons.add, color: Colors.white),
+            ),
+            bottomNavigationBar: const MainBottomNav(
+              currentIndex: 1,
+            ), // "Clientes" es el índice 1
           ),
-        ),
-        // Tu botón FAB para navegar a /alquileres/nuevo (Imagen 2)
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.pushNamed(context, '/alquileres/nuevo');
-          },
-          backgroundColor: AppColors.primary,
-          child: const Icon(Icons.add, color: Colors.white),
-        ),
-        bottomNavigationBar: const MainBottomNav(
-          currentIndex: 1,
-        ), // "Clientes" es el índice 1
-      ),
+        );
+      },
     );
   }
 }
 
-// Widget interno para la lista (así no repetimos código)
+// --- NINGÚN CAMBIO DE AQUÍ PARA ABAJO ---
+// (Los widgets internos (_AlquilerListView, _AlquilerCard, _StatusTag)
+// siguen exactamente iguales, ya que ahora reciben la lista filtrada)
+
 class _AlquilerListView extends StatelessWidget {
   final List<Alquiler> alquileres;
   const _AlquilerListView({required this.alquileres});
@@ -81,14 +98,12 @@ class _AlquilerListView extends StatelessWidget {
       itemCount: alquileres.length,
       itemBuilder: (context, index) {
         final alquiler = alquileres[index];
-        // Aquí creamos la tarjeta personalizada
         return _AlquilerCard(alquiler: alquiler);
       },
     );
   }
 }
 
-// Widget interno para la tarjeta de Alquiler (Diseño de la Imagen 3)
 class _AlquilerCard extends StatelessWidget {
   final Alquiler alquiler;
   const _AlquilerCard({required this.alquiler});
@@ -108,7 +123,6 @@ class _AlquilerCard extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: Row(
             children: [
-              // Columna para Cliente, Producto y Fechas
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,9 +150,7 @@ class _AlquilerCard extends StatelessWidget {
                   ],
                 ),
               ),
-              // Espacio
               const SizedBox(width: 16),
-              // Etiqueta de Estado
               _StatusTag(estado: alquiler.estado),
             ],
           ),
@@ -148,7 +160,6 @@ class _AlquilerCard extends StatelessWidget {
   }
 }
 
-// Widget interno para la etiqueta de estado (Activo, En Mora)
 class _StatusTag extends StatelessWidget {
   final AlquilerEstado estado;
   const _StatusTag({required this.estado});

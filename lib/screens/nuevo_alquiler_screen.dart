@@ -1,5 +1,10 @@
+// lib/screens/nuevo_alquiler_screen.dart (Actualizado)
+
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
+import 'package:provider/provider.dart'; // <-- 1. IMPORTAMOS PROVIDER
+import 'package:proyecto_tienda_ternos/models/alquiler.dart'; // <-- 2. IMPORTAMOS EL MODELO
+import 'package:proyecto_tienda_ternos/providers/alquiler_provider.dart'; // <-- 3. IMPORTAMOS EL CEREBRO
+import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 
 class NuevoAlquilerScreen extends StatefulWidget {
   const NuevoAlquilerScreen({super.key});
@@ -10,11 +15,52 @@ class NuevoAlquilerScreen extends StatefulWidget {
 
 class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
   final _formKey = GlobalKey<FormState>();
+  // Controladores para capturar el texto de los campos
   final TextEditingController _clienteCtrl = TextEditingController();
   final TextEditingController _fechaDevolucionCtrl = TextEditingController();
   final TextEditingController _garantiaCtrl = TextEditingController();
   final TextEditingController _itemsCtrl = TextEditingController();
-  bool _ok = false;
+
+  // bool _ok = false; // <-- 4. YA NO NECESITAMOS ESTO
+
+  void _submitForm() {
+    // 5. Validamos el formulario
+    if (_formKey.currentState!.validate()) {
+      // 6. Creamos el nuevo objeto Alquiler con los datos del formulario
+      final nuevoAlquiler = Alquiler(
+        codigo:
+            'ALQ-${DateTime.now().millisecondsSinceEpoch}', // Un ID temporal
+        cliente: _clienteCtrl.text,
+        producto: _itemsCtrl.text, // Usamos el campo "prendas" como "producto"
+        fechaInicio: '2025-11-03', // Deberías añadir un campo para esto
+        fechaDevolucion: _fechaDevolucionCtrl.text,
+        estado: AlquilerEstado.activo, // Por defecto es "activo"
+      );
+
+      // 7. HABLAMOS CON EL CEREBRO
+      // Usamos Provider.of para obtener la instancia del provider
+      // listen: false es CRUCIAL aquí. Significa "solo quiero llamar un método,
+      // no me quiero suscribir a los cambios".
+      Provider.of<AlquilerProvider>(
+        context,
+        listen: false,
+      ).agregarAlquiler(nuevoAlquiler);
+
+      // 8. REGRESAMOS A LA PANTALLA ANTERIOR
+      // (La lista de alquileres se actualizará sola)
+      Navigator.pop(context);
+    }
+  }
+
+  @override
+  void dispose() {
+    // Limpiamos los controladores
+    _clienteCtrl.dispose();
+    _fechaDevolucionCtrl.dispose();
+    _garantiaCtrl.dispose();
+    _itemsCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +78,7 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
                     label: 'Cliente',
                     requiredMark: true,
                     child: TextFormField(
-                      controller: _clienteCtrl,
+                      controller: _clienteCtrl, // <-- Conectado
                       decoration: const InputDecoration(
                         hintText: 'Seleccionar / ingresar cliente',
                         prefixIcon: Icon(Icons.person_search),
@@ -50,7 +96,7 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
                     label: 'Fecha de devolución',
                     requiredMark: true,
                     child: TextFormField(
-                      controller: _fechaDevolucionCtrl,
+                      controller: _fechaDevolucionCtrl, // <-- Conectado
                       decoration: const InputDecoration(
                         hintText: 'AAAA-MM-DD',
                         prefixIcon: Icon(Icons.date_range),
@@ -68,7 +114,7 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
                     label: 'Garantía (S/)',
                     requiredMark: true,
                     child: TextFormField(
-                      controller: _garantiaCtrl,
+                      controller: _garantiaCtrl, // <-- Conectado
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
                         hintText: 'Monto en garantía',
@@ -90,7 +136,7 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
                     label: 'Prendas alquiladas',
                     requiredMark: true,
                     child: TextFormField(
-                      controller: _itemsCtrl,
+                      controller: _itemsCtrl, // <-- Conectado
                       maxLines: 3,
                       decoration: const InputDecoration(
                         hintText: 'Ej. Terno negro T42, camisa blanca M...',
@@ -120,25 +166,14 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          setState(() {
-                            _ok = true;
-                          });
-                        }
-                      },
+                      // 9. Conectamos el botón a nuestra nueva función
+                      onPressed: _submitForm,
                       child: const Text('Confirmar Alquiler'),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  if (_ok)
-                    Text(
-                      'Alquiler registrado exitosamente',
-                      style: TextStyle(
-                        color: AppColors.successLight,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                  // 10. YA NO NECESITAMOS MOSTRAR EL MENSAJE DE ÉXITO
+                  // if (_ok) ...
                 ],
               ),
             ),
@@ -149,6 +184,9 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
   }
 }
 
+// --- NINGÚN CAMBIO DE AQUÍ PARA ABAJO ---
+// (El widget _FieldBlock sigue exactamente igual)
+
 class _FieldBlock extends StatelessWidget {
   final String label;
   final bool requiredMark;
@@ -158,7 +196,6 @@ class _FieldBlock extends StatelessWidget {
     required this.child,
     this.requiredMark = false,
   });
-
   @override
   Widget build(BuildContext context) {
     final labelStyle = TextStyle(

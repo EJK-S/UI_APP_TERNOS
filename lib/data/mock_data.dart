@@ -2,6 +2,7 @@ import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/models/alquiler.dart';
 import 'package:proyecto_tienda_ternos/models/venta.dart';
 import 'package:proyecto_tienda_ternos/models/inventario_item.dart';
+import 'package:proyecto_tienda_ternos/models/pago.dart';
 
 // ----- LISTA DE ALQUILERES ACTUALIZADA -----
 final List<Alquiler> mockAlquileres = [
@@ -61,6 +62,33 @@ final List<Venta> mockVentas = [
 final List<Cliente> mockClientes = [
   const Cliente(nombre: 'Juan Pérez', dni: '12345678', telefono: '987654321'),
   const Cliente(nombre: 'María López', dni: '87654321', telefono: '912345678'),
+];
+
+final List<Pago> mockPagos = [
+  const Pago(
+    id: '#20240001',
+    fecha: '15 de mayo, 2024',
+    cliente: 'Sofia Ramirez',
+    monto: 'S/ 550.00',
+    tipo: TipoPago.Venta,
+    metodo: MetodoPago.Tarjeta,
+  ),
+  const Pago(
+    id: '#20240002',
+    fecha: '14 de mayo, 2024',
+    cliente: 'Juan Pérez',
+    monto: 'S/ 280.00',
+    tipo: TipoPago.Alquiler,
+    metodo: MetodoPago.Yape,
+  ),
+  const Pago(
+    id: '#20240003',
+    fecha: '13 de mayo, 2024',
+    cliente: 'Carlos Sánchez',
+    monto: 'S/ 150.00',
+    tipo: TipoPago.Venta,
+    metodo: MetodoPago.Efectivo,
+  ),
 ];
 
 // Datos para inventario_ternos_screen.dart
