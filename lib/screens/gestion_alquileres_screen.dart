@@ -5,6 +5,7 @@ import 'package:provider/provider.dart'; // <-- 1. IMPORTAMOS PROVIDER
 import 'package:proyecto_tienda_ternos/providers/alquiler_provider.dart'; // <-- 2. IMPORTAMOS EL CEREBRO
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
+import 'package:proyecto_tienda_ternos/screens/detalles_alquiler_screen.dart';
 // import 'package:proyecto_tienda_ternos/data/mock_data.dart'; // <-- 3. YA NO NECESITAMOS LOS DATOS MOCK
 import 'package:proyecto_tienda_ternos/models/alquiler.dart';
 
@@ -116,7 +117,12 @@ class _AlquilerCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () {
-          Navigator.pushNamed(context, '/alquileres/detalle');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DetallesAlquilerScreen(alquiler: alquiler),
+            ),
+          );
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(

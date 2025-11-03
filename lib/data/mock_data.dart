@@ -9,26 +9,38 @@ final List<Alquiler> mockAlquileres = [
   const Alquiler(
     codigo: 'ALQ-0015',
     cliente: 'Juan Pérez',
-    producto: 'Esmoquin Clásico', // <-- CAMBIO: Añadido
-    fechaInicio: '15/07/24', // <-- CAMBIO: Añadido
+    producto: 'Esmoquin Clásico',
+    fechaInicio: '15/07/24',
     fechaDevolucion: '20/07/24',
     estado: AlquilerEstado.activo,
+    // --- Datos nuevos ---
+    metodoPago: 'Tarjeta de Crédito',
+    montoTotal: 'S/ 150',
+    garantia: 'S/ 50',
   ),
   const Alquiler(
     codigo: 'ALQ-0016',
     cliente: 'Carlos Sánchez',
-    producto: 'Traje de Gala Azul', // <-- CAMBIO: Añadido
-    fechaInicio: '10/07/24', // <-- CAMBIO: Añadido
+    producto: 'Traje de Gala Azul',
+    fechaInicio: '10/07/24',
     fechaDevolucion: '14/07/24',
     estado: AlquilerEstado.activo,
+    // --- Datos nuevos ---
+    metodoPago: 'Yape - Plin',
+    montoTotal: 'S/ 280',
+    garantia: 'S/ 100',
   ),
   const Alquiler(
     codigo: 'ALQ-0017',
     cliente: 'Miguel Rodríguez',
-    producto: 'Frac Negro', // <-- CAMBIO: Añadido
-    fechaInicio: '01/07/24', // <-- CAMBIO: Añadido
+    producto: 'Frac Negro',
+    fechaInicio: '01/07/24',
     fechaDevolucion: '05/07/24',
-    estado: AlquilerEstado.atrasado, // "En Mora" en tu imagen
+    estado: AlquilerEstado.atrasado, // "En Mora"
+    // --- Datos nuevos ---
+    metodoPago: 'Efectivo',
+    montoTotal: 'S/ 180',
+    garantia: 'S/ 50',
   ),
 ];
 

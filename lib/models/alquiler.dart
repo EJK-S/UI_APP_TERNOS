@@ -8,6 +8,11 @@ class Alquiler {
   final String fechaDevolucion;
   final AlquilerEstado estado;
 
+  // --- NUEVOS CAMPOS AÑADIDOS ---
+  final String metodoPago;
+  final String montoTotal;
+  final String garantia;
+
   const Alquiler({
     required this.codigo,
     required this.cliente,
@@ -15,5 +20,9 @@ class Alquiler {
     required this.fechaInicio,
     required this.fechaDevolucion,
     required this.estado,
+    // --- NUEVOS CAMPOS AÑADIDOS ---
+    required this.metodoPago,
+    required this.montoTotal,
+    required this.garantia,
   });
 }

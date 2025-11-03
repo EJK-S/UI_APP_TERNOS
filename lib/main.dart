@@ -45,7 +45,6 @@ class AppRoot extends StatelessWidget {
         '/clientes/nuevo': (_) => const NuevoClienteScreen(),
         '/alquileres': (_) => const GestionAlquileresScreen(),
         '/alquileres/nuevo': (_) => const NuevoAlquilerScreen(),
-        '/alquileres/detalle': (_) => const DetallesAlquilerScreen(),
         '/alquileres/devolucion': (_) => const DevolucionTernosScreen(),
         '/ventas': (_) => const GestionVentasScreen(),
         '/ventas/nueva': (_) => const NuevaVentaScreen(),
