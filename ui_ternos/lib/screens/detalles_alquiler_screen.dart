@@ -1,9 +1,13 @@
+// lib/screens/detalles_alquiler_screen.dart (Actualizado)
+
 import 'package:flutter/material.dart';
 import 'package:proyecto_tienda_ternos/models/alquiler.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 
+// --- 1. IMPORTA LA NUEVA PANTALLA ---
+import 'package:proyecto_tienda_ternos/screens/registrar_devolucion_screen.dart';
+
 class DetallesAlquilerScreen extends StatelessWidget {
-  // Aceptamos un objeto Alquiler para mostrar sus detalles
   final Alquiler alquiler;
 
   const DetallesAlquilerScreen({super.key, required this.alquiler});
@@ -63,7 +67,21 @@ class DetallesAlquilerScreen extends StatelessWidget {
               label: 'Registrar Devolución',
               color: AppColors.borderLight,
               textColor: AppColors.stone800,
-              onPressed: () {},
+
+              // --- 2. ACTUALIZA EL 'onPressed' ---
+              onPressed: () {
+                // Navega a la nueva pantalla de registro
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    // Le pasa el alquiler actual a la nueva pantalla
+                    builder: (context) =>
+                        RegistrarDevolucionScreen(alquiler: alquiler),
+                    // Opcional: hace que la pantalla aparezca desde abajo
+                    fullscreenDialog: true,
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 12),
             _buildActionButton(

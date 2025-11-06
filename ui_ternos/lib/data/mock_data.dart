@@ -1,8 +1,9 @@
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/models/alquiler.dart';
 import 'package:proyecto_tienda_ternos/models/venta.dart';
-import 'package:proyecto_tienda_ternos/models/inventario_item.dart';
 import 'package:proyecto_tienda_ternos/models/pago.dart';
+import 'package:proyecto_tienda_ternos/models/inventario_categoria.dart';
+import 'package:proyecto_tienda_ternos/models/cita.dart';
 
 // ----- LISTA DE ALQUILERES ACTUALIZADA -----
 final List<Alquiler> mockAlquileres = [
@@ -124,20 +125,68 @@ final List<Pago> mockPagos = [
 ];
 
 // Datos para inventario_ternos_screen.dart
-final List<InventarioItem> mockStock = [
-  const InventarioItem(
-    prenda: 'Terno negro T42',
-    estado: InventarioEstado.disponible, // <-- Usamos el enum
-    usos: '5',
+final List<InventarioCategoria> mockInventarioCategorias = [
+  const InventarioCategoria(
+    nombre: 'Traje Clásico',
+    disponibles: 15,
+    alquilados: 5,
+    mantenimiento: 2,
   ),
-  const InventarioItem(
-    prenda: 'Terno azul T40',
-    estado: InventarioEstado.alquilado, // <-- Usamos el enum
-    usos: '3',
+  const InventarioCategoria(
+    nombre: 'Traje de Gala',
+    disponibles: 8,
+    alquilados: 3,
+    mantenimiento: 1,
   ),
-  const InventarioItem(
-    prenda: 'Saco gris T44',
-    estado: InventarioEstado.mantenimiento, // <-- Usamos el enum
-    usos: '12',
+  const InventarioCategoria(
+    nombre: 'Traje de Verano',
+    disponibles: 12,
+    alquilados: 6,
+    mantenimiento: 0,
+  ),
+  const InventarioCategoria(
+    nombre: 'Traje de Invierno',
+    disponibles: 5,
+    alquilados: 1,
+    mantenimiento: 3,
+  ),
+];
+
+final List<Cita> mockCitas = [
+  const Cita(
+    tipo: CitaTipo.Alquiler,
+    clienteNombre: 'Alejandro Vargas',
+    prendasResumen: 'Prendas: Terno Negro, Zapatos, Camisa',
+    fecha: '15 de Oct, 2024',
+    hora: '10:00 AM',
+    estado: CitaEstado.Pendiente,
+    clienteTelefono: '+34 612 345 678',
+    clienteEmail: 'alejandro.vargas@email.com',
+    prendaDetalleNombre: 'Terno Clásico Azul Marino',
+    prendaDetalleId: 'T-00123',
+  ),
+  const Cita(
+    tipo: CitaTipo.Prueba,
+    clienteNombre: 'Sofia Rodriguez',
+    prendasResumen: 'Prendas: Terno Azul, Corbatín',
+    fecha: '15 de Oct, 2024',
+    hora: '02:30 PM',
+    estado: CitaEstado.Pendiente,
+    clienteTelefono: '+51 987 654 321',
+    clienteEmail: 'sofia.r@email.com',
+    prendaDetalleNombre: 'Terno Azul',
+    prendaDetalleId: 'T-00124',
+  ),
+  const Cita(
+    tipo: CitaTipo.Devolucion,
+    clienteNombre: 'Carlos Mendoza',
+    prendasResumen: 'Prendas: Terno Gris',
+    fecha: '16 de Oct, 2024',
+    hora: '11:00 AM',
+    estado: CitaEstado.Pendiente,
+    clienteTelefono: '+51 999 888 777',
+    clienteEmail: 'carlos.mendoza@email.com',
+    prendaDetalleNombre: 'Terno Gris',
+    prendaDetalleId: 'T-00105',
   ),
 ];

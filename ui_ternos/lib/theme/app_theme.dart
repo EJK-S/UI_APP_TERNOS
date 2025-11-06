@@ -110,7 +110,6 @@ class Routes {
   static const String gestionAlquileres = '/alquileres';
   static const String nuevoAlquiler = '/alquileres/nuevo';
   static const String detallesAlquiler = '/alquileres/detalle';
-  static const String devolucionTernos = '/alquileres/devolucion';
   static const String gestionVentas = '/ventas';
   static const String nuevaVenta = '/ventas/nueva';
   static const String detallesVenta = '/ventas/detalle';
@@ -118,4 +117,9 @@ class Routes {
   static const String inventario = '/inventario';
   static const String reportes = '/reportes';
   static const String configuracionSistema = '/config';
+  static const String citasPendientes = '/citas';
+  static const String inventarioNuevo = '/inventario/nuevo';
+  static const String nuevaCita = '/citas/nueva';
+  static const String detallesCita = '/citas/detalle';
+  static const String editarCita = '/citas/editar';
 }

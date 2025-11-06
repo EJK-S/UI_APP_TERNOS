@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
 import 'package:proyecto_tienda_ternos/widgets/quick_action_card.dart';
 import 'package:proyecto_tienda_ternos/widgets/summary_stat_card.dart';
@@ -14,6 +15,7 @@ class PanelAdministracionScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           children: [
+            // --- ACCESOS RÁPIDOS (Actualizados) ---
             Text(
               'Accesos Rápidos',
               style: Theme.of(
@@ -29,39 +31,38 @@ class PanelAdministracionScreen extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               children: [
                 QuickActionCard(
-                  icon: Icons.add_shopping_cart,
-                  label: 'Alquileres',
+                  icon: Icons.shopping_cart, // Ícono de 'Alquiler'
+                  label: 'Alquiler',
                   onTap: () {
-                    Navigator.pushNamed(context, '/alquileres');
+                    Navigator.pushNamed(context, Routes.gestionAlquileres);
                   },
                 ),
                 QuickActionCard(
-                  icon: Icons.sell_outlined,
-                  label: 'Ventas', // <-- 1. Texto cambiado
+                  icon: Icons.sell, // Ícono de 'Venta'
+                  label: 'Venta',
                   onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/ventas',
-                    ); // <-- 2. Ruta cambiada
+                    Navigator.pushNamed(context, Routes.gestionVentas);
                   },
                 ),
                 QuickActionCard(
-                  icon: Icons.assignment_return,
-                  label: 'Devoluciones',
+                  icon: Icons.inventory_2, // Ícono de 'Inventario'
+                  label: 'Inventario',
                   onTap: () {
-                    Navigator.pushNamed(context, '/alquileres/devolucion');
+                    Navigator.pushNamed(context, Routes.inventario);
                   },
                 ),
                 QuickActionCard(
-                  icon: Icons.bar_chart,
-                  label: 'Reportes',
+                  icon: Icons.pending_actions, // Ícono de 'Citas Pendientes'
+                  label: 'Citas Pendientes',
                   onTap: () {
-                    Navigator.pushNamed(context, '/reportes');
+                    Navigator.pushNamed(context, Routes.citasPendientes);
                   },
                 ),
               ],
             ),
             const SizedBox(height: 24),
+
+            // --- RESUMEN (Actualizado) ---
             Text(
               'Resumen',
               style: Theme.of(
@@ -72,19 +73,19 @@ class PanelAdministracionScreen extends StatelessWidget {
             const SummaryStatCard(
               title: 'Alquileres activos',
               value: '15',
-              icon: Icons.inventory_2,
+              icon: Icons.calendar_today, // Ícono de calendario
             ),
             const SizedBox(height: 12),
             const SummaryStatCard(
               title: 'Devoluciones pendientes',
               value: '3',
-              icon: Icons.schedule,
+              icon: Icons.watch_later, // Ícono de reloj
             ),
             const SizedBox(height: 12),
             const SummaryStatCard(
               title: 'Ventas totales del día',
               value: 'S/ 1,250',
-              icon: Icons.paid,
+              icon: Icons.paid, // Ícono de dinero
             ),
           ],
         ),

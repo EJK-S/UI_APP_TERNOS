@@ -7,7 +7,6 @@ import 'package:proyecto_tienda_ternos/screens/nuevo_cliente_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/gestion_alquileres_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/nuevo_alquiler_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/gestion_pagos_screen.dart';
-import 'package:proyecto_tienda_ternos/screens/devolucion_ternos_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/gestion_ventas_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/nueva_venta_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/detalles_venta_screen.dart';
@@ -15,6 +14,9 @@ import 'package:proyecto_tienda_ternos/screens/inventario_ternos_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/generar_reportes_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/configuracion_sistema_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
+import 'package:proyecto_tienda_ternos/screens/citas_pendientes_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/registrar_terno_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/nueva_cita_screen.dart';
 
 void main() {
   // 2. Envuelve la app con el Provider
@@ -44,7 +46,6 @@ class AppRoot extends StatelessWidget {
         '/clientes/nuevo': (_) => const NuevoClienteScreen(),
         '/alquileres': (_) => const GestionAlquileresScreen(),
         '/alquileres/nuevo': (_) => const NuevoAlquilerScreen(),
-        '/alquileres/devolucion': (_) => const DevolucionTernosScreen(),
         '/ventas': (_) => const GestionVentasScreen(),
         '/ventas/nueva': (_) => const NuevaVentaScreen(),
         '/ventas/detalle': (_) => const DetallesVentaScreen(),
@@ -52,6 +53,9 @@ class AppRoot extends StatelessWidget {
         '/inventario': (_) => const InventarioTernosScreen(),
         '/reportes': (_) => const GenerarReportesScreen(),
         '/config': (_) => const ConfiguracionSistemaScreen(),
+        Routes.citasPendientes: (_) => const CitasPendientesScreen(),
+        Routes.inventarioNuevo: (_) => const RegistrarTernoScreen(),
+        Routes.nuevaCita: (_) => const NuevaCitaScreen(),
       },
     );
   }
