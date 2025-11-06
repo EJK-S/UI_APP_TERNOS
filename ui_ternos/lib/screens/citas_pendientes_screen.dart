@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart'; // <-- 1. IMPORTAMOS PROVIDER
 import 'package:proyecto_tienda_ternos/providers/cita_provider.dart'; // <-- 2. IMPORTAMOS EL CEREBRO
+// Ya no necesitamos importar datos de prueba
 import 'package:proyecto_tienda_ternos/models/cita.dart';
 import 'package:proyecto_tienda_ternos/screens/detalles_cita_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';

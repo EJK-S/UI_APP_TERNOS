@@ -1,5 +1,3 @@
-// lib/screens/nuevo_alquiler_screen.dart (CORREGIDO)
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/models/alquiler.dart';
@@ -13,43 +11,46 @@ class NuevoAlquilerScreen extends StatefulWidget {
   State<NuevoAlquilerScreen> createState() => _NuevoAlquilerScreenState();
 }
 
+//
+// -----------------------------------------------------------------
+// TODO COMIENZA DENTRO DE ESTA CLASE
+// -----------------------------------------------------------------
+//
 class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controladores para los campos de texto
+  // Controladores
   final TextEditingController _fechaAlquilerCtrl = TextEditingController();
   final TextEditingController _fechaDevolucionCtrl = TextEditingController();
   final TextEditingController _garantiaCtrl = TextEditingController();
-
-  // --- CAMBIO: AÑADIDO CONTROLADOR PARA MONTO TOTAL ---
   final TextEditingController _montoTotalCtrl = TextEditingController();
+  final TextEditingController _clienteCtrl =
+      TextEditingController(); // Para el nombre
 
   // Variables de estado
-  String? _selectedCliente;
   String? _selectedTraje;
-  String _selectedPaymentMethod = 'Yape - Plin';
+  String _selectedPaymentMethod = 'Yape - Plin'; // Valor inicial
 
   @override
   void dispose() {
+    // Limpiamos los controladores
     _fechaAlquilerCtrl.dispose();
     _fechaDevolucionCtrl.dispose();
     _garantiaCtrl.dispose();
-    _montoTotalCtrl.dispose(); // <-- CAMBIO: Limpiar
+    _montoTotalCtrl.dispose();
+    _clienteCtrl.dispose(); // Limpiamos el de cliente
     super.dispose();
   }
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
-      // --- CAMBIO: CONSTRUCTOR CORREGIDO CON TODOS LOS PARÁMETROS ---
       final nuevoAlquiler = Alquiler(
         codigo: 'ALQ-${DateTime.now().millisecondsSinceEpoch}',
-        cliente: _selectedCliente ?? 'Cliente (No seleccionado)',
+        cliente: _clienteCtrl.text, // Usamos el texto del controlador
         producto: _selectedTraje ?? 'Traje (No seleccionado)',
         fechaInicio: _fechaAlquilerCtrl.text,
         fechaDevolucion: _fechaDevolucionCtrl.text,
         estado: AlquilerEstado.activo,
-
-        // --- Datos requeridos añadidos ---
         metodoPago: _selectedPaymentMethod,
         montoTotal: 'S/ ${_montoTotalCtrl.text}',
         garantia: 'S/ ${_garantiaCtrl.text}',
@@ -64,6 +65,9 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
     }
   }
 
+  // -----------------------------------------------------------------
+  // MÉTODO build() (La interfaz)
+  // -----------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,22 +78,13 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
           child: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
-              // --- Nombre del cliente (Dropdown) ---
-              _buildDropdownField(
+              // --- Nombre del cliente (TextField) ---
+              _buildTextField(
+                // Reemplazado
+                controller: _clienteCtrl,
                 label: 'Nombre del cliente',
-                hint: 'Seleccionar cliente',
-                value: _selectedCliente,
-                items: [
-                  'Juan Pérez',
-                  'María López',
-                  'Carlos Sánchez',
-                  'Miguel Rodríguez',
-                ], // Datos de ejemplo
-                onChanged: (value) {
-                  setState(() {
-                    _selectedCliente = value;
-                  });
-                },
+                hint: 'Seleccionar / ingresar cliente',
+                icon: Icons.person_outline, // Con ícono
               ),
               const SizedBox(height: 16),
 
@@ -149,7 +144,7 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
               ),
               const SizedBox(height: 16),
 
-              // --- CAMBIO: AÑADIDO CAMPO "MONTO TOTAL" ---
+              // --- Monto Total ---
               _buildTextField(
                 controller: _montoTotalCtrl,
                 label: 'Monto Total',
@@ -190,8 +185,15 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
       ),
     );
   }
+  // -----------------------------------------------------------------
+  // FIN DEL MÉTODO build()
+  // -----------------------------------------------------------------
 
-  // --- WIDGETS AUXILIARES PARA CONSTRUIR EL FORMULARIO ---
+  //
+  // --- FUNCIONES AUXILIARES (Helpers) ---
+  // (Deben estar DENTRO de la clase _NuevoAlquilerScreenState
+  // pero FUERA del método build())
+  //
 
   // Widget para los campos de Dropdown
   Widget _buildDropdownField({
@@ -245,7 +247,7 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
-          readOnly: true, // Importante para que no se abra el teclado
+          readOnly: true,
           decoration: const InputDecoration(
             hintText: 'mm/dd/yyyy',
             border: OutlineInputBorder(),
@@ -263,7 +265,6 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
               lastDate: DateTime(2030),
             );
             if (picked != null) {
-              // Formateamos la fecha (puedes cambiar el formato)
               controller.text =
                   "${picked.month.toString().padLeft(2, '0')}/${picked.day.toString().padLeft(2, '0')}/${picked.year}";
             }
@@ -273,12 +274,13 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
     );
   }
 
-  // Widget para los campos de texto (Monto Total, Garantía)
+  // Widget para los campos de texto (Cliente, Monto Total, Garantía)
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
     String? prefix,
     String? hint,
+    IconData? icon, // Acepta un ícono opcional
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,8 +294,13 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
-          keyboardType: TextInputType.number,
+          keyboardType: (icon != null)
+              ? TextInputType.text
+              : TextInputType.number,
           decoration: InputDecoration(
+            prefixIcon: (icon != null)
+                ? Icon(icon, color: AppColors.stone600)
+                : null,
             prefixText: prefix,
             hintText: hint,
             border: OutlineInputBorder(),
@@ -302,7 +309,8 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
             if (value == null || value.isEmpty) {
               return 'Campo requerido';
             }
-            if (double.tryParse(value) == null) {
+            // Solo valida como número si NO tiene ícono
+            if (icon == null && double.tryParse(value) == null) {
               return 'Monto inválido';
             }
             return null;
@@ -345,4 +353,8 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
       ),
     );
   }
+
+  // -----------------------------------------------------------------
+  // ESTA ES LA ÚLTIMA LLAVE. CIERRA LA CLASE _NuevoAlquilerScreenState
+  // -----------------------------------------------------------------
 }
