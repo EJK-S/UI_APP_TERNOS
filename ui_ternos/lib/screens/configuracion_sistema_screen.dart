@@ -164,7 +164,7 @@ class _ConfiguracionSistemaScreenState
           ],
         ),
       ),
-      bottomNavigationBar: const MainBottomNav(currentIndex: 2),
+      bottomNavigationBar: const MainBottomNav(currentIndex: 3),
     );
   }
 }

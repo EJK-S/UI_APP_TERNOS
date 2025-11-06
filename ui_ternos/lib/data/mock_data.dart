@@ -72,8 +72,28 @@ final List<Venta> mockVentas = [
 // --- (El resto de tus listas siguen igual) ---
 // Datos para gestion_clientes_screen.dart
 final List<Cliente> mockClientes = [
-  const Cliente(nombre: 'Juan Pérez', dni: '12345678', telefono: '987654321'),
-  const Cliente(nombre: 'María López', dni: '87654321', telefono: '912345678'),
+  const Cliente(
+    nombre: 'Juan', // <-- Ahora solo el nombre
+    apellidos: 'Pérez',
+    dni: '12345678',
+    telefono: '987654321',
+    correo: 'juan@correo.com',
+    direccion: 'Av. Siempre Viva 123',
+    fechaNacimiento: '15/05/1990',
+    vetado: false,
+    motivoVeto: '',
+  ),
+  const Cliente(
+    nombre: 'María', // <-- Ahora solo el nombre
+    apellidos: 'López',
+    dni: '87654321',
+    telefono: '912345678',
+    correo: 'maria@correo.com',
+    direccion: 'Calle Falsa 456',
+    fechaNacimiento: '20/10/1995',
+    vetado: true,
+    motivoVeto: 'No devolvió el traje a tiempo.',
+  ),
 ];
 
 final List<Pago> mockPagos = [

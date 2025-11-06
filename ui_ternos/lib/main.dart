@@ -7,7 +7,6 @@ import 'package:proyecto_tienda_ternos/screens/nuevo_cliente_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/gestion_alquileres_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/nuevo_alquiler_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/gestion_pagos_screen.dart';
-import 'package:proyecto_tienda_ternos/screens/detalles_alquiler_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/devolucion_ternos_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/gestion_ventas_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/nueva_venta_screen.dart';

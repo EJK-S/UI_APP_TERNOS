@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
-import 'package:proyecto_tienda_ternos/data/mock_data.dart'; // <-- 1. IMPORTAMOS LOS DATOS
+import 'package:proyecto_tienda_ternos/data/mock_data.dart';
+import 'package:proyecto_tienda_ternos/screens/editar_cliente_screen.dart';
 
 class GestionClientesScreen extends StatefulWidget {
   const GestionClientesScreen({super.key});
@@ -60,7 +61,7 @@ class _GestionClientesScreenState extends State<GestionClientesScreen> {
                           child: const Icon(Icons.person),
                         ),
                         title: Text(
-                          c.nombre, // <-- ANTES: c['nombre'] ?? ''
+                          '${c.nombre} ${c.apellidos ?? ''}',
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                         subtitle: Text(
@@ -77,16 +78,39 @@ class _GestionClientesScreenState extends State<GestionClientesScreen> {
                         trailing: PopupMenuButton<String>(
                           onSelected: (val) {
                             if (val == 'alquileres') {
-                              Navigator.pushNamed(
-                                context,
-                                '/alquileres/detalle',
-                              );
+                              Navigator.pushNamed(context, '/alquileres');
                             }
+
                             if (val == 'ventas') {
                               Navigator.pushNamed(context, '/ventas/detalle');
                             }
-                            if (val == 'editar') {}
-                            if (val == 'eliminar') {}
+
+                            if (val == 'editar') {
+                              // --- ESTA ES LA NAVEGACIÓN CORREGIDA ---
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  // Le pasa el cliente a la nueva pantalla
+                                  builder: (context) =>
+                                      EditarClienteScreen(cliente: c),
+                                  // Hace que la pantalla aparezca desde abajo (opcional)
+                                  fullscreenDialog: true,
+                                ),
+                              );
+                            }
+
+                            if (val == 'eliminar') {
+                              // 4. ARREGLO DE ELIMINAR (TEMPORAL)
+                              // Mostramos un mensaje
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Función "Eliminar" aún no implementada.',
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
                           },
                           itemBuilder: (context) => [
                             const PopupMenuItem(
