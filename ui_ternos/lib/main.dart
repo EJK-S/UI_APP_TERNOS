@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/providers/alquiler_provider.dart';
+import 'package:proyecto_tienda_ternos/providers/cita_provider.dart';
 import 'package:proyecto_tienda_ternos/screens/panel_administracion_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/gestion_clientes_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/nuevo_cliente_screen.dart';
@@ -23,6 +24,15 @@ void main() {
   runApp(
     ChangeNotifierProvider(
       create: (context) => AlquilerProvider(),
+      child: const AppRoot(),
+    ),
+  );
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => AlquilerProvider()),
+        ChangeNotifierProvider(create: (context) => CitaProvider()),
+      ],
       child: const AppRoot(),
     ),
   );

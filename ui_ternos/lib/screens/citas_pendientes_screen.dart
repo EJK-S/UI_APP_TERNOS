@@ -1,5 +1,8 @@
+// lib/screens/citas_pendientes_screen.dart (Actualizado)
+
 import 'package:flutter/material.dart';
-import 'package:proyecto_tienda_ternos/data/mock_data.dart';
+import 'package:provider/provider.dart'; // <-- 1. IMPORTAMOS PROVIDER
+import 'package:proyecto_tienda_ternos/providers/cita_provider.dart'; // <-- 2. IMPORTAMOS EL CEREBRO
 import 'package:proyecto_tienda_ternos/models/cita.dart';
 import 'package:proyecto_tienda_ternos/screens/detalles_cita_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
@@ -10,31 +13,41 @@ class CitasPendientesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Citas Pendientes')),
-      body: SafeArea(
-        child: ListView.builder(
-          padding: const EdgeInsets.all(16.0),
-          itemCount: mockCitas.length,
-          itemBuilder: (context, index) {
-            final cita = mockCitas[index];
-            return _CitaCard(cita: cita);
-          },
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, Routes.nuevaCita);
-        },
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-      bottomNavigationBar: const MainBottomNav(currentIndex: 0),
+    // 4. Usamos un Consumer para "escuchar" los cambios del provider
+    return Consumer<CitaProvider>(
+      builder: (context, citaProvider, child) {
+        // 5. Obtenemos la lista "viva" desde el provider
+        final List<Cita> citas = citaProvider.citas;
+
+        return Scaffold(
+          appBar: AppBar(title: const Text('Citas Pendientes')),
+          body: SafeArea(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16.0),
+              itemCount: citas.length, // <-- 6. Usamos la lista del provider
+              itemBuilder: (context, index) {
+                final cita = citas[index];
+                return _CitaCard(cita: cita);
+              },
+            ),
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              Navigator.pushNamed(context, Routes.nuevaCita);
+            },
+            backgroundColor: AppColors.primary,
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
+          bottomNavigationBar: const MainBottomNav(currentIndex: 0),
+        );
+      },
     );
   }
 }
 
-// Widget para la tarjeta de Cita
+// --- NINGÚN CAMBIO DE AQUÍ PARA ABAJO ---
+// (El widget _CitaCard sigue exactamente igual)
+
 class _CitaCard extends StatelessWidget {
   final Cita cita;
   const _CitaCard({required this.cita});
@@ -47,7 +60,6 @@ class _CitaCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () {
-          // Navegación a la pantalla de detalle
           Navigator.push(
             context,
             MaterialPageRoute(

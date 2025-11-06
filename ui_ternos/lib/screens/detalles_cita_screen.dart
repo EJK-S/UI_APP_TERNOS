@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart'; // <-- 1. IMPORTAMOS PROVIDER
 import 'package:proyecto_tienda_ternos/models/cita.dart';
+import 'package:proyecto_tienda_ternos/providers/cita_provider.dart'; // <-- 2. IMPORTAMOS EL CEREBRO
 import 'package:proyecto_tienda_ternos/screens/editar_cita_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 
@@ -9,6 +11,9 @@ class DetallesCitaScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 3. Obtenemos la instancia del provider (para llamar a los métodos)
+    final citaProvider = Provider.of<CitaProvider>(context, listen: false);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Detalle Cita')),
       body: SafeArea(
@@ -77,13 +82,15 @@ class DetallesCitaScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            // --- Botones de Acción ---
+            // --- Botones de Acción (Actualizados) ---
             _buildActionButton(
               label: 'Marcar como Completada',
               color: AppColors.primary,
               textColor: Colors.white,
               onPressed: () {
-                Navigator.pop(context);
+                // 4. LLAMAMOS AL PROVIDER
+                citaProvider.marcarComoCompletada(cita);
+                Navigator.pop(context); // Regresamos a la lista
               },
             ),
             const SizedBox(height: 12),
@@ -92,6 +99,7 @@ class DetallesCitaScreen extends StatelessWidget {
               color: AppColors.borderLight,
               textColor: AppColors.stone800,
               onPressed: () {
+                // Esto ya estaba bien
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -107,7 +115,9 @@ class DetallesCitaScreen extends StatelessWidget {
               color: Colors.transparent, // Sin fondo
               textColor: Colors.red,
               onPressed: () {
-                // Lógica para cancelar
+                // 5. LLAMAMOS AL PROVIDER
+                citaProvider.cancelarCita(cita);
+                Navigator.pop(context); // Regresamos a la lista
               },
             ),
           ],
@@ -116,7 +126,9 @@ class DetallesCitaScreen extends StatelessWidget {
     );
   }
 
-  // Helper para las tarjetas
+  // --- NINGÚN CAMBIO DE AQUÍ PARA ABAJO ---
+  // (Todos los widgets auxiliares siguen exactamente iguales)
+
   Widget _buildCard(BuildContext context, {required Widget child}) {
     return Container(
       width: double.infinity,
@@ -130,7 +142,6 @@ class DetallesCitaScreen extends StatelessWidget {
     );
   }
 
-  // Helper para las filas de información
   Widget _InfoRow({
     required IconData icon,
     required String text,
@@ -161,7 +172,6 @@ class DetallesCitaScreen extends StatelessWidget {
     );
   }
 
-  // Helper para los botones de acción
   Widget _buildActionButton({
     required String label,
     required Color color,
@@ -187,7 +197,6 @@ class DetallesCitaScreen extends StatelessWidget {
   }
 }
 
-// Helper para la etiqueta de estado "Pendiente"
 class _StatusTag extends StatelessWidget {
   final CitaEstado estado;
   const _StatusTag({required this.estado});

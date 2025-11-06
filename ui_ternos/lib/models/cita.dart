@@ -1,4 +1,22 @@
+// lib/models/cita.dart (Corregido)
+
+// ERROR 1: Se eliminó un punto y coma (;) al final de esta línea
 enum CitaTipo { Alquiler, Prueba, Devolucion }
+
+extension CitaTipoExtension on CitaTipo {
+  String get tipoTexto {
+    switch (this) {
+      case CitaTipo.Alquiler:
+        return 'Alquiler';
+      case CitaTipo.Prueba:
+        return 'Prueba';
+      case CitaTipo.Devolucion:
+        return 'Devolución';
+    }
+  }
+}
+
+// ERROR 2: Se eliminó la línea corrupta "final String {; }"
 
 enum CitaEstado { Pendiente, Completada, Cancelada }
 
@@ -32,13 +50,8 @@ class Cita {
 
   // Helper para obtener el texto del tipo
   String get tipoTexto {
-    switch (tipo) {
-      case CitaTipo.Alquiler:
-        return 'Alquiler';
-      case CitaTipo.Prueba:
-        return 'Prueba';
-      case CitaTipo.Devolucion:
-        return 'Devolución';
-    }
+    return tipo.tipoTexto;
   }
 }
+
+// ERROR 3: Se eliminó una llave de cierre (}) extra al final del archivo
