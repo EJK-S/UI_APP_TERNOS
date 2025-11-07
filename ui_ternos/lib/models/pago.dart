@@ -9,6 +9,7 @@ class Pago {
   final String monto;
   final TipoPago tipo;
   final MetodoPago metodo;
+  final String transaccionId;
 
   const Pago({
     required this.id,
@@ -17,5 +18,6 @@ class Pago {
     required this.monto,
     required this.tipo,
     required this.metodo,
+    required this.transaccionId,
   });
 }

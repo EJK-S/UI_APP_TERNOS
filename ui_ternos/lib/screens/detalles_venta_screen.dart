@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
+// 1. IMPORTA LA NUEVA PANTALLA DE EDICIÓN
+import 'package:proyecto_tienda_ternos/screens/editar_venta_screen.dart';
+// 2. IMPORTA EL MODELO VENTA (necesitarás pasarlo)
+import 'package:proyecto_tienda_ternos/models/venta.dart';
 
 class DetallesVentaScreen extends StatelessWidget {
-  const DetallesVentaScreen({super.key});
+  final Venta venta;
+  const DetallesVentaScreen({super.key, required this.venta});
 
   @override
   Widget build(BuildContext context) {
@@ -18,14 +23,14 @@ class DetallesVentaScreen extends StatelessWidget {
           children: [
             // --- Encabezado ---
             Text(
-              'Venta #20240001',
+              'Venta ${venta.codigo}', // <-- USA DATOS REALES
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
-              'Serie 001-000001\nFecha: 15 de mayo de 2024',
+              'Serie 001-000001\nFecha: ${venta.fecha}', // <-- USA DATOS REALES
               style: Theme.of(
                 context,
               ).textTheme.bodyMedium?.copyWith(color: AppColors.stone600),
@@ -33,11 +38,11 @@ class DetallesVentaScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // --- Tarjeta de Cliente y Estado ---
-            _buildClienteEstadoCard(context),
+            _buildClienteEstadoCard(context, venta), // <-- PASA LA VENTA
             const SizedBox(height: 24),
 
             // --- Tarjeta de Detalle de Ítems ---
-            _buildItemsCard(context),
+            _buildItemsCard(context, venta),
             const SizedBox(height: 24),
 
             // --- Botones de Acción ---
@@ -71,7 +76,15 @@ class DetallesVentaScreen extends StatelessWidget {
                     icon: const Icon(Icons.edit),
                     label: const Text('Editar'),
                     style: _buttonStyle(context),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditarVentaScreen(venta: venta),
+                          fullscreenDialog: true,
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -107,7 +120,7 @@ class DetallesVentaScreen extends StatelessWidget {
   }
 
   // Helper para la tarjeta de Cliente y Estado
-  Widget _buildClienteEstadoCard(BuildContext context) {
+  Widget _buildClienteEstadoCard(BuildContext context, Venta venta) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: _cardDecoration(context),
@@ -123,7 +136,7 @@ class DetallesVentaScreen extends StatelessWidget {
                 ).textTheme.bodyMedium?.copyWith(color: AppColors.stone600),
               ),
               Text(
-                'Sofia Ramirez',
+                venta.cliente, // <-- USA DATOS REALES
                 style: Theme.of(
                   context,
                 ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -141,7 +154,7 @@ class DetallesVentaScreen extends StatelessWidget {
                 ).textTheme.bodyMedium?.copyWith(color: AppColors.stone600),
               ),
               Text(
-                'Tarjeta',
+                venta.metodoPago, // <-- USA DATOS REALES
                 style: Theme.of(
                   context,
                 ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -185,7 +198,7 @@ class DetallesVentaScreen extends StatelessWidget {
   }
 
   // Helper para la tarjeta de Ítems y Total
-  Widget _buildItemsCard(BuildContext context) {
+  Widget _buildItemsCard(BuildContext context, Venta venta) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: _cardDecoration(context),
@@ -199,15 +212,28 @@ class DetallesVentaScreen extends StatelessWidget {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          _buildItemRow(context, 'Traje Clásico', '1 x S/ 350.00', 'S/ 350.00'),
-          _buildItemRow(context, 'Camisa Blanca', '1 x S/ 150.00', 'S/ 150.00'),
-          _buildItemRow(context, 'Corbata de Seda', '1 x S/ 50.00', 'S/ 50.00'),
+          // --- USA DATOS REALES ---
+          _buildItemRow(
+            context,
+            venta.producto,
+            '${venta.cantidad} x S/ ${venta.precioUnitario.toStringAsFixed(2)}',
+            'S/ ${venta.total.toStringAsFixed(2)}',
+          ),
           const Divider(height: 24),
-          _buildSummaryRow(context, 'Subtotal', 'S/ 550.00'),
+          _buildSummaryRow(
+            context,
+            'Subtotal',
+            'S/ ${venta.total.toStringAsFixed(2)}',
+          ),
           const SizedBox(height: 8),
           _buildSummaryRow(context, 'Descuentos', 'S/ 0.00'),
           const SizedBox(height: 12),
-          _buildSummaryRow(context, 'Total', 'S/ 550.00', isTotal: true),
+          _buildSummaryRow(
+            context,
+            'Total',
+            'S/ ${venta.total.toStringAsFixed(2)}',
+            isTotal: true,
+          ),
         ],
       ),
     );

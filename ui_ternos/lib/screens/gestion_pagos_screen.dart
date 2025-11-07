@@ -3,6 +3,11 @@ import 'package:proyecto_tienda_ternos/data/mock_data.dart';
 import 'package:proyecto_tienda_ternos/models/pago.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
+import 'package:provider/provider.dart';
+import 'package:proyecto_tienda_ternos/providers/alquiler_provider.dart';
+import 'package:proyecto_tienda_ternos/providers/venta_provider.dart';
+import 'package:proyecto_tienda_ternos/screens/detalles_alquiler_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/detalles_venta_screen.dart';
 
 class GestionPagosScreen extends StatelessWidget {
   const GestionPagosScreen({super.key});
@@ -52,8 +57,45 @@ class _PagoCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () {
-          // Al tocar, te lleva a la pantalla de detalle de venta
-          Navigator.pushNamed(context, '/ventas/detalle');
+          // Si el pago es de una Venta...
+          if (pago.tipo == TipoPago.Venta) {
+            // Busca la Venta correspondiente en el VentaProvider
+            final venta = Provider.of<VentaProvider>(context, listen: false)
+                .ventas
+                .firstWhere(
+                  (v) => v.codigo == pago.transaccionId,
+                  orElse: () => mockVentas[0],
+                ); // fallback por si no lo encuentra
+
+            // Navega a la pantalla de Detalle de Venta
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => DetallesVentaScreen(venta: venta),
+              ),
+            );
+          }
+          // Si el pago es de un Alquiler...
+          else if (pago.tipo == TipoPago.Alquiler) {
+            // Busca el Alquiler correspondiente en el AlquilerProvider
+            final alquiler =
+                Provider.of<AlquilerProvider>(
+                  context,
+                  listen: false,
+                ).alquileres.firstWhere(
+                  (a) => a.codigo == pago.transaccionId,
+                  orElse: () => mockAlquileres[0],
+                ); // fallback
+
+            // Navega a la pantalla de Detalle de Alquiler
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    DetallesAlquilerScreen(alquiler: alquiler),
+              ),
+            );
+          }
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(

@@ -1,7 +1,12 @@
+// lib/screens/gestion_clientes_screen.dart (Actualizado)
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart'; // <-- 1. IMPORTAMOS PROVIDER
+import 'package:proyecto_tienda_ternos/models/cliente.dart';
+import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart'; // <-- 2. IMPORTAMOS EL CEREBRO
+// import 'package:proyecto_tienda_ternos/data/mock_data.dart'; // <-- 3. YA NO NECESITAMOS MOCK_DATA
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
-import 'package:proyecto_tienda_ternos/data/mock_data.dart';
 import 'package:proyecto_tienda_ternos/screens/editar_cliente_screen.dart';
 
 class GestionClientesScreen extends StatefulWidget {
@@ -22,130 +27,143 @@ class _GestionClientesScreenState extends State<GestionClientesScreen> {
           IconButton(
             icon: const Icon(Icons.person_add_alt_1),
             onPressed: () {
+              // Navegamos a la pantalla de crear nuevo cliente
+              // (Esta pantalla la actualizaremos en el siguiente paso)
               Navigator.pushNamed(context, '/clientes/nuevo');
             },
           ),
         ],
       ),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-          children: [
-            TextField(
-              controller: _searchCtrl,
-              decoration: const InputDecoration(
-                hintText: 'Buscar cliente por nombre o DNI',
-                prefixIcon: Icon(Icons.search),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: Theme.of(context).colorScheme.surface,
-                border: Border.all(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.borderDark
-                      : AppColors.borderLight,
+      // 5. USAMOS UN CONSUMER PARA "ESCUCHAR" CAMBIOS EN LA LISTA
+      body: Consumer<ClienteProvider>(
+        builder: (context, clienteProvider, child) {
+          // 6. Obtenemos la lista "viva" desde el provider
+          final List<Cliente> clientes = clienteProvider.clientes;
+
+          return SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              children: [
+                TextField(
+                  controller: _searchCtrl,
+                  decoration: const InputDecoration(
+                    hintText: 'Buscar cliente por nombre o DNI',
+                    prefixIcon: Icon(Icons.search),
+                  ),
                 ),
-              ),
-              child: Column(
-                // Fíjate que "c" ahora es un objeto Cliente
-                children: mockClientes.map((c) {
-                  return Column(
-                    children: [
-                      ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: AppColors.primary.withOpacity(.1),
-                          foregroundColor: AppColors.primary,
-                          child: const Icon(Icons.person),
-                        ),
-                        title: Text(
-                          '${c.nombre} ${c.apellidos ?? ''}',
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        subtitle: Text(
-                          // <-- ANTES: 'DNI: ${c['dni']}   Tel: ${c['telefono']}'
-                          'DNI: ${c.dni}   Tel: ${c.telefono}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                ? AppColors.subtleDark
-                                : AppColors.subtleLight,
+                const SizedBox(height: 16),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: Theme.of(context).colorScheme.surface,
+                    border: Border.all(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.borderDark
+                          : AppColors.borderLight,
+                    ),
+                  ),
+                  child: Column(
+                    children: clientes.map((c) {
+                      // <-- 7. Usamos la lista del provider
+                      return Column(
+                        children: [
+                          ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: AppColors.primary.withOpacity(
+                                .1,
+                              ),
+                              foregroundColor: AppColors.primary,
+                              child: const Icon(Icons.person),
+                            ),
+                            title: Text(
+                              '${c.nombre} ${c.apellidos ?? ''}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            subtitle: Text(
+                              'DNI: ${c.dni}   Tel: ${c.telefono}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? AppColors.subtleDark
+                                    : AppColors.subtleLight,
+                              ),
+                            ),
+                            // --- 8. LÓGICA DEL MENÚ DE OPCIONES ACTUALIZADA ---
+                            trailing: PopupMenuButton<String>(
+                              onSelected: (val) {
+                                if (val == 'alquileres') {
+                                  Navigator.pushNamed(context, '/alquileres');
+                                }
+                                if (val == 'ventas') {
+                                  Navigator.pushNamed(context, '/ventas');
+                                }
+                                if (val == 'editar') {
+                                  // --- AHORA ABRE LA PANTALLA DE EDICIÓN CON DATOS ---
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          EditarClienteScreen(cliente: c),
+                                      fullscreenDialog: true,
+                                    ),
+                                  );
+                                }
+                                if (val == 'eliminar') {
+                                  // --- AHORA LLAMA AL PROVIDER PARA ELIMINAR ---
+                                  clienteProvider.eliminarCliente(c);
+                                  // Mostramos un mensaje de confirmación
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('${c.nombre} eliminado.'),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(
+                                  value: 'alquileres',
+                                  child: Text('Ver alquileres'),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'ventas',
+                                  child: Text('Ver compras'),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'editar',
+                                  child: Text('Editar cliente'),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'eliminar',
+                                  child: Text('Eliminar cliente'),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        trailing: PopupMenuButton<String>(
-                          onSelected: (val) {
-                            if (val == 'alquileres') {
-                              Navigator.pushNamed(context, '/alquileres');
-                            }
-
-                            if (val == 'ventas') {
-                              Navigator.pushNamed(context, '/ventas/detalle');
-                            }
-
-                            if (val == 'editar') {
-                              // --- ESTA ES LA NAVEGACIÓN CORREGIDA ---
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  // Le pasa el cliente a la nueva pantalla
-                                  builder: (context) =>
-                                      EditarClienteScreen(cliente: c),
-                                  // Hace que la pantalla aparezca desde abajo (opcional)
-                                  fullscreenDialog: true,
-                                ),
-                              );
-                            }
-
-                            if (val == 'eliminar') {
-                              // 4. ARREGLO DE ELIMINAR (TEMPORAL)
-                              // Mostramos un mensaje
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Función "Eliminar" aún no implementada.',
-                                  ),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          },
-                          itemBuilder: (context) => [
-                            const PopupMenuItem(
-                              value: 'alquileres',
-                              child: Text('Ver alquileres'),
+                          if (c !=
+                              clientes
+                                  .last) // <-- 9. Usamos la lista del provider
+                            Divider(
+                              height: 1,
+                              color:
+                                  Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? AppColors.borderDark
+                                  : AppColors.borderLight,
                             ),
-                            const PopupMenuItem(
-                              value: 'ventas',
-                              child: Text('Ver compras'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'editar',
-                              child: Text('Editar cliente'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'eliminar',
-                              child: Text('Eliminar cliente'),
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (c != mockClientes.last)
-                        Divider(
-                          height: 1,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? AppColors.borderDark
-                              : AppColors.borderLight,
-                        ),
-                    ],
-                  );
-                }).toList(),
-              ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
       bottomNavigationBar: const MainBottomNav(currentIndex: 1),
     );

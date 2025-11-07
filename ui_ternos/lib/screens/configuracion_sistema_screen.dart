@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:proyecto_tienda_ternos/providers/settings_provider.dart';
+import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
-import '../theme/app_theme.dart';
 
 class ConfiguracionSistemaScreen extends StatefulWidget {
   const ConfiguracionSistemaScreen({super.key});
-
   @override
   State<ConfiguracionSistemaScreen> createState() =>
       _ConfiguracionSistemaScreenState();
@@ -12,20 +13,57 @@ class ConfiguracionSistemaScreen extends StatefulWidget {
 
 class _ConfiguracionSistemaScreenState
     extends State<ConfiguracionSistemaScreen> {
-  final TextEditingController _nombreNegocioCtrl = TextEditingController(
-    text: 'Mi Tienda de Ternos',
-  );
-  final TextEditingController _rucCtrl = TextEditingController(
-    text: '00000000000',
-  );
-  final TextEditingController _telefonoCtrl = TextEditingController(
-    text: '987654321',
-  );
-  bool _darkMode = false;
-  bool _mensajeOk = false;
+  // Controladores
+  late TextEditingController _nombreNegocioCtrl;
+  late TextEditingController _rucCtrl;
+  late TextEditingController _telefonoCtrl;
+
+  bool _isInitialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Inicializamos los controladores con los datos del Provider
+    if (!_isInitialized) {
+      final settings = Provider.of<SettingsProvider>(context, listen: false);
+      _nombreNegocioCtrl = TextEditingController(text: settings.nombreNegocio);
+      _rucCtrl = TextEditingController(text: settings.ruc);
+      _telefonoCtrl = TextEditingController(text: settings.telefono);
+      _isInitialized = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    _nombreNegocioCtrl.dispose();
+    _rucCtrl.dispose();
+    _telefonoCtrl.dispose();
+    super.dispose();
+  }
+
+  void _guardarCambios() {
+    // Obtenemos el provider (sin escuchar)
+    final settings = Provider.of<SettingsProvider>(context, listen: false);
+
+    // Llamamos a los métodos para guardar
+    settings.setNombreNegocio(_nombreNegocioCtrl.text);
+    settings.setRuc(_rucCtrl.text);
+    settings.setTelefono(_telefonoCtrl.text);
+
+    // Mostramos un mensaje
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Configuración guardada'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Obtenemos el provider (escuchando) para el switch del tema
+    final settings = Provider.of<SettingsProvider>(context);
+
     final borderColor = Theme.of(context).brightness == Brightness.dark
         ? AppColors.borderDark
         : AppColors.borderLight;
@@ -36,6 +74,7 @@ class _ConfiguracionSistemaScreenState
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           children: [
+            // --- Tarjeta de Datos del Negocio ---
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -84,6 +123,8 @@ class _ConfiguracionSistemaScreenState
               ),
             ),
             const SizedBox(height: 24),
+
+            // --- Tarjeta de Preferencias de Interfaz ---
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -104,11 +145,10 @@ class _ConfiguracionSistemaScreenState
                   ),
                   const SizedBox(height: 8),
                   SwitchListTile(
-                    value: _darkMode,
+                    value: settings.isDarkMode, // <-- Lee del provider
                     onChanged: (v) {
-                      setState(() {
-                        _darkMode = v;
-                      });
+                      // Llama al método del provider para cambiar el tema
+                      settings.setDarkMode(v);
                     },
                     title: const Text(
                       'Modo oscuro',
@@ -128,6 +168,8 @@ class _ConfiguracionSistemaScreenState
               ),
             ),
             const SizedBox(height: 24),
+
+            // --- Botón de Guardar ---
             SizedBox(
               width: double.infinity,
               height: 48,
@@ -143,28 +185,14 @@ class _ConfiguracionSistemaScreenState
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                onPressed: () {
-                  setState(() {
-                    _mensajeOk = true;
-                  });
-                },
+                onPressed: _guardarCambios, // <-- Llama a la función de guardar
                 child: const Text('Guardar Cambios'),
               ),
             ),
-            const SizedBox(height: 12),
-            if (_mensajeOk)
-              Text(
-                'Configuración guardada',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.successLight,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
           ],
         ),
       ),
-      bottomNavigationBar: const MainBottomNav(currentIndex: 3),
+      bottomNavigationBar: const MainBottomNav(currentIndex: 3), // Índice 3
     );
   }
 }

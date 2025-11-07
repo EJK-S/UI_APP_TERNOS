@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart'; // <-- 1. IMPORTA PROVIDER
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
+import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart'; // <-- 2. IMPORTA EL CEREBRO
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 
 class EditarClienteScreen extends StatefulWidget {
@@ -60,20 +62,41 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
     super.dispose();
   }
 
+  // --- 3. ACTUALIZA LA FUNCIÓN DE GUARDAR ---
   void _guardarCambios() {
     if (_formKey.currentState!.validate()) {
-      // Aquí iría la lógica para guardar en el Provider o Backend
-      // Por ahora, solo cerramos la pantalla
+      // Crea el objeto Cliente actualizado
+      final clienteActualizado = Cliente(
+        nombre: _nombresCtrl.text,
+        apellidos: _apellidosCtrl.text,
+        dni: _dniCtrl.text, // El DNI no debería cambiar, pero lo pasamos
+        telefono: _telefonoCtrl.text,
+        correo: _correoCtrl.text,
+        direccion: _direccionCtrl.text,
+        fechaNacimiento: _fechaNacimientoCtrl.text,
+        vetado: _vetado,
+        motivoVeto: _motivoVetoCtrl.text,
+      );
+
+      // "Habla" con el cerebro para editar el cliente
+      Provider.of<ClienteProvider>(
+        context,
+        listen: false,
+      ).editarCliente(clienteActualizado);
+
+      // Cierra la pantalla
       Navigator.pop(context);
     }
   }
 
+  // --- 4. NINGÚN CAMBIO EN EL RESTO DEL CÓDIGO (build, helpers) ---
+  // (El build y los helpers _buildTextField y _buildDateField
+  // ya son correctos y no necesitan cambios)
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Editar Cliente'),
-        // El 'X' (close icon)
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
@@ -121,9 +144,14 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
                 controller: _correoCtrl,
                 label: 'Correo',
                 keyboardType: TextInputType.emailAddress,
+                isRequired: false,
               ),
               const SizedBox(height: 16),
-              _buildTextField(controller: _direccionCtrl, label: 'Dirección'),
+              _buildTextField(
+                controller: _direccionCtrl,
+                label: 'Dirección',
+                isRequired: false,
+              ),
               const SizedBox(height: 16),
               _buildDateField(
                 controller: _fechaNacimientoCtrl,
@@ -149,13 +177,12 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
                   controller: _motivoVetoCtrl,
                   label: 'Motivo de veto',
                   hint: 'Ingresar motivo',
-                  isRequired: false, // El motivo puede ser opcional
+                  isRequired: false,
                 ),
             ],
           ),
         ),
       ),
-      // Barra inferior con botones
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
@@ -173,7 +200,7 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
             Expanded(
               child: ElevatedButton(
                 child: const Text('Guardar Cambios'),
-                onPressed: _guardarCambios,
+                onPressed: _guardarCambios, // Conectado
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -187,7 +214,6 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
     );
   }
 
-  // Widget auxiliar para campos de texto
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -227,7 +253,6 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
     );
   }
 
-  // Widget auxiliar para campo de fecha
   Widget _buildDateField({
     required TextEditingController controller,
     required String label,

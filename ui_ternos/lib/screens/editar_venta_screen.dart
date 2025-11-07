@@ -1,25 +1,26 @@
-// lib/screens/nueva_venta_screen.dart (NUEVO CÓDIGO COMPLETO)
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/models/venta.dart';
 import 'package:proyecto_tienda_ternos/providers/venta_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 
-class NuevaVentaScreen extends StatefulWidget {
-  const NuevaVentaScreen({super.key});
+class EditarVentaScreen extends StatefulWidget {
+  // Acepta la venta que vamos a editar
+  final Venta venta;
+
+  const EditarVentaScreen({super.key, required this.venta});
 
   @override
-  State<NuevaVentaScreen> createState() => _NuevaVentaScreenState();
+  State<EditarVentaScreen> createState() => _EditarVentaScreenState();
 }
 
-class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
+class _EditarVentaScreenState extends State<EditarVentaScreen> {
   final _formKey = GlobalKey<FormState>();
 
   // Controladores
-  final _clienteCtrl = TextEditingController();
-  final _cantidadCtrl = TextEditingController(text: '1');
-  final _precioCtrl = TextEditingController();
+  late TextEditingController _clienteCtrl;
+  late TextEditingController _cantidadCtrl;
+  late TextEditingController _precioCtrl;
 
   // Variables de estado
   String? _selectedTraje;
@@ -29,6 +30,19 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
   @override
   void initState() {
     super.initState();
+
+    // --- PRE-RELLENAMOS LOS CAMPOS CON LOS DATOS DE LA VENTA ---
+    _clienteCtrl = TextEditingController(text: widget.venta.cliente);
+    _cantidadCtrl = TextEditingController(
+      text: widget.venta.cantidad.toString(),
+    );
+    _precioCtrl = TextEditingController(
+      text: widget.venta.precioUnitario.toString(),
+    );
+    _selectedTraje = widget.venta.producto;
+    _selectedPaymentMethod = widget.venta.metodoPago;
+    _total = widget.venta.total;
+
     // Añadimos "listeners" para auto-calcular el total
     _cantidadCtrl.addListener(_calculateTotal);
     _precioCtrl.addListener(_calculateTotal);
@@ -42,7 +56,6 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
     super.dispose();
   }
 
-  // --- Función para calcular el total ---
   void _calculateTotal() {
     final int cantidad = int.tryParse(_cantidadCtrl.text) ?? 0;
     final double precio = double.tryParse(_precioCtrl.text) ?? 0.0;
@@ -51,17 +64,16 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
     });
   }
 
-  // --- Función para enviar el formulario ---
+  // --- FUNCIÓN DE "GUARDAR CAMBIOS" ---
   void _submitForm() {
     if (!_formKey.currentState!.validate()) {
       return; // Formulario no válido
     }
 
-    final nuevaVenta = Venta(
-      codigo: 'VEN-${DateTime.now().millisecondsSinceEpoch}',
+    final ventaActualizada = Venta(
+      codigo: widget.venta.codigo, // <-- Usamos el código original
       cliente: _clienteCtrl.text.isEmpty ? 'Mostrador' : _clienteCtrl.text,
-      fecha:
-          '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
+      fecha: widget.venta.fecha, // <-- Mantenemos la fecha original
       producto: _selectedTraje ?? 'Producto no seleccionado',
       cantidad: int.tryParse(_cantidadCtrl.text) ?? 0,
       precioUnitario: double.tryParse(_precioCtrl.text) ?? 0.0,
@@ -69,16 +81,19 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
       total: _total,
     );
 
-    // Hablamos con el Provider
-    Provider.of<VentaProvider>(context, listen: false).agregarVenta(nuevaVenta);
+    // Hablamos con el Provider para "editar"
+    Provider.of<VentaProvider>(
+      context,
+      listen: false,
+    ).editarVenta(ventaActualizada);
 
-    Navigator.pop(context); // Regresamos
+    Navigator.pop(context); // Regresamos al detalle
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Nueva Venta')),
+      appBar: AppBar(title: const Text('Editar Venta')),
       body: SafeArea(
         child: Form(
           key: _formKey,
@@ -95,7 +110,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                       label: 'Cliente (opcional)',
                       hint: 'Seleccionar cliente',
                       icon: Icons.person_outline,
-                      isRequired: false, // Cliente es opcional
+                      isRequired: false,
                     ),
                     const SizedBox(height: 16),
 
@@ -108,7 +123,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                         'Traje Clásico Negro',
                         'Esmoquin Moderno',
                         'Traje de Lino Beige',
-                      ], // Datos de ejemplo
+                      ],
                       onChanged: (value) {
                         setState(() {
                           _selectedTraje = value;
@@ -199,7 +214,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // --- Botón de Registrar ---
+                    // --- Botón de Guardar Cambios ---
                     ElevatedButton(
                       onPressed: _submitForm,
                       style: ElevatedButton.styleFrom(
@@ -214,7 +229,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      child: const Text('Registrar Venta'),
+                      child: const Text('Guardar Cambios'),
                     ),
                   ],
                 ),
@@ -226,7 +241,9 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
     );
   }
 
-  // --- WIDGETS AUXILIARES (Helpers) ---
+  // --- (Los widgets auxiliares _buildTextField, _buildDropdownField,
+  // --- y _buildPaymentButton son idénticos al archivo nueva_venta_screen.dart,
+  // --- así que los copio aquí por completitud) ---
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -267,7 +284,8 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
               return 'Requerido';
             }
             if (keyboardType == TextInputType.number &&
-                double.tryParse(value!) == null) {
+                (value != null && value.isNotEmpty) &&
+                double.tryParse(value) == null) {
               return 'Número inválido';
             }
             return null;

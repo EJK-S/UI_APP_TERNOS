@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:proyecto_tienda_ternos/models/alquiler.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
+import 'package:provider/provider.dart';
+import 'package:proyecto_tienda_ternos/providers/alquiler_provider.dart';
 
 class RegistrarDevolucionScreen extends StatefulWidget {
   // Acepta el alquiler que se está devolviendo
@@ -25,10 +27,21 @@ class _RegistrarDevolucionScreenState extends State<RegistrarDevolucionScreen> {
   }
 
   void _registrarDevolucion() {
-    // 1. Aquí irá la lógica para actualizar el alquiler (con Provider)
-    // 2. Aquí irá la lógica para ver qué hacer con la garantía
+    // Obtenemos la instancia del provider
+    final alquilerProvider = Provider.of<AlquilerProvider>(
+      context,
+      listen: false,
+    );
 
-    // Por ahora, solo cerramos la pantalla
+    // Llamamos al método del provider, pasándole el alquiler y las observaciones
+    alquilerProvider.registrarDevolucion(
+      widget.alquiler,
+      _observacionesCtrl.text,
+    );
+
+    // Cerramos la pantalla
+    Navigator.pop(context);
+    // Y cerramos también la pantalla de "Detalle" para volver a la lista
     Navigator.pop(context);
   }
 

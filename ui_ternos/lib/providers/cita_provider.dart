@@ -30,6 +30,19 @@ class CitaProvider extends ChangeNotifier {
     // notifyListeners(); // (No notificamos porque no hicimos un cambio real)
   }
 
+  void editarCita(Cita citaActualizada) {
+    // Buscamos la cita. Necesitaremos un ID único.
+    // Usaremos el 'prendaDetalleId' como ID único por ahora.
+    final index = _citas.indexWhere(
+      (c) => c.prendaDetalleId == citaActualizada.prendaDetalleId,
+    );
+
+    if (index != -1) {
+      _citas[index] = citaActualizada;
+      notifyListeners();
+    }
+  }
+
   void cancelarCita(Cita cita) {
     // ignore: avoid_print
     print('Cita de ${cita.clienteNombre} cancelada.');

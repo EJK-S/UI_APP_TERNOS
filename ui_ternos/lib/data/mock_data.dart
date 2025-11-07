@@ -4,6 +4,7 @@ import 'package:proyecto_tienda_ternos/models/venta.dart';
 import 'package:proyecto_tienda_ternos/models/pago.dart';
 import 'package:proyecto_tienda_ternos/models/inventario_categoria.dart';
 import 'package:proyecto_tienda_ternos/models/cita.dart';
+import 'package:proyecto_tienda_ternos/models/prenda.dart';
 
 // ----- LISTA DE ALQUILERES ACTUALIZADA -----
 final List<Alquiler> mockAlquileres = [
@@ -49,24 +50,33 @@ final List<Alquiler> mockAlquileres = [
 final List<Venta> mockVentas = [
   const Venta(
     codigo: 'VEN-1021',
-    producto: 'Traje Clásico Negro', // <-- CAMBIO: Añadido
-    total: 'S/ 250.00',
     cliente: 'Daniel',
     fecha: '26 de Julio, 2024',
+    producto: 'Traje Clásico Negro',
+    cantidad: 1,
+    precioUnitario: 250.00,
+    metodoPago: 'Tarjeta',
+    total: 250.00,
   ),
   const Venta(
     codigo: 'VEN-1020',
-    producto: 'Esmoquin Moderno', // <-- CAMBIO: Añadido
-    total: 'S/ 300.00',
     cliente: 'Sofia',
     fecha: '25 de Julio, 2024',
+    producto: 'Esmoquin Moderno',
+    cantidad: 1,
+    precioUnitario: 300.00,
+    metodoPago: 'Yape-Plin',
+    total: 300.00,
   ),
   const Venta(
     codigo: 'VEN-1019',
-    producto: 'Traje de Lino Beige', // <-- CAMBIO: Añadido
-    total: 'S/ 200.00',
     cliente: 'Mateo',
     fecha: '24 de Julio, 2024',
+    producto: 'Traje de Lino Beige',
+    cantidad: 1,
+    precioUnitario: 200.00,
+    metodoPago: 'Efectivo',
+    total: 200.00,
   ),
 ];
 
@@ -105,6 +115,7 @@ final List<Pago> mockPagos = [
     monto: 'S/ 550.00',
     tipo: TipoPago.Venta,
     metodo: MetodoPago.Tarjeta,
+    transaccionId: 'VEN-1020',
   ),
   const Pago(
     id: '#20240002',
@@ -113,6 +124,7 @@ final List<Pago> mockPagos = [
     monto: 'S/ 280.00',
     tipo: TipoPago.Alquiler,
     metodo: MetodoPago.Yape,
+    transaccionId: 'ALQ-0015',
   ),
   const Pago(
     id: '#20240003',
@@ -121,6 +133,7 @@ final List<Pago> mockPagos = [
     monto: 'S/ 150.00',
     tipo: TipoPago.Venta,
     metodo: MetodoPago.Efectivo,
+    transaccionId: 'VEN-1019',
   ),
 ];
 
@@ -189,4 +202,96 @@ final List<Cita> mockCitas = [
     prendaDetalleNombre: 'Terno Gris',
     prendaDetalleId: 'T-00105',
   ),
+];
+
+final List<Prenda> mockPrendas = [
+  // Trajes Clásicos (Total 22: 15 Disp, 5 Alq, 2 Mant)
+  const Prenda(
+    id: 'TC-001',
+    nombre: 'Terno Clásico Negro',
+    talla: 'M',
+    categoria: 'Traje Clásico',
+    estado: PrendaEstado.Disponible,
+    usos: 5,
+  ),
+  const Prenda(
+    id: 'TC-002',
+    nombre: 'Terno Clásico Negro',
+    talla: 'L',
+    categoria: 'Traje Clásico',
+    estado: PrendaEstado.Disponible,
+    usos: 2,
+  ),
+  const Prenda(
+    id: 'TC-003',
+    nombre: 'Terno Clásico Azul',
+    talla: 'M',
+    categoria: 'Traje Clásico',
+    estado: PrendaEstado.Disponible,
+    usos: 3,
+  ),
+  // ... (Imagina 12 más disponibles) ...
+  const Prenda(
+    id: 'TC-016',
+    nombre: 'Terno Clásico Gris',
+    talla: 'S',
+    categoria: 'Traje Clásico',
+    estado: PrendaEstado.Alquilado,
+    usos: 10,
+  ),
+  const Prenda(
+    id: 'TC-017',
+    nombre: 'Terno Clásico Gris',
+    talla: 'M',
+    categoria: 'Traje Clásico',
+    estado: PrendaEstado.Alquilado,
+    usos: 8,
+  ),
+  // ... (Imagina 3 más alquilados) ...
+  const Prenda(
+    id: 'TC-021',
+    nombre: 'Terno Clásico Negro',
+    talla: 'XL',
+    categoria: 'Traje Clásico',
+    estado: PrendaEstado.Mantenimiento,
+    usos: 20,
+  ),
+  const Prenda(
+    id: 'TC-022',
+    nombre: 'Terno Clásico Azul',
+    talla: 'L',
+    categoria: 'Traje Clásico',
+    estado: PrendaEstado.Mantenimiento,
+    usos: 22,
+  ),
+
+  // Trajes de Gala (Total 12: 8 Disp, 3 Alq, 1 Mant)
+  const Prenda(
+    id: 'TG-001',
+    nombre: 'Traje de Gala Azul',
+    talla: 'M',
+    categoria: 'Traje de Gala',
+    estado: PrendaEstado.Disponible,
+    usos: 1,
+  ),
+  // ... (Imagina 7 más disponibles) ...
+  const Prenda(
+    id: 'TG-009',
+    nombre: 'Traje de Gala Negro',
+    talla: 'L',
+    categoria: 'Traje de Gala',
+    estado: PrendaEstado.Alquilado,
+    usos: 4,
+  ),
+  // ... (Imagina 2 más alquilados) ...
+  const Prenda(
+    id: 'TG-012',
+    nombre: 'Traje de Gala Blanco',
+    talla: 'M',
+    categoria: 'Traje de Gala',
+    estado: PrendaEstado.Mantenimiento,
+    usos: 8,
+  ),
+
+  // (Y así para las otras categorías...)
 ];

@@ -1,29 +1,37 @@
-// lib/screens/registrar_terno_screen.dart (Refactorizado)
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/models/prenda.dart';
 import 'package:proyecto_tienda_ternos/providers/prenda_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 
-class RegistrarTernoScreen extends StatefulWidget {
-  const RegistrarTernoScreen({super.key});
+class EditarPrendaScreen extends StatefulWidget {
+  final Prenda prenda;
+  const EditarPrendaScreen({super.key, required this.prenda});
 
   @override
-  State<RegistrarTernoScreen> createState() => _RegistrarTernoScreenState();
+  State<EditarPrendaScreen> createState() => _EditarPrendaScreenState();
 }
 
-class _RegistrarTernoScreenState extends State<RegistrarTernoScreen> {
+class _EditarPrendaScreenState extends State<EditarPrendaScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controladores para la PRENDA
-  final _idCtrl = TextEditingController();
-  final _nombreCtrl = TextEditingController();
-  final _tallaCtrl = TextEditingController();
-  final _categoriaCtrl = TextEditingController();
+  // Controladores
+  late TextEditingController _idCtrl;
+  late TextEditingController _nombreCtrl;
+  late TextEditingController _tallaCtrl;
+  late TextEditingController _categoriaCtrl;
+  late PrendaEstado _estado;
 
-  // Estado inicial
-  PrendaEstado _estado = PrendaEstado.Disponible;
+  @override
+  void initState() {
+    super.initState();
+    // Pre-rellenamos los campos con los datos de la prenda
+    _idCtrl = TextEditingController(text: widget.prenda.id);
+    _nombreCtrl = TextEditingController(text: widget.prenda.nombre);
+    _tallaCtrl = TextEditingController(text: widget.prenda.talla);
+    _categoriaCtrl = TextEditingController(text: widget.prenda.categoria);
+    _estado = widget.prenda.estado;
+  }
 
   @override
   void dispose() {
@@ -36,24 +44,25 @@ class _RegistrarTernoScreenState extends State<RegistrarTernoScreen> {
 
   void _submitForm() {
     if (!_formKey.currentState!.validate()) {
-      return; // Formulario no válido
+      return;
     }
 
-    // Creamos la nueva Prenda
-    final nuevaPrenda = Prenda(
-      id: _idCtrl.text,
+    // Creamos la Prenda actualizada
+    final prendaActualizada = Prenda(
+      id: _idCtrl
+          .text, // El ID no debería ser editable, pero lo mantenemos simple
       nombre: _nombreCtrl.text,
       talla: _tallaCtrl.text,
       categoria: _categoriaCtrl.text,
       estado: _estado,
-      usos: 0, // Una prenda nueva tiene 0 usos
+      usos: widget.prenda.usos, // Mantenemos los usos originales
     );
 
     // Hablamos con el Provider de PRENDAS
     Provider.of<PrendaProvider>(
       context,
       listen: false,
-    ).agregarPrenda(nuevaPrenda);
+    ).editarPrenda(prendaActualizada);
 
     Navigator.pop(context); // Regresamos
   }
@@ -61,7 +70,7 @@ class _RegistrarTernoScreenState extends State<RegistrarTernoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Registrar Nuevo Terno')),
+      appBar: AppBar(title: const Text('Editar Prenda')),
       body: SafeArea(
         child: Form(
           key: _formKey,
@@ -72,6 +81,8 @@ class _RegistrarTernoScreenState extends State<RegistrarTernoScreen> {
                 controller: _idCtrl,
                 label: 'ID Único / Código',
                 hint: 'Ej. TC-023',
+                // Hacemos el ID de solo lectura, no se debería cambiar
+                isReadOnly: true,
               ),
               const SizedBox(height: 16),
               _buildTextField(
@@ -96,13 +107,13 @@ class _RegistrarTernoScreenState extends State<RegistrarTernoScreen> {
               DropdownButtonFormField<PrendaEstado>(
                 value: _estado,
                 decoration: const InputDecoration(
-                  labelText: 'Estado Inicial',
+                  labelText: 'Estado',
                   border: OutlineInputBorder(),
                 ),
                 items: PrendaEstado.values.map((estado) {
                   return DropdownMenuItem(
                     value: estado,
-                    child: Text(estado.texto), // Usa el helper del enum
+                    child: Text(estado.texto),
                   );
                 }).toList(),
                 onChanged: (value) {
@@ -121,7 +132,7 @@ class _RegistrarTernoScreenState extends State<RegistrarTernoScreen> {
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Text('Guardar Prenda'),
+                child: const Text('Guardar Cambios'),
               ),
             ],
           ),
@@ -135,6 +146,7 @@ class _RegistrarTernoScreenState extends State<RegistrarTernoScreen> {
     required TextEditingController controller,
     required String label,
     String? hint,
+    bool isReadOnly = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,9 +160,14 @@ class _RegistrarTernoScreenState extends State<RegistrarTernoScreen> {
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
+          readOnly: isReadOnly,
           decoration: InputDecoration(
             hintText: hint,
             border: const OutlineInputBorder(),
+            fillColor: isReadOnly
+                ? AppColors.borderLight.withOpacity(0.3)
+                : null,
+            filled: isReadOnly,
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {

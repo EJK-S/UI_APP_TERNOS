@@ -22,6 +22,36 @@ class AlquilerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void registrarDevolucion(Alquiler alquilerDevuelto, String observaciones) {
+    // Busca el alquiler por su código
+    final index = _alquileres.indexWhere(
+      (a) => a.codigo == alquilerDevuelto.codigo,
+    );
+
+    if (index != -1) {
+      // Crea una copia del alquiler pero con el estado cambiado
+      final alquilerActualizado = Alquiler(
+        codigo: alquilerDevuelto.codigo,
+        cliente: alquilerDevuelto.cliente,
+        producto: alquilerDevuelto.producto,
+        fechaInicio: alquilerDevuelto.fechaInicio,
+        fechaDevolucion: alquilerDevuelto.fechaDevolucion,
+        metodoPago: alquilerDevuelto.metodoPago,
+        montoTotal: alquilerDevuelto.montoTotal,
+        garantia: alquilerDevuelto.garantia,
+        estado: AlquilerEstado
+            .pendiente, // <-- CAMBIA EL ESTADO A "PENDIENTE" (FINALIZADO)
+        // Aquí también guardarías las 'observaciones' si tu modelo las tuviera
+      );
+
+      // Reemplaza el alquiler antiguo por el actualizado
+      _alquileres[index] = alquilerActualizado;
+
+      // Notifica a la lista de alquileres que se actualice
+      notifyListeners();
+    }
+  }
+
   // (En el futuro, aquí también irían los métodos para conectarse al Backend)
   // Future<void> fetchAlquileresFromAPI() { ... }
 }
