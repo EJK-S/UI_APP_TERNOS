@@ -88,7 +88,6 @@ class AppRoot extends StatelessWidget {
             Routes.citasPendientes: (_) => const CitasPendientesScreen(),
             Routes.inventarioNuevo: (_) => const RegistrarTernoScreen(),
             Routes.nuevaCita: (_) => const NuevaCitaScreen(),
-            Routes.listaPrendas: (_) => const ListaPrendasScreen(),
           }, // <-- Llaves de MAPA
         );
       },
