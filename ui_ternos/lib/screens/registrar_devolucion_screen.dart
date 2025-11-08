@@ -37,6 +37,7 @@ class _RegistrarDevolucionScreenState extends State<RegistrarDevolucionScreen> {
     alquilerProvider.registrarDevolucion(
       widget.alquiler,
       _observacionesCtrl.text,
+      false,
     );
 
     // Cerramos la pantalla
@@ -47,6 +48,10 @@ class _RegistrarDevolucionScreenState extends State<RegistrarDevolucionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final alquilerProvider = Provider.of<AlquilerProvider>(
+      context,
+      listen: false,
+    );
     return Scaffold(
       appBar: AppBar(title: const Text('Devolución de Terno')),
       body: SafeArea(
@@ -124,29 +129,36 @@ class _RegistrarDevolucionScreenState extends State<RegistrarDevolucionScreen> {
 
             // --- Botones de Acción ---
             _buildActionButton(
-              label: 'Registrar Devolución',
-              color: AppColors.primary,
+              label: 'Finalizar y Devolver Garantía',
+              color: AppColors.primary, // Azul
               textColor: Colors.white,
-              onPressed: _registrarDevolucion,
-            ),
-            const SizedBox(height: 12),
-            _buildActionButton(
-              label: 'Devolver Garantía',
-              color: AppColors.borderLight, // Gris claro
-              textColor: AppColors.stone800, // Texto oscuro
               onPressed: () {
-                // Lógica para devolver garantía
-                Navigator.pop(context);
+                // Llama al provider, marcando el alquiler como "Finalizado"
+                // y registrando que la garantía fue devuelta.
+                alquilerProvider.registrarDevolucion(
+                  widget.alquiler,
+                  _observacionesCtrl.text,
+                  false, // false = garantía NO retenida
+                );
+                Navigator.pop(context); // Cierra este
+                Navigator.pop(context); // Cierra el detalle
               },
             ),
             const SizedBox(height: 12),
             _buildActionButton(
-              label: 'Retener Garantía',
+              label: 'Finalizar y Retener Garantía',
               color: Colors.red.shade100, // Rojo claro
               textColor: Colors.red.shade800, // Texto rojo oscuro
               onPressed: () {
-                // Lógica para retener garantía
-                Navigator.pop(context);
+                // Llama al provider, marcando el alquiler como "Finalizado"
+                // y registrando que la garantía FUE retenida.
+                alquilerProvider.registrarDevolucion(
+                  widget.alquiler,
+                  _observacionesCtrl.text,
+                  true, // true = garantía SÍ retenida
+                );
+                Navigator.pop(context); // Cierra este
+                Navigator.pop(context); // Cierra el detalle
               },
             ),
           ],

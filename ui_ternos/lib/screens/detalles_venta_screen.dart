@@ -4,6 +4,8 @@ import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/screens/editar_venta_screen.dart';
 // 2. IMPORTA EL MODELO VENTA (necesitarás pasarlo)
 import 'package:proyecto_tienda_ternos/models/venta.dart';
+import 'package:provider/provider.dart';
+import 'package:proyecto_tienda_ternos/providers/venta_provider.dart';
 
 class DetallesVentaScreen extends StatelessWidget {
   final Venta venta;
@@ -11,6 +13,7 @@ class DetallesVentaScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ventaProvider = Provider.of<VentaProvider>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detalle de Venta'),
@@ -94,7 +97,31 @@ class DetallesVentaScreen extends StatelessWidget {
               icon: const Icon(Icons.cancel, color: Colors.red),
               label: const Text('Anular Venta'),
               style: _buttonStyle(context, isDestructive: true),
-              onPressed: () {},
+              onPressed: () {
+                // MUESTRA EL DIÁLOGO DE CONFIRMACIÓN
+                _mostrarDialogoConfirmacion(
+                  context: context,
+                  titulo: 'Anular Venta',
+                  contenido:
+                      '¿Está seguro de que desea anular esta venta? Esta acción no se puede deshacer.',
+                  onConfirmar: () {
+                    // LLAMA AL PROVIDER
+                    ventaProvider.anularVenta(venta);
+
+                    // MUESTRA MENSAJE DE ÉXITO
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Venta anulada correctamente.'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+
+                    // REGRESA A LA PANTALLA ANTERIOR
+                    Navigator.pop(context); // Cierra el diálogo
+                    Navigator.pop(context); // Cierra la pantalla de detalle
+                  },
+                );
+              },
             ),
             const SizedBox(height: 24),
 
@@ -325,6 +352,40 @@ class DetallesVentaScreen extends StatelessWidget {
       color: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(12),
       border: Border.all(color: borderColor),
+    );
+  }
+
+  Future<void> _mostrarDialogoConfirmacion({
+    required BuildContext context,
+    required String titulo,
+    required String contenido,
+    required VoidCallback onConfirmar,
+  }) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // El usuario debe presionar un botón
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(titulo),
+          content: Text(contenido),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Cierra el diálogo
+              },
+            ),
+            ElevatedButton(
+              child: const Text('Confirmar'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: onConfirmar, // Ejecuta la acción
+            ),
+          ],
+        );
+      },
     );
   }
 }

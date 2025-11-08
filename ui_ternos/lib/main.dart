@@ -22,7 +22,6 @@ import 'package:proyecto_tienda_ternos/screens/registrar_terno_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/nueva_cita_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/providers/prenda_provider.dart';
-import 'package:proyecto_tienda_ternos/screens/lista_prendas_screen.dart';
 
 void main() {
   runApp(

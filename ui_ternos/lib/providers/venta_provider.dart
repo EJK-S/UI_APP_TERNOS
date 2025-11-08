@@ -30,5 +30,15 @@ class VentaProvider extends ChangeNotifier {
     }
   }
 
+  void anularVenta(Venta ventaAnular) {
+    // Simplemente eliminamos la venta de la lista
+    _ventas.removeWhere((v) => v.codigo == ventaAnular.codigo);
+
+    // (En el futuro, aquí llamarías a tu API:
+    //  await apiService.post('/ventas/anular', ventaAnular.codigo))
+
+    notifyListeners(); // Actualiza la lista de ventas
+  }
+
   // (En el futuro, aquí irían métodos como 'anularVenta', etc.)
 }

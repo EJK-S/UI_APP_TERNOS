@@ -6,6 +6,8 @@ import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 
 // --- 1. IMPORTA LA NUEVA PANTALLA ---
 import 'package:proyecto_tienda_ternos/screens/registrar_devolucion_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:proyecto_tienda_ternos/providers/alquiler_provider.dart';
 
 class DetallesAlquilerScreen extends StatelessWidget {
   final Alquiler alquiler;
@@ -14,6 +16,10 @@ class DetallesAlquilerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final alquilerProvider = Provider.of<AlquilerProvider>(
+      context,
+      listen: false,
+    );
     return Scaffold(
       appBar: AppBar(title: const Text('Detalle de Alquiler')),
       body: SafeArea(
@@ -60,7 +66,10 @@ class DetallesAlquilerScreen extends StatelessWidget {
               label: 'Prolongar Alquiler (S/25)',
               color: AppColors.primary,
               textColor: Colors.white,
-              onPressed: () {},
+              onPressed: () {
+                // Llama a la nueva función del diálogo
+                _mostrarDialogoProlongar(context, alquilerProvider, alquiler);
+              },
             ),
             const SizedBox(height: 12),
             _buildActionButton(
@@ -84,13 +93,6 @@ class DetallesAlquilerScreen extends StatelessWidget {
               },
             ),
             const SizedBox(height: 12),
-            _buildActionButton(
-              label: 'Retener Garantía',
-              color: Colors.red.shade100,
-              textColor: Colors.red.shade800,
-              onPressed: () {},
-            ),
-            const SizedBox(height: 24),
 
             // --- Historial de Acciones ---
             Text(
@@ -240,6 +242,82 @@ class DetallesAlquilerScreen extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _mostrarDialogoConfirmacion({
+    required BuildContext context,
+    required String titulo,
+    required String contenido,
+    required VoidCallback onConfirmar,
+  }) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(titulo),
+          content: Text(contenido),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            ElevatedButton(
+              child: const Text('Confirmar'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors
+                    .primary, // Necesitas importar AppColors si no está
+                foregroundColor: Colors.white,
+              ),
+              onPressed: onConfirmar,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _mostrarDialogoProlongar(
+    BuildContext context,
+    AlquilerProvider provider,
+    Alquiler alquiler,
+  ) async {
+    DateTime? nuevaFecha = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+
+    if (nuevaFecha != null) {
+      // Si el usuario seleccionó una fecha
+      String fechaFormateada =
+          "${nuevaFecha.day.toString().padLeft(2, '0')}/${nuevaFecha.month.toString().padLeft(2, '0')}/${nuevaFecha.year}";
+
+      // Muestra el diálogo de confirmación
+      _mostrarDialogoConfirmacion(
+        context: context,
+        titulo: 'Prolongar Alquiler',
+        contenido:
+            '¿Prolongar este alquiler hasta el $fechaFormateada por un costo adicional de S/ 25?',
+        onConfirmar: () {
+          // Llama al provider
+          provider.prolongarAlquiler(alquiler, fechaFormateada, 25.0);
+
+          // Cierra el diálogo de confirmación
+          Navigator.pop(context);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Alquiler prolongado exitosamente.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        },
+      );
+    }
   }
 }
 

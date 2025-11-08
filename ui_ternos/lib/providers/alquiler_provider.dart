@@ -22,15 +22,18 @@ class AlquilerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void registrarDevolucion(Alquiler alquilerDevuelto, String observaciones) {
-    // Busca el alquiler por su código
+  void registrarDevolucion(
+    Alquiler alquilerDevuelto,
+    String observaciones,
+    bool garantiaRetenida,
+  ) {
     final index = _alquileres.indexWhere(
       (a) => a.codigo == alquilerDevuelto.codigo,
     );
 
     if (index != -1) {
-      // Crea una copia del alquiler pero con el estado cambiado
       final alquilerActualizado = Alquiler(
+        // ... (copia todos los campos)
         codigo: alquilerDevuelto.codigo,
         cliente: alquilerDevuelto.cliente,
         producto: alquilerDevuelto.producto,
@@ -39,16 +42,53 @@ class AlquilerProvider extends ChangeNotifier {
         metodoPago: alquilerDevuelto.metodoPago,
         montoTotal: alquilerDevuelto.montoTotal,
         garantia: alquilerDevuelto.garantia,
-        estado: AlquilerEstado
-            .pendiente, // <-- CAMBIA EL ESTADO A "PENDIENTE" (FINALIZADO)
-        // Aquí también guardarías las 'observaciones' si tu modelo las tuviera
+        estado: AlquilerEstado.pendiente, // Estado "Finalizado"
+        // Aquí guardarías las 'observaciones' y 'garantiaRetenida' en el backend
       );
 
-      // Reemplaza el alquiler antiguo por el actualizado
       _alquileres[index] = alquilerActualizado;
 
-      // Notifica a la lista de alquileres que se actualice
+      print(
+        'Devolución registrada. Observaciones: $observaciones. Garantía retenida: $garantiaRetenida',
+      );
+
       notifyListeners();
+    }
+  }
+
+  void prolongarAlquiler(
+    Alquiler alquiler,
+    String nuevaFechaDevolucion,
+    double montoAdicional,
+  ) {
+    final index = _alquileres.indexWhere((a) => a.codigo == alquiler.codigo);
+
+    if (index != -1) {
+      // Calculamos el nuevo total (convertimos 'S/ 150' a 150.0)
+      final montoActual =
+          double.tryParse(alquiler.montoTotal.replaceAll('S/ ', '')) ?? 0.0;
+      final nuevoTotal = montoActual + montoAdicional;
+
+      final alquilerActualizado = Alquiler(
+        codigo: alquiler.codigo,
+        cliente: alquiler.cliente,
+        producto: alquiler.producto,
+        fechaInicio: alquiler.fechaInicio,
+        metodoPago: alquiler.metodoPago,
+        garantia: alquiler.garantia,
+
+        // --- Datos Actualizados ---
+        fechaDevolucion: nuevaFechaDevolucion, // <-- Nueva fecha
+        montoTotal: 'S/ ${nuevoTotal.toStringAsFixed(2)}', // <-- Nuevo total
+        // El estado sigue 'activo' o 'atrasado'
+        estado: alquiler.estado,
+      );
+
+      _alquileres[index] = alquilerActualizado;
+
+      print('Alquiler ${alquiler.codigo} prolongado. Nuevo total: $nuevoTotal');
+
+      notifyListeners(); // Avisa a la pantalla de detalle que se actualice
     }
   }
 
