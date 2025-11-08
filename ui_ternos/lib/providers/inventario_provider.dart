@@ -13,7 +13,17 @@ class InventarioProvider extends ChangeNotifier {
 
   // La lista de categorías que mostramos (calculada)
   List<InventarioCategoria> _categoriasCalculadas = [];
-  List<InventarioCategoria> get categorias => _categoriasCalculadas;
+  String _filtroCategoria = '';
+  List<InventarioCategoria> get categorias {
+    if (_filtroCategoria.isEmpty) {
+      return _categoriasCalculadas; // Retorna todo si no hay filtro
+    } else {
+      // Retorna solo las categorías que coincidan con el filtro
+      return _categoriasCalculadas
+          .where((cat) => cat.nombre.toLowerCase().contains(_filtroCategoria))
+          .toList();
+    }
+  }
 
   InventarioProvider(this._prendaProvider) {
     // Llenamos la lista maestra inicial y calculamos
@@ -50,6 +60,11 @@ class InventarioProvider extends ChangeNotifier {
         _nombresDeCategorias.add(cat);
       }
     }
+  }
+
+  void filtrarCategorias(String query) {
+    _filtroCategoria = query.toLowerCase();
+    notifyListeners(); // Avisa a la lista que se redibuje con el filtro
   }
 
   // ¡LA LÓGICA PRINCIPAL!

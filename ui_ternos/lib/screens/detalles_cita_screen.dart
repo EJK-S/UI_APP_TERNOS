@@ -203,17 +203,38 @@ class _StatusTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Aquí puedes añadir lógica para Completada/Cancelada si es necesario
+    // --- LÓGICA DE UI ACTUALIZADA ---
+    String text;
+    Color color;
+    Color backgroundColor;
+
+    switch (estado) {
+      case CitaEstado.Pendiente:
+        text = 'Pendiente';
+        color = Colors.orange.shade800;
+        backgroundColor = Colors.orange.shade100;
+        break;
+      case CitaEstado.Completada:
+        text = 'Completada';
+        color = Colors.green.shade800;
+        backgroundColor = Colors.green.shade100;
+        break;
+      case CitaEstado.Cancelada:
+        text = 'Cancelada';
+        color = Colors.red.shade800;
+        backgroundColor = Colors.red.shade100;
+        break;
+    }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.orange.shade100,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        'Pendiente',
+        text,
         style: TextStyle(
-          color: Colors.orange.shade800,
+          color: color,
           fontWeight: FontWeight.bold,
           fontSize: 12,
         ),

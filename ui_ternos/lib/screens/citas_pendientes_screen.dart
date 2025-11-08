@@ -18,19 +18,23 @@ class CitasPendientesScreen extends StatelessWidget {
     return Consumer<CitaProvider>(
       builder: (context, citaProvider, child) {
         // 5. Obtenemos la lista "viva" desde el provider
-        final List<Cita> citas = citaProvider.citas;
+        final List<Cita> citas = citaProvider.citas
+            .where((c) => c.estado == CitaEstado.Pendiente)
+            .toList();
 
         return Scaffold(
           appBar: AppBar(title: const Text('Citas Pendientes')),
           body: SafeArea(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: citas.length, // <-- 6. Usamos la lista del provider
-              itemBuilder: (context, index) {
-                final cita = citas[index];
-                return _CitaCard(cita: cita);
-              },
-            ),
+            child: citas.isEmpty
+                ? const Center(child: Text('No hay citas pendientes.'))
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16.0),
+                    itemCount: citas.length,
+                    itemBuilder: (context, index) {
+                      final cita = citas[index];
+                      return _CitaCard(cita: cita);
+                    },
+                  ),
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: () {

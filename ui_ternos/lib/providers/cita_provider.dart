@@ -18,16 +18,49 @@ class CitaProvider extends ChangeNotifier {
   }
 
   void marcarComoCompletada(Cita cita) {
-    // (Esta lógica es un ejemplo, no podemos modificar un 'const Cita')
-    // En un futuro, aquí llamarías a tu API (Backend)
-    // Por ahora, solo imprimimos en consola:
-    // ignore: avoid_print
-    print('Cita de ${cita.clienteNombre} marcada como completada.');
+    // Busca la cita por su ID (usaremos prendaDetalleId como ID único)
+    final index = _citas.indexWhere(
+      (c) => c.prendaDetalleId == cita.prendaDetalleId,
+    );
+    if (index == -1) return; // No se encontró
 
-    // Si quisieras cambiar el estado, necesitarías que la lista _citas
-    // no sea de 'const Cita' y tendrías que encontrar y reemplazar el objeto.
+    // Crea una copia actualizada de la cita
+    _citas[index] = Cita(
+      tipo: cita.tipo,
+      clienteNombre: cita.clienteNombre,
+      prendasResumen: cita.prendasResumen,
+      fecha: cita.fecha,
+      hora: cita.hora,
+      clienteTelefono: cita.clienteTelefono,
+      clienteEmail: cita.clienteEmail,
+      prendaDetalleNombre: cita.prendaDetalleNombre,
+      prendaDetalleId: cita.prendaDetalleId,
+      estado: CitaEstado.Completada, // <-- CAMBIO DE ESTADO
+    );
+    notifyListeners(); // Avisa a las pantallas que se redibujen
+  }
 
-    // notifyListeners(); // (No notificamos porque no hicimos un cambio real)
+  void cancelarCita(Cita cita) {
+    // Busca la cita por su ID
+    final index = _citas.indexWhere(
+      (c) => c.prendaDetalleId == cita.prendaDetalleId,
+    );
+    if (index == -1) return;
+
+    // Crea una copia actualizada de la cita
+    _citas[index] = Cita(
+      tipo: cita.tipo,
+      clienteNombre: cita.clienteNombre,
+      prendasResumen: cita.prendasResumen,
+      fecha: cita.fecha,
+      hora: cita.hora,
+      clienteTelefono: cita.clienteTelefono,
+      clienteEmail: cita.clienteEmail,
+      prendaDetalleNombre: cita.prendaDetalleNombre,
+      prendaDetalleId: cita.prendaDetalleId,
+      estado: CitaEstado.Cancelada, // <-- CAMBIO DE ESTADO
+    );
+    notifyListeners(); // Avisa a las pantallas que se redibujen
   }
 
   void editarCita(Cita citaActualizada) {
@@ -41,11 +74,5 @@ class CitaProvider extends ChangeNotifier {
       _citas[index] = citaActualizada;
       notifyListeners();
     }
-  }
-
-  void cancelarCita(Cita cita) {
-    // ignore: avoid_print
-    print('Cita de ${cita.clienteNombre} cancelada.');
-    // Lógica similar a la de arriba
   }
 }

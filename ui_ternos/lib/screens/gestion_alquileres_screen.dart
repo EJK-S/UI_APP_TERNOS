@@ -71,7 +71,7 @@ class GestionAlquileresScreen extends StatelessWidget {
               child: const Icon(Icons.add, color: Colors.white),
             ),
             bottomNavigationBar: const MainBottomNav(
-              currentIndex: 1,
+              currentIndex: 0,
             ), // "Clientes" es el índice 1
           ),
         );
