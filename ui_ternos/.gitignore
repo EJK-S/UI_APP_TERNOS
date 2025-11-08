@@ -43,3 +43,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Ignorar archivos generados de plataformas de escritorio
+/linux/generated_*.cc
+/linux/generated_*.h
+/linux/generated_plugins.cmake
+
+/macos/GeneratedPluginRegistrant.swift

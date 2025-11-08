@@ -6,6 +6,7 @@ import 'package:proyecto_tienda_ternos/screens/editar_venta_screen.dart';
 import 'package:proyecto_tienda_ternos/models/venta.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/providers/venta_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class DetallesVentaScreen extends StatelessWidget {
   final Venta venta;
@@ -70,7 +71,26 @@ class DetallesVentaScreen extends StatelessWidget {
                     icon: const Icon(Icons.share),
                     label: const Text('Compartir'),
                     style: _buttonStyle(context),
-                    onPressed: () {},
+                    onPressed: () {
+                      // 1. Construimos el resumen de texto
+                      final String resumen =
+                          """
+🧾 *Resumen de Venta* 🧾
+--------------------
+Código: ${venta.codigo}
+Fecha: ${venta.fecha}
+Cliente: ${venta.cliente}
+
+*Ítem:*
+- ${venta.producto} (x${venta.cantidad})
+
+*Total Pagado:*
+S/ ${venta.total.toStringAsFixed(2)} (${venta.metodoPago})
+""";
+
+                      // 2. Llamamos a la función de compartir
+                      Share.share(resumen);
+                    },
                   ),
                 ),
                 const SizedBox(width: 12),

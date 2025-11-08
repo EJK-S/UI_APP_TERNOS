@@ -19,7 +19,6 @@ class _NuevoClienteScreenState extends State<NuevoClienteScreen> {
   final _apellidosCtrl = TextEditingController();
   final _dniCtrl = TextEditingController();
   final _telefonoCtrl = TextEditingController();
-  final _correoCtrl = TextEditingController();
   final _direccionCtrl = TextEditingController();
   final _fechaNacimientoCtrl = TextEditingController();
   final _motivoVetoCtrl = TextEditingController();
@@ -32,7 +31,6 @@ class _NuevoClienteScreenState extends State<NuevoClienteScreen> {
     _apellidosCtrl.dispose();
     _dniCtrl.dispose();
     _telefonoCtrl.dispose();
-    _correoCtrl.dispose();
     _direccionCtrl.dispose();
     _fechaNacimientoCtrl.dispose();
     _motivoVetoCtrl.dispose();
@@ -48,7 +46,6 @@ class _NuevoClienteScreenState extends State<NuevoClienteScreen> {
         apellidos: _apellidosCtrl.text,
         dni: _dniCtrl.text, // (Deberías validar que este DNI no exista)
         telefono: _telefonoCtrl.text,
-        correo: _correoCtrl.text,
         direccion: _direccionCtrl.text,
         fechaNacimiento: _fechaNacimientoCtrl.text,
         vetado: _vetado,
@@ -114,13 +111,7 @@ class _NuevoClienteScreenState extends State<NuevoClienteScreen> {
                 keyboardType: TextInputType.phone,
               ),
               const SizedBox(height: 16),
-              _buildTextField(
-                controller: _correoCtrl,
-                label: 'Correo',
-                keyboardType: TextInputType.emailAddress,
-                isRequired: false, // Hacemos el correo opcional
-              ),
-              const SizedBox(height: 16),
+
               _buildTextField(
                 controller: _direccionCtrl,
                 label: 'Dirección',

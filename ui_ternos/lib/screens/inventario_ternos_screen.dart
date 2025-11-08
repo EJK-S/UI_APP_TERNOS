@@ -24,8 +24,40 @@ class _InventarioTernosScreenState extends State<InventarioTernosScreen> {
   }
 
   // --- (El diálogo _mostrarDialogoAgregarCategoria se queda igual) ---
-  void _mostrarDialogoAgregarCategoria(BuildContext context) {
-    // ... (código del diálogo sin cambios)
+  void _mostrarDialogoAgregarCategoria(
+    BuildContext context,
+    InventarioProvider inventarioProvider,
+  ) {
+    final TextEditingController _categoriaCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Agregar Nuevo Tipo'),
+          content: TextField(
+            controller: _categoriaCtrl,
+            decoration: const InputDecoration(hintText: 'Ej. Smokings'),
+            autofocus: true, // Abre el teclado automáticamente
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () => Navigator.of(ctx).pop(),
+            ),
+            ElevatedButton(
+              child: const Text('Agregar'),
+              onPressed: () {
+                // 1. Llama al provider (que se pasó como argumento)
+                inventarioProvider.agregarCategoria(_categoriaCtrl.text);
+                // 2. Cierra el diálogo
+                Navigator.of(ctx).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -94,7 +126,10 @@ class _InventarioTernosScreenState extends State<InventarioTernosScreen> {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      _mostrarDialogoAgregarCategoria(context);
+                      _mostrarDialogoAgregarCategoria(
+                        context,
+                        inventarioProvider,
+                      );
                     },
                     // ... (estilo)
                     child: const Text(

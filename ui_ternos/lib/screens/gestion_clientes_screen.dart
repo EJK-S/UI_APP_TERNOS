@@ -8,6 +8,8 @@ import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart'; // <-- 
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
 import 'package:proyecto_tienda_ternos/screens/editar_cliente_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_alquileres_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_ventas_screen.dart';
 
 class GestionClientesScreen extends StatefulWidget {
   const GestionClientesScreen({super.key});
@@ -95,14 +97,36 @@ class _GestionClientesScreenState extends State<GestionClientesScreen> {
                             // --- 8. LÓGICA DEL MENÚ DE OPCIONES ACTUALIZADA ---
                             trailing: PopupMenuButton<String>(
                               onSelected: (val) {
+                                // 'c' es la variable del cliente (ej. Cliente(nombre: 'Juan Pérez', ...))
+
                                 if (val == 'alquileres') {
-                                  Navigator.pushNamed(context, '/alquileres');
+                                  // --- 1. NAVEGACIÓN CORREGIDA ---
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => GestionAlquileresScreen(
+                                        filtroClienteNombre: c
+                                            .nombre, // <-- Le pasamos el nombre
+                                      ),
+                                    ),
+                                  );
                                 }
+
                                 if (val == 'ventas') {
-                                  Navigator.pushNamed(context, '/ventas');
+                                  // --- 2. NAVEGACIÓN CORREGIDA ---
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => GestionVentasScreen(
+                                        filtroClienteNombre: c
+                                            .nombre, // <-- Le pasamos el nombre
+                                      ),
+                                    ),
+                                  );
                                 }
+
                                 if (val == 'editar') {
-                                  // --- AHORA ABRE LA PANTALLA DE EDICIÓN CON DATOS ---
+                                  // (Esta navegación ya estaba bien)
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -112,10 +136,10 @@ class _GestionClientesScreenState extends State<GestionClientesScreen> {
                                     ),
                                   );
                                 }
+
                                 if (val == 'eliminar') {
-                                  // --- AHORA LLAMA AL PROVIDER PARA ELIMINAR ---
+                                  // (Esta lógica ya estaba bien)
                                   clienteProvider.eliminarCliente(c);
-                                  // Mostramos un mensaje de confirmación
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text('${c.nombre} eliminado.'),

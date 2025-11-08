@@ -1,34 +1,46 @@
-// lib/screens/gestion_alquileres_screen.dart (Actualizado)
-
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; // <-- 1. IMPORTAMOS PROVIDER
-import 'package:proyecto_tienda_ternos/providers/alquiler_provider.dart'; // <-- 2. IMPORTAMOS EL CEREBRO
+import 'package:provider/provider.dart';
+import 'package:proyecto_tienda_ternos/providers/alquiler_provider.dart';
+import 'package:proyecto_tienda_ternos/models/alquiler.dart';
+import 'package:proyecto_tienda_ternos/screens/detalles_alquiler_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
-import 'package:proyecto_tienda_ternos/screens/detalles_alquiler_screen.dart';
-// import 'package:proyecto_tienda_ternos/data/mock_data.dart'; // <-- 3. YA NO NECESITAMOS LOS DATOS MOCK
-import 'package:proyecto_tienda_ternos/models/alquiler.dart';
 
 class GestionAlquileresScreen extends StatelessWidget {
-  const GestionAlquileresScreen({super.key});
+  // --- 1. AÑADIMOS UN FILTRO OPCIONAL ---
+  final String? filtroClienteNombre;
+
+  const GestionAlquileresScreen({
+    super.key,
+    this.filtroClienteNombre, // El filtro es opcional
+  });
 
   @override
   Widget build(BuildContext context) {
-    // 4. PEDIMOS LA INSTANCIA DEL PROVIDER
-    // (Esto NO escucha cambios, solo es para leer datos iniciales si fuera necesario)
-    // final alquilerProvider = Provider.of<AlquilerProvider>(context);
+    // --- 2. DETERMINAMOS SI ESTAMOS EN MODO FILTRO ---
+    final bool enModoFiltro = (filtroClienteNombre != null);
 
-    // 5. USAMOS UN CONSUMER PARA "ESCUCHAR" CAMBIOS
     return Consumer<AlquilerProvider>(
       builder: (context, alquilerProvider, child) {
-        // 'alquilerProvider' es la instancia de nuestro cerebro.
-        // 'child' es un widget que podemos pasar si no queremos que se redibuje (no lo usamos aquí).
+        // --- 3. LÓGICA DE FILTRADO ---
+        List<Alquiler> todosLosAlquileres = alquilerProvider.alquileres;
+        List<Alquiler> alquileresFiltrados;
 
-        // Ahora, en lugar de usar 'mockAlquileres', usamos la lista VIVA del provider:
-        final alquileresActivos = alquilerProvider.alquileres
+        if (enModoFiltro) {
+          // Si hay filtro, filtramos la lista
+          alquileresFiltrados = todosLosAlquileres
+              .where((a) => a.cliente == filtroClienteNombre)
+              .toList();
+        } else {
+          // Si no hay filtro, mostramos todo
+          alquileresFiltrados = todosLosAlquileres;
+        }
+
+        // Dividimos en pestañas
+        final alquileresActivos = alquileresFiltrados
             .where((a) => a.estado != AlquilerEstado.pendiente)
             .toList();
-        final alquileresFinalizados = alquilerProvider.alquileres
+        final alquileresFinalizados = alquileresFiltrados
             .where((a) => a.estado == AlquilerEstado.pendiente)
             .toList();
 
@@ -36,7 +48,12 @@ class GestionAlquileresScreen extends StatelessWidget {
           length: 2,
           child: Scaffold(
             appBar: AppBar(
-              title: const Text('Alquileres'),
+              // --- 4. TÍTULO DINÁMICO ---
+              title: Text(
+                enModoFiltro
+                    ? 'Alquileres de $filtroClienteNombre'
+                    : 'Alquileres',
+              ),
               bottom: const TabBar(
                 tabs: [
                   Tab(text: 'Activos'),
@@ -50,16 +67,8 @@ class GestionAlquileresScreen extends StatelessWidget {
             body: SafeArea(
               child: TabBarView(
                 children: [
-                  // Contenido de la pestaña "Activos"
-                  _AlquilerListView(
-                    alquileres:
-                        alquileresActivos, // <-- 6. Usamos la lista del provider
-                  ),
-                  // Contenido de la pestaña "Finalizados"
-                  _AlquilerListView(
-                    alquileres:
-                        alquileresFinalizados, // <-- 7. Usamos la lista del provider
-                  ),
+                  _AlquilerListView(alquileres: alquileresActivos),
+                  _AlquilerListView(alquileres: alquileresFinalizados),
                 ],
               ),
             ),
@@ -70,9 +79,12 @@ class GestionAlquileresScreen extends StatelessWidget {
               backgroundColor: AppColors.primary,
               child: const Icon(Icons.add, color: Colors.white),
             ),
-            bottomNavigationBar: const MainBottomNav(
-              currentIndex: 0,
-            ), // "Clientes" es el índice 1
+
+            // --- 5. LÓGICA DE NAVEGACIÓN INFERIOR ---
+            // Si estamos filtrando, no mostramos la barra principal
+            bottomNavigationBar: enModoFiltro
+                ? null // No muestra la barra, ya que estamos "dentro" de Clientes
+                : const MainBottomNav(currentIndex: 0),
           ),
         );
       },

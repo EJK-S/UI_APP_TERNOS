@@ -1,35 +1,61 @@
-// lib/screens/gestion_ventas_screen.dart (Actualizado)
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/providers/venta_provider.dart';
 import 'package:proyecto_tienda_ternos/models/venta.dart';
+import 'package:proyecto_tienda_ternos/screens/detalles_venta_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
-import 'package:proyecto_tienda_ternos/screens/detalles_venta_screen.dart';
 
 class GestionVentasScreen extends StatelessWidget {
-  const GestionVentasScreen({super.key});
+  // --- 1. AÑADIMOS UN FILTRO OPCIONAL ---
+  final String? filtroClienteNombre;
+
+  const GestionVentasScreen({
+    super.key,
+    this.filtroClienteNombre, // El filtro es opcional
+  });
 
   @override
   Widget build(BuildContext context) {
-    // Escuchamos al VentaProvider
+    // --- 2. DETERMINAMOS SI ESTAMOS EN MODO FILTRO ---
+    final bool enModoFiltro = (filtroClienteNombre != null);
+
     return Consumer<VentaProvider>(
       builder: (context, ventaProvider, child) {
-        final List<Venta> ventas = ventaProvider.ventas;
+        // --- 3. LÓGICA DE FILTRADO ---
+        List<Venta> ventas;
+        if (enModoFiltro) {
+          ventas = ventaProvider.ventas
+              .where((v) => v.cliente == filtroClienteNombre)
+              .toList();
+        } else {
+          ventas = ventaProvider.ventas;
+        }
 
         return Scaffold(
-          appBar: AppBar(title: const Text('Ventas')),
-          body: SafeArea(
-            child: ListView.builder(
-              // Cambiado a ListView.builder
-              padding: const EdgeInsets.all(16.0),
-              itemCount: ventas.length, // Usamos la longitud de la lista
-              itemBuilder: (context, index) {
-                final venta = ventas[index];
-                return _VentaCard(venta: venta); // Usamos el widget de tarjeta
-              },
+          appBar: AppBar(
+            // --- 4. TÍTULO DINÁMICO ---
+            title: Text(
+              enModoFiltro ? 'Ventas de $filtroClienteNombre' : 'Ventas',
             ),
+          ),
+          body: SafeArea(
+            child: ventas.isEmpty
+                ? Center(
+                    child: Text(
+                      enModoFiltro
+                          ? 'Este cliente no tiene ventas registradas.'
+                          : 'No hay ventas registradas.',
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16.0),
+                    itemCount: ventas.length,
+                    itemBuilder: (context, index) {
+                      final venta = ventas[index];
+                      return _VentaCard(venta: venta);
+                    },
+                  ),
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: () {
@@ -38,7 +64,11 @@ class GestionVentasScreen extends StatelessWidget {
             backgroundColor: AppColors.primary,
             child: const Icon(Icons.add, color: Colors.white),
           ),
-          bottomNavigationBar: const MainBottomNav(currentIndex: 0),
+
+          // --- 5. LÓGICA DE NAVEGACIÓN INFERIOR ---
+          bottomNavigationBar: enModoFiltro
+              ? null // No muestra la barra
+              : const MainBottomNav(currentIndex: 0),
         );
       },
     );
