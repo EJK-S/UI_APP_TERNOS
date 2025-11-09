@@ -5,6 +5,7 @@ import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
 import 'package:proyecto_tienda_ternos/screens/editar_cliente_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/nuevo_cliente_screen.dart';
+import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart'; // 👈 tu widget
 
 class GestionClientesScreen extends StatefulWidget {
@@ -97,10 +98,10 @@ class _GestionClientesScreenState extends State<GestionClientesScreen> {
         currentIndex: 1, // 0 = Clientes (ajusta si tu orden es otro)
       ),
 
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: _crearCliente,
-        icon: const Icon(Icons.person_add_alt_1),
-        label: const Text('Agregar'),
+        backgroundColor: AppColors.primary,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
 
       body: RefreshIndicator(
