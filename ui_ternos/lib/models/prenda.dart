@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 
 // El estado de una prenda individual
 enum PrendaEstado { Disponible, Alquilado, Mantenimiento }

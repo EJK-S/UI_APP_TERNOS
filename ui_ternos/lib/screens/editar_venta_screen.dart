@@ -22,6 +22,15 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
   late TextEditingController _cantidadCtrl;
   late TextEditingController _precioCtrl;
 
+  final List<String> _tiposDeTraje = [
+    'Traje Clásico Negro',
+    'Esmoquin Moderno',
+    'Traje de Lino Beige',
+    'Frac de Gala',
+    'Traje a Rayas',
+    'Traje de Lino Marrón', // <-- El que causaba el crash
+  ];
+
   // Variables de estado
   String? _selectedTraje;
   String _selectedPaymentMethod = 'Yape-Plin';
@@ -53,9 +62,23 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
           ? '${_clienteDeEstaVenta!.nombre} ${_clienteDeEstaVenta!.apellidos ?? ''}'
           : 'Cliente (ID: ${venta.clienteId})',
     );
+
+    _clienteCtrl = TextEditingController(
+      // ...
+    );
     _cantidadCtrl = TextEditingController(text: venta.cantidad.toString());
     _precioCtrl = TextEditingController(text: venta.precioUnitario.toString());
-    _selectedTraje = venta.producto;
+
+    // --- LÓGICA DE DROPDOWN CORREGIDA ---
+    // Comprueba si el producto de la venta está en nuestra lista de opciones
+    if (_tiposDeTraje.contains(venta.producto)) {
+      _selectedTraje = venta.producto;
+    } else {
+      // Si no está, dejamos el valor nulo.
+      // Esto hará que el DropdownButton muestre el "hint" ("Seleccionar tipo")
+      // en lugar de crashear la aplicación.
+      _selectedTraje = null;
+    }
     _selectedPaymentMethod = venta.metodoPago;
     _total = venta.total;
 
@@ -133,11 +156,7 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
                       label: 'Tipo de traje',
                       hint: 'Seleccionar tipo',
                       value: _selectedTraje,
-                      items: [
-                        'Traje Clásico Negro',
-                        'Esmoquin Moderno',
-                        'Traje de Lino Beige',
-                      ],
+                      items: _tiposDeTraje, // <-- USA LA LISTA MAESTRA
                       onChanged: (value) {
                         setState(() {
                           _selectedTraje = value;
