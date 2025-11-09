@@ -1,0 +1,30 @@
+# --- FLUTTER / DART ---
+.dart_tool/
+.packages
+.pub/
+build/
+**/*.iml
+
+# --- ANDROID / IOS ---
+android/.gradle/
+android/app/build/
+ios/Pods/
+ios/.symlinks/
+macos/Pods/
+linux/flutter/
+windows/flutter/
+
+# --- IDE / SISTEMA ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- BACKEND (api_ternos) ---
+api_ternos/node_modules/
+api_ternos/dist/
+api_ternos/coverage/
+api_ternos/npm-debug.log*
+api_ternos/yarn-error.log*
+api_ternos/.env
+api_ternos/.env.*
