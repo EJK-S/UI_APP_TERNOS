@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/models/alquiler.dart';
+import 'package:proyecto_tienda_ternos/models/cliente.dart'; // <-- 1. IMPORTA EL MODELO CLIENTE
 import 'package:proyecto_tienda_ternos/providers/alquiler_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 
@@ -11,11 +12,6 @@ class NuevoAlquilerScreen extends StatefulWidget {
   State<NuevoAlquilerScreen> createState() => _NuevoAlquilerScreenState();
 }
 
-//
-// -----------------------------------------------------------------
-// TODO COMIENZA DENTRO DE ESTA CLASE
-// -----------------------------------------------------------------
-//
 class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
   final _formKey = GlobalKey<FormState>();
 
@@ -24,29 +20,30 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
   final TextEditingController _fechaDevolucionCtrl = TextEditingController();
   final TextEditingController _garantiaCtrl = TextEditingController();
   final TextEditingController _montoTotalCtrl = TextEditingController();
-  final TextEditingController _clienteCtrl =
-      TextEditingController(); // Para el nombre
+
+  // --- 2. CAMBIAMOS EL CONTROLADOR DE TEXTO POR UN OBJETO CLIENTE ---
+  Cliente? _selectedCliente; // Aquí guardaremos el cliente seleccionado
 
   // Variables de estado
   String? _selectedTraje;
-  String _selectedPaymentMethod = 'Yape - Plin'; // Valor inicial
+  String _selectedPaymentMethod = 'Yape - Plin';
 
   @override
   void dispose() {
-    // Limpiamos los controladores
     _fechaAlquilerCtrl.dispose();
     _fechaDevolucionCtrl.dispose();
     _garantiaCtrl.dispose();
     _montoTotalCtrl.dispose();
-    _clienteCtrl.dispose(); // Limpiamos el de cliente
     super.dispose();
   }
 
   void _submitForm() {
-    if (_formKey.currentState!.validate()) {
+    // 3. VALIDAMOS EL CLIENTE MANUALMENTE
+    if (_formKey.currentState!.validate() && _selectedCliente != null) {
       final nuevoAlquiler = Alquiler(
         codigo: 'ALQ-${DateTime.now().millisecondsSinceEpoch}',
-        cliente: _clienteCtrl.text, // Usamos el texto del controlador
+        // --- 4. USAMOS EL ID DEL CLIENTE SELECCIONADO ---
+        clienteId: _selectedCliente!.dni,
         producto: _selectedTraje ?? 'Traje (No seleccionado)',
         fechaInicio: _fechaAlquilerCtrl.text,
         fechaDevolucion: _fechaDevolucionCtrl.text,
@@ -62,6 +59,29 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
       ).agregarAlquiler(nuevoAlquiler);
 
       Navigator.pop(context);
+    } else if (_selectedCliente == null) {
+      // Mostramos un error si no se seleccionó cliente
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor, seleccione un cliente.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  // --- 5. FUNCIÓN PARA ABRIR EL SELECTOR DE CLIENTES ---
+  void _abrirSelectorCliente() async {
+    // Navegamos a la pantalla y ESPERAMOS a que devuelva un resultado
+    final Cliente? clienteSeleccionado =
+        await Navigator.pushNamed(context, Routes.seleccionarCliente)
+            as Cliente?;
+
+    // Si el usuario seleccionó un cliente (no cerró la pantalla)
+    if (clienteSeleccionado != null) {
+      setState(() {
+        _selectedCliente = clienteSeleccionado;
+      });
     }
   }
 
@@ -78,13 +98,43 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
           child: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
-              // --- Nombre del cliente (TextField) ---
-              _buildTextField(
-                // Reemplazado
-                controller: _clienteCtrl,
-                label: 'Nombre del cliente',
-                hint: 'Seleccionar / ingresar cliente',
-                icon: Icons.person_outline, // Con ícono
+              Text(
+                'Nombre del cliente *',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              // Este es el "falso" campo de texto que abre el selector
+              InkWell(
+                onTap: _abrirSelectorCliente,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(4.0),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _selectedCliente == null
+                            ? 'Seleccionar cliente'
+                            : '${_selectedCliente!.nombre} ${_selectedCliente!.apellidos ?? ''}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: _selectedCliente == null
+                              ? Colors.grey.shade600
+                              : Colors.black,
+                        ),
+                      ),
+                      const Icon(Icons.search, color: AppColors.stone600),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
 

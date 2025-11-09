@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:proyecto_tienda_ternos/models/alquiler.dart';
-import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:provider/provider.dart';
+import 'package:proyecto_tienda_ternos/models/alquiler.dart';
+// --- 1. IMPORTA LO QUE NECESITAMOS ---
+import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/providers/alquiler_provider.dart';
+import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
+// ---
+import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 
 class RegistrarDevolucionScreen extends StatefulWidget {
-  // Acepta el alquiler que se está devolviendo
   final Alquiler alquiler;
 
   const RegistrarDevolucionScreen({super.key, required this.alquiler});
@@ -16,8 +19,7 @@ class RegistrarDevolucionScreen extends StatefulWidget {
 }
 
 class _RegistrarDevolucionScreenState extends State<RegistrarDevolucionScreen> {
-  // Variable de estado para los botones de "Estado del traje"
-  String _estadoTraje = 'Completo'; // Valor por defecto
+  String _estadoTraje = 'Completo';
   final TextEditingController _observacionesCtrl = TextEditingController();
 
   @override
@@ -26,39 +28,53 @@ class _RegistrarDevolucionScreenState extends State<RegistrarDevolucionScreen> {
     super.dispose();
   }
 
-  void _registrarDevolucion() {
-    // Obtenemos la instancia del provider
-    final alquilerProvider = Provider.of<AlquilerProvider>(
-      context,
-      listen: false,
-    );
-
-    // Llamamos al método del provider, pasándole el alquiler y las observaciones
+  // (Esta función no necesita cambios, ya está correcta)
+  void _registrarDevolucion(
+    AlquilerProvider alquilerProvider,
+    bool garantiaRetenida,
+  ) {
     alquilerProvider.registrarDevolucion(
       widget.alquiler,
       _observacionesCtrl.text,
-      false,
+      garantiaRetenida,
     );
-
-    // Cerramos la pantalla
-    Navigator.pop(context);
-    // Y cerramos también la pantalla de "Detalle" para volver a la lista
-    Navigator.pop(context);
+    Navigator.pop(context); // Cierra este
+    Navigator.pop(context); // Cierra el detalle
   }
 
   @override
   Widget build(BuildContext context) {
+    // Obtenemos los providers
     final alquilerProvider = Provider.of<AlquilerProvider>(
       context,
       listen: false,
     );
+    final clienteProvider = Provider.of<ClienteProvider>(
+      context,
+      listen: false,
+    );
+
+    // --- 2. BUSCAMOS AL CLIENTE USANDO EL ID ---
+    Cliente? cliente;
+    try {
+      cliente = clienteProvider.clientes.firstWhere(
+        (c) => c.dni == widget.alquiler.clienteId,
+      );
+    } catch (e) {
+      cliente = null; // No se encontró
+    }
+    final String nombreCliente = cliente != null
+        ? '${cliente.nombre} ${cliente.apellidos ?? ''}'
+        : 'Cliente (ID: ${widget.alquiler.clienteId})';
+    // --- FIN DE LA BÚSQUEDA ---
+
     return Scaffold(
       appBar: AppBar(title: const Text('Devolución de Terno')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            // --- Información del Alquiler (reemplaza el dropdown) ---
+            // --- 3. INFORMACIÓN DEL ALQUILER (CORREGIDA) ---
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -76,13 +92,13 @@ class _RegistrarDevolucionScreenState extends State<RegistrarDevolucionScreen> {
                     ).textTheme.bodyMedium?.copyWith(color: AppColors.stone600),
                   ),
                   Text(
-                    widget.alquiler.producto, // Muestra el producto
+                    widget.alquiler.producto,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    'Cliente: ${widget.alquiler.cliente}', // Muestra el cliente
+                    'Cliente: $nombreCliente', // <-- USA EL NOMBRE ENCONTRADO
                     style: Theme.of(
                       context,
                     ).textTheme.bodyMedium?.copyWith(color: AppColors.stone700),
@@ -127,38 +143,28 @@ class _RegistrarDevolucionScreenState extends State<RegistrarDevolucionScreen> {
             ),
             const SizedBox(height: 24),
 
-            // --- Botones de Acción ---
+            // --- Botones de Acción (Corregidos) ---
             _buildActionButton(
               label: 'Finalizar y Devolver Garantía',
-              color: AppColors.primary, // Azul
+              color: AppColors.primary,
               textColor: Colors.white,
               onPressed: () {
-                // Llama al provider, marcando el alquiler como "Finalizado"
-                // y registrando que la garantía fue devuelta.
-                alquilerProvider.registrarDevolucion(
-                  widget.alquiler,
-                  _observacionesCtrl.text,
-                  false, // false = garantía NO retenida
-                );
-                Navigator.pop(context); // Cierra este
-                Navigator.pop(context); // Cierra el detalle
+                _registrarDevolucion(
+                  alquilerProvider,
+                  false,
+                ); // false = no retenida
               },
             ),
             const SizedBox(height: 12),
             _buildActionButton(
               label: 'Finalizar y Retener Garantía',
-              color: Colors.red.shade100, // Rojo claro
-              textColor: Colors.red.shade800, // Texto rojo oscuro
+              color: Colors.red.shade100,
+              textColor: Colors.red.shade800,
               onPressed: () {
-                // Llama al provider, marcando el alquiler como "Finalizado"
-                // y registrando que la garantía FUE retenida.
-                alquilerProvider.registrarDevolucion(
-                  widget.alquiler,
-                  _observacionesCtrl.text,
-                  true, // true = garantía SÍ retenida
-                );
-                Navigator.pop(context); // Cierra este
-                Navigator.pop(context); // Cierra el detalle
+                _registrarDevolucion(
+                  alquilerProvider,
+                  true,
+                ); // true = sí retenida
               },
             ),
           ],
@@ -167,7 +173,8 @@ class _RegistrarDevolucionScreenState extends State<RegistrarDevolucionScreen> {
     );
   }
 
-  // Widget auxiliar para los botones de estado
+  // --- (Helpers _buildEstadoButton y _buildActionButton no cambian) ---
+
   Widget _buildEstadoButton(String label) {
     final bool isSelected = _estadoTraje == label;
     return Expanded(
@@ -199,7 +206,6 @@ class _RegistrarDevolucionScreenState extends State<RegistrarDevolucionScreen> {
     );
   }
 
-  // Widget auxiliar para los botones de acción
   Widget _buildActionButton({
     required String label,
     required Color color,

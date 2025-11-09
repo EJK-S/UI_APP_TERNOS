@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/models/cita.dart';
 import 'package:proyecto_tienda_ternos/providers/cita_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
+import 'package:proyecto_tienda_ternos/models/cliente.dart';
+import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
 
 class EditarCitaScreen extends StatefulWidget {
   final Cita cita;
@@ -26,14 +28,38 @@ class _EditarCitaScreenState extends State<EditarCitaScreen> {
   late TextEditingController _horaCtrl;
   late CitaTipo _tipoCita;
 
+  // Guardamos el cliente encontrado
+  Cliente? _clienteSeleccionado;
+
   @override
   void initState() {
     super.initState();
-    // Pre-rellenamos los campos con los datos de la cita
+
+    // --- 3. LÓGICA DE 'initState' CORREGIDA ---
     final cita = widget.cita;
-    _clienteCtrl = TextEditingController(text: cita.clienteNombre);
-    _telefonoCtrl = TextEditingController(text: cita.clienteTelefono);
-    _emailCtrl = TextEditingController(text: cita.clienteEmail);
+
+    // Buscamos al cliente en el ClienteProvider
+    try {
+      _clienteSeleccionado = Provider.of<ClienteProvider>(
+        context,
+        listen: false,
+      ).clientes.firstWhere((c) => c.dni == cita.clienteId);
+    } catch (e) {
+      _clienteSeleccionado = null;
+    }
+
+    // Pre-rellenamos los campos
+    _clienteCtrl = TextEditingController(
+      text: _clienteSeleccionado != null
+          ? '${_clienteSeleccionado!.nombre} ${_clienteSeleccionado!.apellidos ?? ''}'
+          : 'Cliente no encontrado',
+    );
+    _telefonoCtrl = TextEditingController(
+      text: _clienteSeleccionado?.telefono ?? '',
+    );
+    _emailCtrl = TextEditingController(
+      text: _clienteSeleccionado?.correo ?? '',
+    );
     _prendasCtrl = TextEditingController(text: cita.prendasResumen);
     _fechaCtrl = TextEditingController(text: cita.fecha);
     _horaCtrl = TextEditingController(text: cita.hora);
@@ -57,14 +83,12 @@ class _EditarCitaScreenState extends State<EditarCitaScreen> {
     }
 
     final citaActualizada = Cita(
+      clienteId: widget.cita.clienteId, // Mantenemos el ID del cliente original
       tipo: _tipoCita,
-      clienteNombre: _clienteCtrl.text,
       prendasResumen: _prendasCtrl.text,
       fecha: _fechaCtrl.text,
       hora: _horaCtrl.text,
       estado: widget.cita.estado, // Mantenemos el estado original
-      clienteTelefono: _telefonoCtrl.text,
-      clienteEmail: _emailCtrl.text,
       prendaDetalleNombre: _prendasCtrl.text.split(',').first,
       prendaDetalleId: widget.cita.prendaDetalleId, // Mantenemos el ID original
     );
@@ -110,39 +134,32 @@ class _EditarCitaScreenState extends State<EditarCitaScreen> {
                 },
               ),
               const SizedBox(height: 16),
+
+              // --- 5. CAMPOS DE CLIENTE (AHORA DE SOLO LECTURA) ---
+              // Editar el cliente debería hacerse desde 'editar_cliente_screen.dart'
+              // Aquí solo mostramos quién es.
               TextFormField(
                 controller: _clienteCtrl,
+                readOnly: true, // No dejamos editar el nombre aquí
                 decoration: const InputDecoration(
-                  labelText: 'Nombre del Cliente',
+                  labelText: 'Cliente',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.person_outline),
                 ),
-                validator: (value) =>
-                    (value == null || value.isEmpty) ? 'Requerido' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _telefonoCtrl,
+                readOnly: true, // No dejamos editar el teléfono aquí
                 decoration: const InputDecoration(
                   labelText: 'Teléfono',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.phone_outlined),
                 ),
-                keyboardType: TextInputType.phone,
-                validator: (value) =>
-                    (value == null || value.isEmpty) ? 'Requerido' : null,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _emailCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Email (Opcional)',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.email_outlined),
-                ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 16),
+
+              // --- FIN DE CAMPOS DE SOLO LECTURA ---
               TextFormField(
                 controller: _prendasCtrl,
                 decoration: const InputDecoration(

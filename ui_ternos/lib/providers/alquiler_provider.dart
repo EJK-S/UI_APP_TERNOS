@@ -35,7 +35,7 @@ class AlquilerProvider extends ChangeNotifier {
       final alquilerActualizado = Alquiler(
         // ... (copia todos los campos)
         codigo: alquilerDevuelto.codigo,
-        cliente: alquilerDevuelto.cliente,
+        clienteId: alquilerDevuelto.clienteId,
         producto: alquilerDevuelto.producto,
         fechaInicio: alquilerDevuelto.fechaInicio,
         fechaDevolucion: alquilerDevuelto.fechaDevolucion,
@@ -71,7 +71,7 @@ class AlquilerProvider extends ChangeNotifier {
 
       final alquilerActualizado = Alquiler(
         codigo: alquiler.codigo,
-        cliente: alquiler.cliente,
+        clienteId: alquiler.clienteId,
         producto: alquiler.producto,
         fechaInicio: alquiler.fechaInicio,
         metodoPago: alquiler.metodoPago,

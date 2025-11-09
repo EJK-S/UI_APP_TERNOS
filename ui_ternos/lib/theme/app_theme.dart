@@ -123,4 +123,5 @@ class Routes {
   static const String detallesCita = '/citas/detalle';
   static const String editarCita = '/citas/editar';
   static const String listaPrendas = '/inventario/prendas';
+  static const String seleccionarCliente = '/clientes/seleccionar';
 }

@@ -22,6 +22,7 @@ import 'package:proyecto_tienda_ternos/screens/registrar_terno_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/nueva_cita_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/providers/prenda_provider.dart';
+import 'package:proyecto_tienda_ternos/screens/seleccionar_cliente_screen.dart';
 
 void main() {
   runApp(
@@ -87,6 +88,7 @@ class AppRoot extends StatelessWidget {
             Routes.citasPendientes: (_) => const CitasPendientesScreen(),
             Routes.inventarioNuevo: (_) => const RegistrarTernoScreen(),
             Routes.nuevaCita: (_) => const NuevaCitaScreen(),
+            Routes.seleccionarCliente: (_) => const SeleccionarClienteScreen(),
           }, // <-- Llaves de MAPA
         );
       },

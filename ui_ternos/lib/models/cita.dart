@@ -23,27 +23,23 @@ enum CitaEstado { Pendiente, Completada, Cancelada }
 class Cita {
   // Datos de la lista
   final CitaTipo tipo;
-  final String clienteNombre;
+  final String clienteId;
   final String prendasResumen;
   final String fecha;
   final String hora;
   final CitaEstado estado;
 
   // Datos del detalle
-  final String clienteTelefono;
-  final String clienteEmail;
   final String prendaDetalleNombre;
   final String prendaDetalleId;
 
   const Cita({
     required this.tipo,
-    required this.clienteNombre,
+    required this.clienteId,
     required this.prendasResumen,
     required this.fecha,
     required this.hora,
     required this.estado,
-    required this.clienteTelefono,
-    required this.clienteEmail,
     required this.prendaDetalleNombre,
     required this.prendaDetalleId,
   });

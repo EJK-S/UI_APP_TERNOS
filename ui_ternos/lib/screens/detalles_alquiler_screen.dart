@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:proyecto_tienda_ternos/models/alquiler.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
+import 'package:proyecto_tienda_ternos/models/cliente.dart';
+import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
 
 // --- 1. IMPORTA LA NUEVA PANTALLA ---
 import 'package:proyecto_tienda_ternos/screens/registrar_devolucion_screen.dart';
@@ -20,103 +22,150 @@ class DetallesAlquilerScreen extends StatelessWidget {
       context,
       listen: false,
     );
+    final clienteProvider = Provider.of<ClienteProvider>(
+      context,
+      listen: false,
+    );
+
+    Cliente? cliente;
+    try {
+      cliente = clienteProvider.clientes.firstWhere(
+        (c) => c.dni == alquiler.clienteId,
+      );
+    } catch (e) {
+      cliente = null; // El cliente no fue encontrado
+    }
+    final String nombreCliente = cliente != null
+        ? '${cliente.nombre} ${cliente.apellidos ?? ''}'
+        : 'Cliente no encontrado';
     return Scaffold(
       appBar: AppBar(title: const Text('Detalle de Alquiler')),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-          children: [
-            // --- Sección de Detalles ---
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.borderLight),
-              ),
-              child: Column(
-                children: [
-                  _buildDetailRow(context, 'Cliente', alquiler.cliente),
-                  _buildDetailRow(context, 'Traje', alquiler.producto),
-                  _buildDetailRow(
-                    context,
-                    'Fechas',
-                    '${alquiler.fechaInicio} - ${alquiler.fechaDevolucion}',
-                  ),
-                  _buildDetailRow(
-                    context,
-                    'Método de Pago',
-                    alquiler.metodoPago,
-                  ),
-                  _buildDetailRow(context, 'Monto Total', alquiler.montoTotal),
-                  _buildDetailRow(context, 'Garantía', alquiler.garantia),
-                  _buildDetailRow(
-                    context,
-                    'Estado',
-                    '',
-                    widget: _StatusTag(estado: alquiler.estado),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
+      body: Consumer<AlquilerProvider>(
+        builder: (context, provider, child) {
+          // Buscamos la versión MÁS actualizada de este alquiler
+          final alquilerActualizado = provider.alquileres.firstWhere(
+            (a) => a.codigo == alquiler.codigo,
+            orElse: () => alquiler, // Si no lo encuentra, usa el original
+          );
 
-            // --- Botones de Acción ---
-            _buildActionButton(
-              label: 'Prolongar Alquiler (S/25)',
-              color: AppColors.primary,
-              textColor: Colors.white,
-              onPressed: () {
-                // Llama a la nueva función del diálogo
-                _mostrarDialogoProlongar(context, alquilerProvider, alquiler);
-              },
-            ),
-            const SizedBox(height: 12),
-            _buildActionButton(
-              label: 'Registrar Devolución',
-              color: AppColors.borderLight,
-              textColor: AppColors.stone800,
+          return SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+              children: [
+                // --- Sección de Detalles ---
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.borderLight),
+                  ),
+                  child: Column(
+                    children: [
+                      // --- 5. MOSTRAMOS EL NOMBRE ENCONTRADO ---
+                      _buildDetailRow(context, 'Cliente', nombreCliente),
+                      _buildDetailRow(
+                        context,
+                        'Traje',
+                        alquilerActualizado.producto,
+                      ),
+                      _buildDetailRow(
+                        context,
+                        'Fechas',
+                        '${alquilerActualizado.fechaInicio} - ${alquilerActualizado.fechaDevolucion}',
+                      ),
+                      _buildDetailRow(
+                        context,
+                        'Método de Pago',
+                        alquilerActualizado.metodoPago,
+                      ),
+                      _buildDetailRow(
+                        context,
+                        'Monto Total',
+                        alquilerActualizado.montoTotal,
+                      ),
+                      _buildDetailRow(
+                        context,
+                        'Garantía',
+                        alquilerActualizado.garantia,
+                      ),
+                      _buildDetailRow(
+                        context,
+                        'Estado',
+                        '',
+                        widget: _StatusTag(estado: alquilerActualizado.estado),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
 
-              // --- 2. ACTUALIZA EL 'onPressed' ---
-              onPressed: () {
-                // Navega a la nueva pantalla de registro
-                Navigator.push(
+                // --- Botones de Acción ---
+                _buildActionButton(
+                  label: 'Prolongar Alquiler (S/25)',
+                  color: AppColors.primary,
+                  textColor: Colors.white,
+                  onPressed: () {
+                    // Llama a la nueva función del diálogo
+                    _mostrarDialogoProlongar(
+                      context,
+                      alquilerProvider,
+                      alquiler,
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildActionButton(
+                  label: 'Registrar Devolución',
+                  color: AppColors.borderLight,
+                  textColor: AppColors.stone800,
+
+                  // --- 2. ACTUALIZA EL 'onPressed' ---
+                  onPressed: () {
+                    // Navega a la nueva pantalla de registro
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        // Le pasa el alquiler actual a la nueva pantalla
+                        builder: (context) =>
+                            RegistrarDevolucionScreen(alquiler: alquiler),
+                        // Opcional: hace que la pantalla aparezca desde abajo
+                        fullscreenDialog: true,
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+
+                // --- Historial de Acciones ---
+                Text(
+                  'Historial de Acciones',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildTimelineEntry(
                   context,
-                  MaterialPageRoute(
-                    // Le pasa el alquiler actual a la nueva pantalla
-                    builder: (context) =>
-                        RegistrarDevolucionScreen(alquiler: alquiler),
-                    // Opcional: hace que la pantalla aparezca desde abajo
-                    fullscreenDialog: true,
-                  ),
-                );
-              },
+                  'Alquiler Creado',
+                  '15/07/2024',
+                  isFirst: true,
+                ),
+                _buildTimelineEntry(
+                  context,
+                  'Alquiler Extendido',
+                  '18/07/2024',
+                ),
+                _buildTimelineEntry(
+                  context,
+                  'Devolución Registrada',
+                  '22/07/2024',
+                  isLast: true,
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-
-            // --- Historial de Acciones ---
-            Text(
-              'Historial de Acciones',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            _buildTimelineEntry(
-              context,
-              'Alquiler Creado',
-              '15/07/2024',
-              isFirst: true,
-            ),
-            _buildTimelineEntry(context, 'Alquiler Extendido', '18/07/2024'),
-            _buildTimelineEntry(
-              context,
-              'Devolución Registrada',
-              '22/07/2024',
-              isLast: true,
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

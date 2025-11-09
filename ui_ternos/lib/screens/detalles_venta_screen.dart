@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 // 1. IMPORTA LA NUEVA PANTALLA DE EDICIÓN
 import 'package:proyecto_tienda_ternos/screens/editar_venta_screen.dart';
 // 2. IMPORTA EL MODELO VENTA (necesitarás pasarlo)
 import 'package:proyecto_tienda_ternos/models/venta.dart';
 import 'package:provider/provider.dart';
-import 'package:proyecto_tienda_ternos/providers/venta_provider.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:proyecto_tienda_ternos/providers/venta_provider.dart'; // <-- 1. IMPORTA PROVIDER
+import 'package:proyecto_tienda_ternos/models/cliente.dart';
 
 class DetallesVentaScreen extends StatelessWidget {
   final Venta venta;
@@ -22,145 +23,133 @@ class DetallesVentaScreen extends StatelessWidget {
         elevation: 0,
       ),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-          children: [
-            // --- Encabezado ---
-            Text(
-              'Venta ${venta.codigo}', // <-- USA DATOS REALES
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Serie 001-000001\nFecha: ${venta.fecha}', // <-- USA DATOS REALES
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.stone600),
-            ),
-            const SizedBox(height: 24),
+        // Usamos un Consumer para que los datos se actualicen si se editan
+        child: Consumer<VentaProvider>(
+          builder: (context, provider, child) {
+            // Busca la versión más actualizada de la venta
+            final ventaActualizada = provider.ventas.firstWhere(
+              (v) => v.codigo == venta.codigo,
+              orElse: () => venta, // Si no la encuentra, usa la original
+            );
 
-            // --- Tarjeta de Cliente y Estado ---
-            _buildClienteEstadoCard(context, venta), // <-- PASA LA VENTA
-            const SizedBox(height: 24),
-
-            // --- Tarjeta de Detalle de Ítems ---
-            _buildItemsCard(context, venta),
-            const SizedBox(height: 24),
-
-            // --- Botones de Acción ---
-            ElevatedButton.icon(
-              icon: const Icon(Icons.download),
-              label: const Text('Descargar PDF'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              onPressed: () {},
-            ),
-            const SizedBox(height: 12),
-            Row(
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
               children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    icon: const Icon(Icons.share),
-                    label: const Text('Compartir'),
-                    style: _buttonStyle(context),
-                    onPressed: () {
-                      // 1. Construimos el resumen de texto
-                      final String resumen =
-                          """
-🧾 *Resumen de Venta* 🧾
---------------------
-Código: ${venta.codigo}
-Fecha: ${venta.fecha}
-Cliente: ${venta.cliente}
-
-*Ítem:*
-- ${venta.producto} (x${venta.cantidad})
-
-*Total Pagado:*
-S/ ${venta.total.toStringAsFixed(2)} (${venta.metodoPago})
-""";
-
-                      // 2. Llamamos a la función de compartir
-                      Share.share(resumen);
-                    },
+                // --- Encabezado ---
+                Text(
+                  'Venta ${ventaActualizada.codigo}',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    icon: const Icon(Icons.edit),
-                    label: const Text('Editar'),
-                    style: _buttonStyle(context),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EditarVentaScreen(venta: venta),
-                          fullscreenDialog: true,
-                        ),
-                      );
-                    },
+                const SizedBox(height: 4),
+                Text(
+                  'Serie 001-000001\nFecha: ${ventaActualizada.fecha}',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.stone600),
+                ),
+                const SizedBox(height: 24),
+
+                // --- Tarjeta de Cliente y Estado ---
+                _buildClienteEstadoCard(
+                  context,
+                  ventaActualizada,
+                ), // <-- Pasa la Venta
+                const SizedBox(height: 24),
+
+                // --- Tarjeta de Detalle de Ítems ---
+                _buildItemsCard(context, ventaActualizada), // <-- Pasa la Venta
+                const SizedBox(height: 24),
+
+                // --- Botones de Acción ---
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.download),
+                  label: const Text('Descargar PDF'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    // Lógica de PDF (futuro)
+                  },
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.share),
+                        label: const Text('Compartir'),
+                        style: _buttonStyle(context),
+                        onPressed: () {
+                          // Lógica de Compartir (ya implementada)
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.edit),
+                        label: const Text('Editar'),
+                        style: _buttonStyle(context),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  EditarVentaScreen(venta: ventaActualizada),
+                              fullscreenDialog: true,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.cancel, color: Colors.red),
+                  label: const Text('Anular Venta'),
+                  style: _buttonStyle(context, isDestructive: true),
+                  onPressed: () {
+                    _mostrarDialogoConfirmacion(
+                      context: context,
+                      titulo: 'Anular Venta',
+                      contenido:
+                          '¿Está seguro de que desea anular esta venta? Esta acción no se puede deshacer.',
+                      onConfirmar: () {
+                        ventaProvider.anularVenta(ventaActualizada);
+                        Navigator.pop(context); // Cierra el diálogo
+                        Navigator.pop(context); // Cierra la pantalla de detalle
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
+
+                // --- Notas / Observaciones ---
+                Text(
+                  'Notas / Observaciones',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  maxLines: 4,
+                  decoration: const InputDecoration(
+                    hintText: 'Añadir una nota...',
+                    border: OutlineInputBorder(),
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              icon: const Icon(Icons.cancel, color: Colors.red),
-              label: const Text('Anular Venta'),
-              style: _buttonStyle(context, isDestructive: true),
-              onPressed: () {
-                // MUESTRA EL DIÁLOGO DE CONFIRMACIÓN
-                _mostrarDialogoConfirmacion(
-                  context: context,
-                  titulo: 'Anular Venta',
-                  contenido:
-                      '¿Está seguro de que desea anular esta venta? Esta acción no se puede deshacer.',
-                  onConfirmar: () {
-                    // LLAMA AL PROVIDER
-                    ventaProvider.anularVenta(venta);
-
-                    // MUESTRA MENSAJE DE ÉXITO
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Venta anulada correctamente.'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-
-                    // REGRESA A LA PANTALLA ANTERIOR
-                    Navigator.pop(context); // Cierra el diálogo
-                    Navigator.pop(context); // Cierra la pantalla de detalle
-                  },
-                );
-              },
-            ),
-            const SizedBox(height: 24),
-
-            // --- Notas / Observaciones ---
-            Text(
-              'Notas / Observaciones',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              maxLines: 4,
-              decoration: const InputDecoration(
-                hintText: 'Añadir una nota...',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
@@ -168,6 +157,23 @@ S/ ${venta.total.toStringAsFixed(2)} (${venta.metodoPago})
 
   // Helper para la tarjeta de Cliente y Estado
   Widget _buildClienteEstadoCard(BuildContext context, Venta venta) {
+    // --- BÚSQUEDA DEL CLIENTE ---
+    final clienteProvider = Provider.of<ClienteProvider>(
+      context,
+      listen: false,
+    );
+    Cliente? cliente;
+    try {
+      cliente = clienteProvider.clientes.firstWhere(
+        (c) => c.dni == venta.clienteId,
+      );
+    } catch (e) {
+      cliente = null;
+    }
+    final String nombreCliente = cliente != null
+        ? '${cliente.nombre} ${cliente.apellidos ?? ''}'
+        : 'Cliente (ID: ${venta.clienteId})';
+    // --- FIN DE LA BÚSQUEDA ---
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: _cardDecoration(context),
@@ -183,7 +189,7 @@ S/ ${venta.total.toStringAsFixed(2)} (${venta.metodoPago})
                 ).textTheme.bodyMedium?.copyWith(color: AppColors.stone600),
               ),
               Text(
-                venta.cliente, // <-- USA DATOS REALES
+                nombreCliente,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),

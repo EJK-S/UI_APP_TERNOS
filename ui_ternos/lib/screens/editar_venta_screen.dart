@@ -3,11 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/models/venta.dart';
 import 'package:proyecto_tienda_ternos/providers/venta_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
+import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
+import 'package:proyecto_tienda_ternos/models/cliente.dart';
 
 class EditarVentaScreen extends StatefulWidget {
-  // Acepta la venta que vamos a editar
   final Venta venta;
-
   const EditarVentaScreen({super.key, required this.venta});
 
   @override
@@ -27,23 +27,38 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
   String _selectedPaymentMethod = 'Yape-Plin';
   double _total = 0.0;
 
+  // Guardaremos el cliente para no tener que buscarlo de nuevo
+  Cliente? _clienteDeEstaVenta;
+
   @override
   void initState() {
     super.initState();
 
-    // --- PRE-RELLENAMOS LOS CAMPOS CON LOS DATOS DE LA VENTA ---
-    _clienteCtrl = TextEditingController(text: widget.venta.cliente);
-    _cantidadCtrl = TextEditingController(
-      text: widget.venta.cantidad.toString(),
-    );
-    _precioCtrl = TextEditingController(
-      text: widget.venta.precioUnitario.toString(),
-    );
-    _selectedTraje = widget.venta.producto;
-    _selectedPaymentMethod = widget.venta.metodoPago;
-    _total = widget.venta.total;
+    // --- 3. LÓGICA DE 'initState' CORREGIDA ---
+    final venta = widget.venta;
 
-    // Añadimos "listeners" para auto-calcular el total
+    // Buscamos al cliente en el ClienteProvider
+    try {
+      _clienteDeEstaVenta = Provider.of<ClienteProvider>(
+        context,
+        listen: false,
+      ).clientes.firstWhere((c) => c.dni == venta.clienteId);
+    } catch (e) {
+      _clienteDeEstaVenta = null;
+    }
+
+    // Pre-rellenamos los campos
+    _clienteCtrl = TextEditingController(
+      text: _clienteDeEstaVenta != null
+          ? '${_clienteDeEstaVenta!.nombre} ${_clienteDeEstaVenta!.apellidos ?? ''}'
+          : 'Cliente (ID: ${venta.clienteId})',
+    );
+    _cantidadCtrl = TextEditingController(text: venta.cantidad.toString());
+    _precioCtrl = TextEditingController(text: venta.precioUnitario.toString());
+    _selectedTraje = venta.producto;
+    _selectedPaymentMethod = venta.metodoPago;
+    _total = venta.total;
+
     _cantidadCtrl.addListener(_calculateTotal);
     _precioCtrl.addListener(_calculateTotal);
   }
@@ -64,16 +79,16 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
     });
   }
 
-  // --- FUNCIÓN DE "GUARDAR CAMBIOS" ---
+  // --- 4. FUNCIÓN '_submitForm' CORREGIDA ---
   void _submitForm() {
     if (!_formKey.currentState!.validate()) {
-      return; // Formulario no válido
+      return;
     }
 
     final ventaActualizada = Venta(
-      codigo: widget.venta.codigo, // <-- Usamos el código original
-      cliente: _clienteCtrl.text.isEmpty ? 'Mostrador' : _clienteCtrl.text,
-      fecha: widget.venta.fecha, // <-- Mantenemos la fecha original
+      codigo: widget.venta.codigo, // Mantenemos el código original
+      clienteId: widget.venta.clienteId, // Mantenemos el ID de cliente original
+      fecha: widget.venta.fecha, // Mantenemos la fecha original
       producto: _selectedTraje ?? 'Producto no seleccionado',
       cantidad: int.tryParse(_cantidadCtrl.text) ?? 0,
       precioUnitario: double.tryParse(_precioCtrl.text) ?? 0.0,
@@ -81,7 +96,6 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
       total: _total,
     );
 
-    // Hablamos con el Provider para "editar"
     Provider.of<VentaProvider>(
       context,
       listen: false,
@@ -99,22 +113,22 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
           key: _formKey,
           child: Column(
             children: [
-              // --- FORMULARIO (expandible) ---
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.all(16.0),
                   children: [
-                    // --- Cliente ---
+                    // --- 5. CAMPO CLIENTE (AHORA SOLO LECTURA) ---
                     _buildTextField(
                       controller: _clienteCtrl,
-                      label: 'Cliente (opcional)',
+                      label: 'Cliente',
                       hint: 'Seleccionar cliente',
                       icon: Icons.person_outline,
                       isRequired: false,
+                      isReadOnly: true, // Lo hacemos de solo lectura
                     ),
                     const SizedBox(height: 16),
 
-                    // --- Tipo de traje ---
+                    // --- FIN DEL CAMBIO ---
                     _buildDropdownField(
                       label: 'Tipo de traje',
                       hint: 'Seleccionar tipo',
@@ -131,8 +145,6 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-
-                    // --- Fila de Cantidad y Precio ---
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -157,8 +169,6 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-
-                    // --- Método de pago ---
                     Text(
                       'Método de pago',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -176,8 +186,6 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
                   ],
                 ),
               ),
-
-              // --- SECCIÓN FIJA INFERIOR (Total y Botón) ---
               Container(
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
@@ -193,7 +201,6 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
                 ),
                 child: Column(
                   children: [
-                    // --- Total ---
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -213,8 +220,6 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-
-                    // --- Botón de Guardar Cambios ---
                     ElevatedButton(
                       onPressed: _submitForm,
                       style: ElevatedButton.styleFrom(
@@ -253,6 +258,7 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
     String? prefix,
     bool isRequired = true,
     TextInputType? keyboardType,
+    bool isReadOnly = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,6 +273,7 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
+          readOnly: isReadOnly,
           decoration: InputDecoration(
             hintText: hint,
             prefixText: prefix,

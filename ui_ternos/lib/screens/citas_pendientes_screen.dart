@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart'; // <-- 1. IMPORTAMOS PROVIDER
 import 'package:proyecto_tienda_ternos/providers/cita_provider.dart'; // <-- 2. IMPORTAMOS EL CEREBRO
 // Ya no necesitamos importar datos de prueba
+import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
+import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/models/cita.dart';
 import 'package:proyecto_tienda_ternos/screens/detalles_cita_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
@@ -59,6 +61,24 @@ class _CitaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // --- 2. BUSCAMOS AL CLIENTE ---
+    final clienteProvider = Provider.of<ClienteProvider>(
+      context,
+      listen: false,
+    );
+    Cliente? cliente;
+    try {
+      cliente = clienteProvider.clientes.firstWhere(
+        (c) => c.dni == cita.clienteId,
+      );
+    } catch (e) {
+      cliente = null; // No se encontró
+    }
+    final nombreCliente = cliente != null
+        ? '${cliente.nombre} ${cliente.apellidos ?? ''}'
+        : 'Cliente (ID: ${cita.clienteId})';
+    // --- FIN DE LA BÚSQUEDA ---
+
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 16.0),
@@ -102,7 +122,7 @@ class _CitaCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      cita.clienteNombre,
+                      nombreCliente,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),

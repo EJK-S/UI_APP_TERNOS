@@ -2,7 +2,7 @@ enum AlquilerEstado { pendiente, atrasado, activo }
 
 class Alquiler {
   final String codigo;
-  final String cliente;
+  final String clienteId;
   final String producto;
   final String fechaInicio;
   final String fechaDevolucion;
@@ -15,7 +15,7 @@ class Alquiler {
 
   const Alquiler({
     required this.codigo,
-    required this.cliente,
+    required this.clienteId,
     required this.producto,
     required this.fechaInicio,
     required this.fechaDevolucion,

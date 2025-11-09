@@ -4,6 +4,8 @@ import 'package:proyecto_tienda_ternos/models/cita.dart';
 import 'package:proyecto_tienda_ternos/providers/cita_provider.dart'; // <-- 2. IMPORTAMOS EL CEREBRO
 import 'package:proyecto_tienda_ternos/screens/editar_cita_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
+import 'package:proyecto_tienda_ternos/models/cliente.dart';
+import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
 
 class DetallesCitaScreen extends StatelessWidget {
   final Cita cita;
@@ -13,115 +15,148 @@ class DetallesCitaScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // 3. Obtenemos la instancia del provider (para llamar a los métodos)
     final citaProvider = Provider.of<CitaProvider>(context, listen: false);
+    final clienteProvider = Provider.of<ClienteProvider>(
+      context,
+      listen: false,
+    );
+    Cliente? cliente;
+    try {
+      cliente = clienteProvider.clientes.firstWhere(
+        (c) => c.dni == cita.clienteId,
+      );
+    } catch (e) {
+      cliente = null; // No se encontró
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text('Detalle Cita')),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(16.0),
-          children: [
-            // --- Etiqueta de Estado ---
-            Align(
-              alignment: Alignment.topLeft,
-              child: _StatusTag(estado: cita.estado),
-            ),
-            const SizedBox(height: 16),
+      // --- 3. USAMOS UN CONSUMER DE CITA ---
+      // (Para que el estado 'Pendiente' cambie si lo cancelas/completas)
+      body: Consumer<CitaProvider>(
+        builder: (context, provider, child) {
+          // Busca la versión más actualizada de la cita
+          final citaActualizada = provider.citas.firstWhere(
+            (c) => c.prendaDetalleId == cita.prendaDetalleId,
+            orElse: () => cita, // Si no la encuentra, usa la original
+          );
 
-            // --- Tarjeta Cliente ---
-            Text('Cliente', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            _buildCard(
-              context,
-              child: Column(
-                children: [
-                  _InfoRow(
-                    icon: Icons.person_outline,
-                    text: cita.clienteNombre,
-                  ),
-                  _InfoRow(
-                    icon: Icons.phone_outlined,
-                    text: cita.clienteTelefono,
-                  ),
-                  _InfoRow(icon: Icons.email_outlined, text: cita.clienteEmail),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
+          return SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.all(16.0),
+              children: [
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: _StatusTag(estado: citaActualizada.estado),
+                ),
+                const SizedBox(height: 16),
 
-            // --- Tarjeta Detalles de la Cita ---
-            Text(
-              'Detalles de la Cita',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            _buildCard(
-              context,
-              child: Column(
-                children: [
-                  _InfoRow(icon: Icons.list_alt_outlined, text: cita.tipoTexto),
-                  _InfoRow(
-                    icon: Icons.calendar_today_outlined,
-                    text: cita.fecha,
-                  ),
-                  _InfoRow(icon: Icons.access_time_outlined, text: cita.hora),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // --- Tarjeta Prendas ---
-            Text('Prendas', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            _buildCard(
-              context,
-              child: _InfoRow(
-                icon: Icons.checkroom, // Ícono de terno
-                text: cita.prendaDetalleNombre,
-                subtitle: 'ID: ${cita.prendaDetalleId}',
-              ),
-            ),
-            const SizedBox(height: 32),
-
-            // --- Botones de Acción (Actualizados) ---
-            _buildActionButton(
-              label: 'Marcar como Completada',
-              color: AppColors.primary,
-              textColor: Colors.white,
-              onPressed: () {
-                // 4. LLAMAMOS AL PROVIDER
-                citaProvider.marcarComoCompletada(cita);
-                Navigator.pop(context); // Regresamos a la lista
-              },
-            ),
-            const SizedBox(height: 12),
-            _buildActionButton(
-              label: 'Editar Cita',
-              color: AppColors.borderLight,
-              textColor: AppColors.stone800,
-              onPressed: () {
-                // Esto ya estaba bien
-                Navigator.push(
+                // --- 4. TARJETA DE CLIENTE CORREGIDA ---
+                Text('Cliente', style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 8),
+                _buildCard(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => EditarCitaScreen(cita: cita),
-                    fullscreenDialog: true,
+                  child: Column(
+                    children: [
+                      _InfoRow(
+                        icon: Icons.person_outline,
+                        text: cliente != null
+                            ? '${cliente.nombre} ${cliente.apellidos ?? ''}'
+                            : 'Cliente no encontrado',
+                      ),
+                      _InfoRow(
+                        icon: Icons.phone_outlined,
+                        text: cliente?.telefono ?? 'Sin teléfono',
+                      ),
+                      _InfoRow(
+                        icon: Icons.email_outlined,
+                        text: cliente?.correo ?? 'Sin correo',
+                      ),
+                    ],
                   ),
-                );
-              },
+                ),
+                const SizedBox(height: 24),
+                // --- FIN DE LA CORRECCIÓN ---
+
+                // --- Tarjeta Detalles de la Cita (ya estaba bien) ---
+                Text(
+                  'Detalles de la Cita',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                _buildCard(
+                  context,
+                  child: Column(
+                    children: [
+                      _InfoRow(
+                        icon: Icons.list_alt_outlined,
+                        text: citaActualizada.tipo.tipoTexto,
+                      ),
+                      _InfoRow(
+                        icon: Icons.calendar_today_outlined,
+                        text: citaActualizada.fecha,
+                      ),
+                      _InfoRow(
+                        icon: Icons.access_time_outlined,
+                        text: citaActualizada.hora,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // --- Tarjeta Prendas (ya estaba bien) ---
+                Text('Prendas', style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 8),
+                _buildCard(
+                  context,
+                  child: _InfoRow(
+                    icon: Icons.checkroom,
+                    text: citaActualizada.prendaDetalleNombre,
+                    subtitle: 'ID: ${citaActualizada.prendaDetalleId}',
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                // --- Botones de Acción (ya estaban bien) ---
+                _buildActionButton(
+                  label: 'Marcar como Completada',
+                  color: AppColors.primary,
+                  textColor: Colors.white,
+                  onPressed: () {
+                    citaProvider.marcarComoCompletada(citaActualizada);
+                    Navigator.pop(context);
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildActionButton(
+                  label: 'Editar Cita',
+                  color: AppColors.borderLight,
+                  textColor: AppColors.stone800,
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            EditarCitaScreen(cita: citaActualizada),
+                        fullscreenDialog: true,
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildActionButton(
+                  label: 'Cancelar Cita',
+                  color: Colors.transparent,
+                  textColor: Colors.red,
+                  onPressed: () {
+                    citaProvider.cancelarCita(citaActualizada);
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            _buildActionButton(
-              label: 'Cancelar Cita',
-              color: Colors.transparent, // Sin fondo
-              textColor: Colors.red,
-              onPressed: () {
-                // 5. LLAMAMOS AL PROVIDER
-                citaProvider.cancelarCita(cita);
-                Navigator.pop(context); // Regresamos a la lista
-              },
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

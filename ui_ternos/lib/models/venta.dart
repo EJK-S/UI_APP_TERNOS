@@ -2,7 +2,7 @@
 
 class Venta {
   final String codigo;
-  final String cliente;
+  final String clienteId;
   final String fecha;
 
   // --- Campos actualizados ---
@@ -14,7 +14,7 @@ class Venta {
 
   const Venta({
     required this.codigo,
-    required this.cliente,
+    required this.clienteId,
     required this.fecha,
     required this.producto,
     required this.cantidad,

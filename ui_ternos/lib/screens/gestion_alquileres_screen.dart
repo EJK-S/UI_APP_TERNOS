@@ -1,42 +1,57 @@
+// lib/screens/gestion_alquileres_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/providers/alquiler_provider.dart';
+// 1. IMPORTA EL CLIENTE PROVIDER Y EL MODELO
+import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
+import 'package:proyecto_tienda_ternos/models/cliente.dart';
+// ---
 import 'package:proyecto_tienda_ternos/models/alquiler.dart';
 import 'package:proyecto_tienda_ternos/screens/detalles_alquiler_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
 
 class GestionAlquileresScreen extends StatelessWidget {
-  // --- 1. AÑADIMOS UN FILTRO OPCIONAL ---
   final String? filtroClienteNombre;
 
-  const GestionAlquileresScreen({
-    super.key,
-    this.filtroClienteNombre, // El filtro es opcional
-  });
+  const GestionAlquileresScreen({super.key, this.filtroClienteNombre});
 
   @override
   Widget build(BuildContext context) {
-    // --- 2. DETERMINAMOS SI ESTAMOS EN MODO FILTRO ---
     final bool enModoFiltro = (filtroClienteNombre != null);
 
     return Consumer<AlquilerProvider>(
       builder: (context, alquilerProvider, child) {
-        // --- 3. LÓGICA DE FILTRADO ---
         List<Alquiler> todosLosAlquileres = alquilerProvider.alquileres;
         List<Alquiler> alquileresFiltrados;
 
         if (enModoFiltro) {
-          // Si hay filtro, filtramos la lista
+          // 2. ACTUALIZA EL FILTRO PARA USAR EL ID
+          // (Buscamos el ID del cliente basado en el nombre)
+          final clienteProvider = Provider.of<ClienteProvider>(
+            context,
+            listen: false,
+          );
+          String clienteId = '';
+          try {
+            // Buscamos el cliente por nombre
+            final cliente = clienteProvider.clientes.firstWhere(
+              (c) => '${c.nombre} ${c.apellidos ?? ''}' == filtroClienteNombre,
+            );
+            clienteId = cliente.dni; // Usamos su DNI (ID)
+          } catch (e) {
+            // Maneja el caso si el cliente no se encuentra
+          }
+
           alquileresFiltrados = todosLosAlquileres
-              .where((a) => a.cliente == filtroClienteNombre)
+              .where((a) => a.clienteId == clienteId) // Filtra por ID
               .toList();
         } else {
-          // Si no hay filtro, mostramos todo
           alquileresFiltrados = todosLosAlquileres;
         }
 
-        // Dividimos en pestañas
+        // (El resto de la lógica de pestañas sigue igual)
         final alquileresActivos = alquileresFiltrados
             .where((a) => a.estado != AlquilerEstado.pendiente)
             .toList();
@@ -48,7 +63,6 @@ class GestionAlquileresScreen extends StatelessWidget {
           length: 2,
           child: Scaffold(
             appBar: AppBar(
-              // --- 4. TÍTULO DINÁMICO ---
               title: Text(
                 enModoFiltro
                     ? 'Alquileres de $filtroClienteNombre'
@@ -79,11 +93,8 @@ class GestionAlquileresScreen extends StatelessWidget {
               backgroundColor: AppColors.primary,
               child: const Icon(Icons.add, color: Colors.white),
             ),
-
-            // --- 5. LÓGICA DE NAVEGACIÓN INFERIOR ---
-            // Si estamos filtrando, no mostramos la barra principal
             bottomNavigationBar: enModoFiltro
-                ? null // No muestra la barra, ya que estamos "dentro" de Clientes
+                ? null
                 : const MainBottomNav(currentIndex: 0),
           ),
         );
@@ -92,10 +103,7 @@ class GestionAlquileresScreen extends StatelessWidget {
   }
 }
 
-// --- NINGÚN CAMBIO DE AQUÍ PARA ABAJO ---
-// (Los widgets internos (_AlquilerListView, _AlquilerCard, _StatusTag)
-// siguen exactamente iguales, ya que ahora reciben la lista filtrada)
-
+// --- El _AlquilerListView no cambia ---
 class _AlquilerListView extends StatelessWidget {
   final List<Alquiler> alquileres;
   const _AlquilerListView({required this.alquileres});
@@ -105,7 +113,6 @@ class _AlquilerListView extends StatelessWidget {
     if (alquileres.isEmpty) {
       return const Center(child: Text('No hay alquileres en esta categoría.'));
     }
-
     return ListView.builder(
       padding: const EdgeInsets.all(16.0),
       itemCount: alquileres.length,
@@ -117,12 +124,34 @@ class _AlquilerListView extends StatelessWidget {
   }
 }
 
+// --- EL _AlquilerCard CAMBIA SIGNIFICATIVAMENTE ---
 class _AlquilerCard extends StatelessWidget {
   final Alquiler alquiler;
   const _AlquilerCard({required this.alquiler});
 
   @override
   Widget build(BuildContext context) {
+    // 3. LEEMOS EL CLIENTEPROVIDER
+    final clienteProvider = Provider.of<ClienteProvider>(
+      context,
+      listen: false,
+    );
+
+    // 4. BUSCAMOS AL CLIENTE USANDO EL ID
+    Cliente? cliente;
+    try {
+      cliente = clienteProvider.clientes.firstWhere(
+        (c) => c.dni == alquiler.clienteId,
+      );
+    } catch (e) {
+      cliente = null; // El cliente no fue encontrado
+    }
+
+    // Asignamos un nombre por defecto si no se encuentra
+    final String nombreCliente = cliente != null
+        ? '${cliente.nombre} ${cliente.apellidos ?? ''}'
+        : 'Cliente no encontrado';
+
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 16.0),
@@ -146,7 +175,7 @@ class _AlquilerCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      alquiler.cliente,
+                      nombreCliente, // <-- 5. MOSTRAMOS EL NOMBRE ENCONTRADO
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -178,6 +207,7 @@ class _AlquilerCard extends StatelessWidget {
   }
 }
 
+// --- (El _StatusTag no cambia) ---
 class _StatusTag extends StatelessWidget {
   final AlquilerEstado estado;
   const _StatusTag({required this.estado});

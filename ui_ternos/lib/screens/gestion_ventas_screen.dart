@@ -5,6 +5,8 @@ import 'package:proyecto_tienda_ternos/models/venta.dart';
 import 'package:proyecto_tienda_ternos/screens/detalles_venta_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
+import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
+import 'package:proyecto_tienda_ternos/models/cliente.dart';
 
 class GestionVentasScreen extends StatelessWidget {
   // --- 1. AÑADIMOS UN FILTRO OPCIONAL ---
@@ -22,11 +24,26 @@ class GestionVentasScreen extends StatelessWidget {
 
     return Consumer<VentaProvider>(
       builder: (context, ventaProvider, child) {
-        // --- 3. LÓGICA DE FILTRADO ---
+        // --- 2. LÓGICA DE FILTRADO ---
         List<Venta> ventas;
         if (enModoFiltro) {
+          // Buscamos el ID del cliente basado en el nombre
+          final clienteProvider = Provider.of<ClienteProvider>(
+            context,
+            listen: false,
+          );
+          String clienteId = '';
+          try {
+            final cliente = clienteProvider.clientes.firstWhere(
+              (c) => '${c.nombre} ${c.apellidos ?? ''}' == filtroClienteNombre,
+            );
+            clienteId = cliente.dni;
+          } catch (e) {
+            // Cliente no encontrado
+          }
+
           ventas = ventaProvider.ventas
-              .where((v) => v.cliente == filtroClienteNombre)
+              .where((v) => v.clienteId == clienteId) // Filtra por ID
               .toList();
         } else {
           ventas = ventaProvider.ventas;
@@ -34,7 +51,6 @@ class GestionVentasScreen extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
-            // --- 4. TÍTULO DINÁMICO ---
             title: Text(
               enModoFiltro ? 'Ventas de $filtroClienteNombre' : 'Ventas',
             ),
@@ -64,10 +80,8 @@ class GestionVentasScreen extends StatelessWidget {
             backgroundColor: AppColors.primary,
             child: const Icon(Icons.add, color: Colors.white),
           ),
-
-          // --- 5. LÓGICA DE NAVEGACIÓN INFERIOR ---
           bottomNavigationBar: enModoFiltro
-              ? null // No muestra la barra
+              ? null
               : const MainBottomNav(currentIndex: 0),
         );
       },
@@ -82,6 +96,24 @@ class _VentaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // --- 3. BUSCAMOS AL CLIENTE ---
+    final clienteProvider = Provider.of<ClienteProvider>(
+      context,
+      listen: false,
+    );
+    Cliente? cliente;
+    try {
+      cliente = clienteProvider.clientes.firstWhere(
+        (c) => c.dni == venta.clienteId,
+      );
+    } catch (e) {
+      cliente = null; // No se encontró
+    }
+    final String nombreCliente = cliente != null
+        ? '${cliente.nombre} ${cliente.apellidos ?? ''}'
+        : 'Cliente (ID: ${venta.clienteId})';
+    // --- FIN DE LA BÚSQUEDA ---
+
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 16.0),
@@ -101,7 +133,6 @@ class _VentaCard extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Columna para Fecha, Producto y Cliente
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,14 +145,14 @@ class _VentaCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      venta.producto, // <-- Campo del nuevo modelo
+                      venta.producto,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Cliente: ${venta.cliente}', // <-- Campo del nuevo modelo
+                      'Cliente: $nombreCliente', // <-- 4. USAMOS EL NOMBRE ENCONTRADO
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.stone700,
                       ),
@@ -129,12 +160,9 @@ class _VentaCard extends StatelessWidget {
                   ],
                 ),
               ),
-              // Espacio
               const SizedBox(width: 16),
-              // Precio
               Text(
-                // Formateamos el double a S/ 0.00
-                'S/ ${venta.total.toStringAsFixed(2)}', // <-- Campo del nuevo modelo
+                'S/ ${venta.total.toStringAsFixed(2)}',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,

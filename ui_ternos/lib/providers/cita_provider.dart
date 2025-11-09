@@ -27,12 +27,10 @@ class CitaProvider extends ChangeNotifier {
     // Crea una copia actualizada de la cita
     _citas[index] = Cita(
       tipo: cita.tipo,
-      clienteNombre: cita.clienteNombre,
+      clienteId: cita.clienteId,
       prendasResumen: cita.prendasResumen,
       fecha: cita.fecha,
       hora: cita.hora,
-      clienteTelefono: cita.clienteTelefono,
-      clienteEmail: cita.clienteEmail,
       prendaDetalleNombre: cita.prendaDetalleNombre,
       prendaDetalleId: cita.prendaDetalleId,
       estado: CitaEstado.Completada, // <-- CAMBIO DE ESTADO
@@ -50,12 +48,10 @@ class CitaProvider extends ChangeNotifier {
     // Crea una copia actualizada de la cita
     _citas[index] = Cita(
       tipo: cita.tipo,
-      clienteNombre: cita.clienteNombre,
+      clienteId: cita.clienteId,
       prendasResumen: cita.prendasResumen,
       fecha: cita.fecha,
       hora: cita.hora,
-      clienteTelefono: cita.clienteTelefono,
-      clienteEmail: cita.clienteEmail,
       prendaDetalleNombre: cita.prendaDetalleNombre,
       prendaDetalleId: cita.prendaDetalleId,
       estado: CitaEstado.Cancelada, // <-- CAMBIO DE ESTADO

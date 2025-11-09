@@ -10,31 +10,31 @@ import 'package:proyecto_tienda_ternos/models/prenda.dart';
 final List<Alquiler> mockAlquileres = [
   const Alquiler(
     codigo: 'ALQ-0015',
-    cliente: 'Juan Pérez',
+    clienteId: '12345678', // <-- ID de Juan Pérez
     producto: 'Esmoquin Clásico',
     fechaInicio: '15/07/24',
     fechaDevolucion: '20/07/24',
     estado: AlquilerEstado.activo,
-    // --- Datos nuevos ---
     metodoPago: 'Tarjeta de Crédito',
     montoTotal: 'S/ 150',
     garantia: 'S/ 50',
   ),
   const Alquiler(
     codigo: 'ALQ-0016',
-    cliente: 'Carlos Sánchez',
+    clienteId: '87654321', // <-- ID de María López
     producto: 'Traje de Gala Azul',
     fechaInicio: '10/07/24',
     fechaDevolucion: '14/07/24',
     estado: AlquilerEstado.activo,
-    // --- Datos nuevos ---
     metodoPago: 'Yape - Plin',
     montoTotal: 'S/ 280',
     garantia: 'S/ 100',
   ),
+
+  // ... (otros alquileres)
   const Alquiler(
     codigo: 'ALQ-0017',
-    cliente: 'Miguel Rodríguez',
+    clienteId: '651354189', //<-- ID de Miguel Rodríguez
     producto: 'Frac Negro',
     fechaInicio: '01/07/24',
     fechaDevolucion: '05/07/24',
@@ -50,7 +50,7 @@ final List<Alquiler> mockAlquileres = [
 final List<Venta> mockVentas = [
   const Venta(
     codigo: 'VEN-1021',
-    cliente: 'Daniel',
+    clienteId: '12345678', // <-- ID de Juan Pérez
     fecha: '26 de Julio, 2024',
     producto: 'Traje Clásico Negro',
     cantidad: 1,
@@ -60,7 +60,7 @@ final List<Venta> mockVentas = [
   ),
   const Venta(
     codigo: 'VEN-1020',
-    cliente: 'Sofia',
+    clienteId: '87654321', // <-- ID de María López
     fecha: '25 de Julio, 2024',
     producto: 'Esmoquin Moderno',
     cantidad: 1,
@@ -70,9 +70,9 @@ final List<Venta> mockVentas = [
   ),
   const Venta(
     codigo: 'VEN-1019',
-    cliente: 'Mateo',
+    clienteId: '28964165', // <-- ID de Otro tipazo
     fecha: '24 de Julio, 2024',
-    producto: 'Traje de Lino Beige',
+    producto: 'Traje de Lino Marrón',
     cantidad: 1,
     precioUnitario: 200.00,
     metodoPago: 'Efectivo',
@@ -111,7 +111,7 @@ final List<Pago> mockPagos = [
   const Pago(
     id: '#20240001',
     fecha: '15 de mayo, 2024',
-    cliente: 'Sofia Ramirez',
+    cliente: 'Sofia Ramirez', // (Este modelo aún no lo hemos refactorizado)
     monto: 'S/ 550.00',
     tipo: TipoPago.Venta,
     metodo: MetodoPago.Tarjeta,
@@ -120,12 +120,13 @@ final List<Pago> mockPagos = [
   const Pago(
     id: '#20240002',
     fecha: '14 de mayo, 2024',
-    cliente: 'Juan Pérez',
+    cliente: 'Juan Pérez', // (Este modelo aún no lo hemos refactorizado)
     monto: 'S/ 280.00',
     tipo: TipoPago.Alquiler,
     metodo: MetodoPago.Yape,
     transaccionId: 'ALQ-0015',
   ),
+
   const Pago(
     id: '#20240003',
     fecha: '13 de mayo, 2024',
@@ -168,37 +169,31 @@ final List<InventarioCategoria> mockInventarioCategorias = [
 final List<Cita> mockCitas = [
   const Cita(
     tipo: CitaTipo.Alquiler,
-    clienteNombre: 'Alejandro Vargas',
+    clienteId: '12345678', // <-- ID de Juan Pérez
     prendasResumen: 'Prendas: Terno Negro, Zapatos, Camisa',
     fecha: '15 de Oct, 2024',
     hora: '10:00 AM',
     estado: CitaEstado.Pendiente,
-    clienteTelefono: '+34 612 345 678',
-    clienteEmail: 'alejandro.vargas@email.com',
     prendaDetalleNombre: 'Terno Clásico Azul Marino',
     prendaDetalleId: 'T-00123',
   ),
   const Cita(
     tipo: CitaTipo.Prueba,
-    clienteNombre: 'Sofia Rodriguez',
+    clienteId: '87654321', // <-- ID de María López
     prendasResumen: 'Prendas: Terno Azul, Corbatín',
     fecha: '15 de Oct, 2024',
     hora: '02:30 PM',
     estado: CitaEstado.Pendiente,
-    clienteTelefono: '+51 987 654 321',
-    clienteEmail: 'sofia.r@email.com',
     prendaDetalleNombre: 'Terno Azul',
     prendaDetalleId: 'T-00124',
   ),
   const Cita(
     tipo: CitaTipo.Devolucion,
-    clienteNombre: 'Carlos Mendoza',
+    clienteId: '35486153', // <-- ID de Carlos Mendoza
     prendasResumen: 'Prendas: Terno Gris',
     fecha: '16 de Oct, 2024',
     hora: '11:00 AM',
     estado: CitaEstado.Pendiente,
-    clienteTelefono: '+51 999 888 777',
-    clienteEmail: 'carlos.mendoza@email.com',
     prendaDetalleNombre: 'Terno Gris',
     prendaDetalleId: 'T-00105',
   ),

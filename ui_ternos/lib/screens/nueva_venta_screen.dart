@@ -1,7 +1,8 @@
-// lib/screens/nueva_venta_screen.dart (NUEVO CÓDIGO COMPLETO)
+// lib/screens/nueva_venta_screen.dart (CORREGIDO)
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:proyecto_tienda_ternos/models/cliente.dart'; // <-- 1. IMPORTA EL MODELO CLIENTE
 import 'package:proyecto_tienda_ternos/models/venta.dart';
 import 'package:proyecto_tienda_ternos/providers/venta_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
@@ -17,11 +18,12 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
   final _formKey = GlobalKey<FormState>();
 
   // Controladores
-  final _clienteCtrl = TextEditingController();
   final _cantidadCtrl = TextEditingController(text: '1');
   final _precioCtrl = TextEditingController();
 
   // Variables de estado
+  // --- 2. CAMBIAMOS EL CONTROLADOR DE TEXTO POR UN OBJETO CLIENTE ---
+  Cliente? _selectedCliente;
   String? _selectedTraje;
   String _selectedPaymentMethod = 'Yape-Plin';
   double _total = 0.0;
@@ -29,20 +31,17 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
   @override
   void initState() {
     super.initState();
-    // Añadimos "listeners" para auto-calcular el total
     _cantidadCtrl.addListener(_calculateTotal);
     _precioCtrl.addListener(_calculateTotal);
   }
 
   @override
   void dispose() {
-    _clienteCtrl.dispose();
     _cantidadCtrl.dispose();
     _precioCtrl.dispose();
     super.dispose();
   }
 
-  // --- Función para calcular el total ---
   void _calculateTotal() {
     final int cantidad = int.tryParse(_cantidadCtrl.text) ?? 0;
     final double precio = double.tryParse(_precioCtrl.text) ?? 0.0;
@@ -51,15 +50,32 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
     });
   }
 
-  // --- Función para enviar el formulario ---
+  // --- 3. FUNCIÓN PARA ABRIR EL SELECTOR DE CLIENTES ---
+  void _abrirSelectorCliente() async {
+    final Cliente? clienteSeleccionado =
+        await Navigator.pushNamed(context, Routes.seleccionarCliente)
+            as Cliente?;
+
+    if (clienteSeleccionado != null) {
+      setState(() {
+        _selectedCliente = clienteSeleccionado;
+      });
+    }
+  }
+
+  // --- 4. FUNCIÓN '_submitForm' CORREGIDA ---
   void _submitForm() {
     if (!_formKey.currentState!.validate()) {
-      return; // Formulario no válido
+      return;
     }
+
+    // Si no se seleccionó cliente, usamos 'Mostrador' (ID '00000000')
+    final String clienteId =
+        _selectedCliente?.dni ?? '00000000'; // ID por defecto
 
     final nuevaVenta = Venta(
       codigo: 'VEN-${DateTime.now().millisecondsSinceEpoch}',
-      cliente: _clienteCtrl.text.isEmpty ? 'Mostrador' : _clienteCtrl.text,
+      clienteId: clienteId, // <-- USA EL ID
       fecha:
           '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
       producto: _selectedTraje ?? 'Producto no seleccionado',
@@ -69,7 +85,6 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
       total: _total,
     );
 
-    // Hablamos con el Provider
     Provider.of<VentaProvider>(context, listen: false).agregarVenta(nuevaVenta);
 
     Navigator.pop(context); // Regresamos
@@ -84,22 +99,51 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
           key: _formKey,
           child: Column(
             children: [
-              // --- FORMULARIO (expandible) ---
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.all(16.0),
                   children: [
-                    // --- Cliente ---
-                    _buildTextField(
-                      controller: _clienteCtrl,
-                      label: 'Cliente (opcional)',
-                      hint: 'Seleccionar cliente',
-                      icon: Icons.person_outline,
-                      isRequired: false, // Cliente es opcional
+                    // --- 5. CAMPO DE CLIENTE REEMPLAZADO ---
+                    Text(
+                      'Cliente (opcional)',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    InkWell(
+                      onTap: _abrirSelectorCliente,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 14,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(4.0),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _selectedCliente == null
+                                  ? 'Seleccionar cliente (por defecto: Mostrador)'
+                                  : '${_selectedCliente!.nombre} ${_selectedCliente!.apellidos ?? ''}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: _selectedCliente == null
+                                    ? AppColors.stone600
+                                    : Colors.black,
+                              ),
+                            ),
+                            const Icon(Icons.search, color: AppColors.stone600),
+                          ],
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 16),
 
-                    // --- Tipo de traje ---
+                    // --- FIN DEL REEMPLAZO ---
                     _buildDropdownField(
                       label: 'Tipo de traje',
                       hint: 'Seleccionar tipo',
@@ -108,7 +152,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                         'Traje Clásico Negro',
                         'Esmoquin Moderno',
                         'Traje de Lino Beige',
-                      ], // Datos de ejemplo
+                      ],
                       onChanged: (value) {
                         setState(() {
                           _selectedTraje = value;
@@ -116,8 +160,6 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-
-                    // --- Fila de Cantidad y Precio ---
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -142,8 +184,6 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-
-                    // --- Método de pago ---
                     Text(
                       'Método de pago',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -161,8 +201,6 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                   ],
                 ),
               ),
-
-              // --- SECCIÓN FIJA INFERIOR (Total y Botón) ---
               Container(
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
@@ -178,7 +216,6 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                 ),
                 child: Column(
                   children: [
-                    // --- Total ---
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -198,8 +235,6 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-
-                    // --- Botón de Registrar ---
                     ElevatedButton(
                       onPressed: _submitForm,
                       style: ElevatedButton.styleFrom(
@@ -236,6 +271,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
     String? prefix,
     bool isRequired = true,
     TextInputType? keyboardType,
+    bool isReadOnly = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,6 +286,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
+          readOnly: isReadOnly,
           decoration: InputDecoration(
             hintText: hint,
             prefixText: prefix,
@@ -261,13 +298,18 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
               horizontal: 16,
               vertical: 12,
             ),
+            fillColor: isReadOnly
+                ? AppColors.borderLight.withOpacity(0.3)
+                : null,
+            filled: isReadOnly,
           ),
           validator: (value) {
             if (isRequired && (value == null || value.isEmpty)) {
               return 'Requerido';
             }
             if (keyboardType == TextInputType.number &&
-                double.tryParse(value!) == null) {
+                (value != null && value.isNotEmpty) &&
+                double.tryParse(value) == null) {
               return 'Número inválido';
             }
             return null;
