@@ -1,0 +1,21 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Exportar código a TXT",
+      "type": "process",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "${workspaceFolder}\\scripts\\exportToTxt.js",
+        "${file}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

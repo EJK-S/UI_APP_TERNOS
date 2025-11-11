@@ -8,14 +8,48 @@ import 'package:proyecto_tienda_ternos/models/venta.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/providers/venta_provider.dart'; // <-- 1. IMPORTA PROVIDER
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
+import 'package:share_plus/share_plus.dart';
 
 class DetallesVentaScreen extends StatelessWidget {
   final Venta venta;
   const DetallesVentaScreen({super.key, required this.venta});
 
+  void _compartirVenta(Venta v, Cliente? c) {
+    final String nombreCliente = c != null
+        ? '${c.nombre} ${c.apellidos ?? ''}'
+        : 'Mostrador';
+
+    final String resumen =
+        """
+🧾 *Resumen de Venta* 🧾
+--------------------
+Código: ${v.codigo}
+Fecha: ${v.fecha}
+Cliente: $nombreCliente
+Ítem: ${v.producto} (x${v.cantidad})
+Método: ${v.metodoPago}
+
+*Total Pagado:*
+S/ ${v.total.toStringAsFixed(2)}
+""";
+    Share.share(resumen); // Llama a la función del paquete share_plus
+  }
+
   @override
   Widget build(BuildContext context) {
     final ventaProvider = Provider.of<VentaProvider>(context, listen: false);
+    final clienteProvider = Provider.of<ClienteProvider>(
+      context,
+      listen: false,
+    );
+    Cliente? cliente;
+    try {
+      cliente = clienteProvider.clientes.firstWhere(
+        (c) => c.dni == venta.clienteId,
+      );
+    } catch (e) {
+      cliente = null;
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detalle de Venta'),
@@ -87,7 +121,7 @@ class DetallesVentaScreen extends StatelessWidget {
                         label: const Text('Compartir'),
                         style: _buttonStyle(context),
                         onPressed: () {
-                          // Lógica de Compartir (ya implementada)
+                          _compartirVenta(ventaActualizada, cliente);
                         },
                       ),
                     ),

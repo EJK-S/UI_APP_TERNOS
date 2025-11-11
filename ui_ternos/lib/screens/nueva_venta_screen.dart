@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/models/cliente.dart'; // <-- 1. IMPORTA EL MODELO CLIENTE
 import 'package:proyecto_tienda_ternos/models/venta.dart';
+import 'package:proyecto_tienda_ternos/providers/prenda_provider.dart';
 import 'package:proyecto_tienda_ternos/providers/venta_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 
@@ -92,6 +93,11 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final prendaProvider = Provider.of<PrendaProvider>(context, listen: false);
+    final List<String> productosDeInventario = prendaProvider.prendas
+        .map((prenda) => prenda.nombre)
+        .toSet()
+        .toList();
     return Scaffold(
       appBar: AppBar(title: const Text('Nueva Venta')),
       body: SafeArea(

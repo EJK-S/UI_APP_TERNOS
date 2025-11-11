@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/models/venta.dart';
 import 'package:proyecto_tienda_ternos/providers/venta_provider.dart';
+import 'package:proyecto_tienda_ternos/screens/seleccionar_cliente_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
@@ -38,6 +39,7 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
 
   // Guardaremos el cliente para no tener que buscarlo de nuevo
   Cliente? _clienteDeEstaVenta;
+  Cliente? _clienteSeleccionado;
 
   @override
   void initState() {
@@ -45,28 +47,31 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
 
     // --- 3. LÓGICA DE 'initState' CORREGIDA ---
     final venta = widget.venta;
-
     // Buscamos al cliente en el ClienteProvider
     try {
       _clienteDeEstaVenta = Provider.of<ClienteProvider>(
         context,
         listen: false,
       ).clientes.firstWhere((c) => c.dni == venta.clienteId);
+      _clienteSeleccionado = _clienteDeEstaVenta;
     } catch (e) {
       _clienteDeEstaVenta = null;
+      _clienteSeleccionado = null;
     }
 
-    // Pre-rellenamos los campos
+    // --- Pre-rellenamos TODOS los campos ---
+
+    // 1. Cliente (Sin la línea duplicada)
     _clienteCtrl = TextEditingController(
       text: _clienteDeEstaVenta != null
           ? '${_clienteDeEstaVenta!.nombre} ${_clienteDeEstaVenta!.apellidos ?? ''}'
           : 'Cliente (ID: ${venta.clienteId})',
     );
 
-    _clienteCtrl = TextEditingController(
-      // ...
-    );
+    // 2. Cantidad (Línea de )
     _cantidadCtrl = TextEditingController(text: venta.cantidad.toString());
+
+    // 3. Precio (¡Esta es la línea que faltaba!)
     _precioCtrl = TextEditingController(text: venta.precioUnitario.toString());
 
     // --- LÓGICA DE DROPDOWN CORREGIDA ---
@@ -74,9 +79,6 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
     if (_tiposDeTraje.contains(venta.producto)) {
       _selectedTraje = venta.producto;
     } else {
-      // Si no está, dejamos el valor nulo.
-      // Esto hará que el DropdownButton muestre el "hint" ("Seleccionar tipo")
-      // en lugar de crashear la aplicación.
       _selectedTraje = null;
     }
     _selectedPaymentMethod = venta.metodoPago;
@@ -127,6 +129,18 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
     Navigator.pop(context); // Regresamos al detalle
   }
 
+  void _abrirSelectorCliente() async {
+    final Cliente? clienteSeleccionado =
+        await Navigator.pushNamed(context, Routes.seleccionarCliente)
+            as Cliente?;
+
+    if (clienteSeleccionado != null) {
+      setState(() {
+        _clienteSeleccionado = clienteSeleccionado;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -144,8 +158,8 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
                     _buildTextField(
                       controller: _clienteCtrl,
                       label: 'Cliente',
-                      hint: 'Seleccionar cliente',
-                      icon: Icons.person_outline,
+                      hint: null, // <-- Eliminamos el hint confuso
+                      icon: null, // <-- Eliminamos el ícono de "selección"
                       isRequired: false,
                       isReadOnly: true, // Lo hacemos de solo lectura
                     ),

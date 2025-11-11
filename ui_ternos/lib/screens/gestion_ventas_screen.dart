@@ -2,32 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/providers/venta_provider.dart';
 import 'package:proyecto_tienda_ternos/models/venta.dart';
+// --- Importa lo necesario para buscar al cliente ---
+import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
+import 'package:proyecto_tienda_ternos/models/cliente.dart';
+// ---
 import 'package:proyecto_tienda_ternos/screens/detalles_venta_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
-import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
-import 'package:proyecto_tienda_ternos/models/cliente.dart';
 
 class GestionVentasScreen extends StatelessWidget {
-  // --- 1. AÑADIMOS UN FILTRO OPCIONAL ---
   final String? filtroClienteNombre;
 
-  const GestionVentasScreen({
-    super.key,
-    this.filtroClienteNombre, // El filtro es opcional
-  });
+  const GestionVentasScreen({super.key, this.filtroClienteNombre});
 
   @override
   Widget build(BuildContext context) {
-    // --- 2. DETERMINAMOS SI ESTAMOS EN MODO FILTRO ---
     final bool enModoFiltro = (filtroClienteNombre != null);
 
     return Consumer<VentaProvider>(
       builder: (context, ventaProvider, child) {
-        // --- 2. LÓGICA DE FILTRADO ---
         List<Venta> ventas;
         if (enModoFiltro) {
-          // Buscamos el ID del cliente basado en el nombre
           final clienteProvider = Provider.of<ClienteProvider>(
             context,
             listen: false,
@@ -89,14 +84,14 @@ class GestionVentasScreen extends StatelessWidget {
   }
 }
 
-// Widget interno para la tarjeta de Venta (Diseño de la Imagen 1)
+// --- WIDGET _VentaCard CORREGIDO (Buscará el nombre del cliente) ---
 class _VentaCard extends StatelessWidget {
   final Venta venta;
   const _VentaCard({required this.venta});
 
   @override
   Widget build(BuildContext context) {
-    // --- 3. BUSCAMOS AL CLIENTE ---
+    // --- BÚSQUEDA DEL CLIENTE ---
     final clienteProvider = Provider.of<ClienteProvider>(
       context,
       listen: false,
@@ -109,9 +104,12 @@ class _VentaCard extends StatelessWidget {
     } catch (e) {
       cliente = null; // No se encontró
     }
-    final String nombreCliente = cliente != null
-        ? '${cliente.nombre} ${cliente.apellidos ?? ''}'
-        : 'Cliente (ID: ${venta.clienteId})';
+    // Si no es un cliente real (ID '00000000'), asumimos que es 'Mostrador'
+    final String nombreCliente = venta.clienteId == '00000000'
+        ? 'Mostrador'
+        : (cliente != null
+              ? '${cliente.nombre} ${cliente.apellidos ?? ''}'
+              : 'Cliente no encontrado');
     // --- FIN DE LA BÚSQUEDA ---
 
     return Card(
@@ -152,7 +150,7 @@ class _VentaCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Cliente: $nombreCliente', // <-- 4. USAMOS EL NOMBRE ENCONTRADO
+                      'Cliente: $nombreCliente', // <-- USAMOS EL NOMBRE ENCONTRADO
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.stone700,
                       ),
