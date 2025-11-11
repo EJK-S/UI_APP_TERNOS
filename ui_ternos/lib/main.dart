@@ -6,23 +6,23 @@ import 'package:proyecto_tienda_ternos/providers/venta_provider.dart';
 import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
 import 'package:proyecto_tienda_ternos/providers/inventario_provider.dart';
 import 'package:proyecto_tienda_ternos/providers/settings_provider.dart';
-import 'package:proyecto_tienda_ternos/screens/panel_administracion_screen.dart';
-import 'package:proyecto_tienda_ternos/screens/gestion_clientes_screen.dart';
-import 'package:proyecto_tienda_ternos/screens/nuevo_cliente_screen.dart';
-import 'package:proyecto_tienda_ternos/screens/gestion_alquileres_screen.dart';
-import 'package:proyecto_tienda_ternos/screens/nuevo_alquiler_screen.dart';
-import 'package:proyecto_tienda_ternos/screens/gestion_ventas_screen.dart';
-import 'package:proyecto_tienda_ternos/screens/nueva_venta_screen.dart';
-import 'package:proyecto_tienda_ternos/screens/gestion_pagos_screen.dart';
-import 'package:proyecto_tienda_ternos/screens/inventario_ternos_screen.dart';
-import 'package:proyecto_tienda_ternos/screens/generar_reportes_screen.dart';
-import 'package:proyecto_tienda_ternos/screens/configuracion_sistema_screen.dart';
-import 'package:proyecto_tienda_ternos/screens/citas_pendientes_screen.dart';
-import 'package:proyecto_tienda_ternos/screens/registrar_terno_screen.dart';
-import 'package:proyecto_tienda_ternos/screens/nueva_cita_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/panel_control/panel_administracion_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_clientes/gestion_clientes_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_clientes/nuevo_cliente_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_alquiler/gestion_alquileres_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_alquiler/nuevo_alquiler_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_ventas/gestion_ventas_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_ventas/nueva_venta_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/pagos/gestion_pagos_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_inventario/inventario_ternos_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/reportes/generar_reportes_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/configuracion/configuracion_sistema_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_citas/citas_pendientes_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_inventario/registrar_terno_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_citas/nueva_cita_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/providers/prenda_provider.dart';
-import 'package:proyecto_tienda_ternos/screens/seleccionar_cliente_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_clientes/seleccionar_cliente_screen.dart';
 
 void main() {
   runApp(

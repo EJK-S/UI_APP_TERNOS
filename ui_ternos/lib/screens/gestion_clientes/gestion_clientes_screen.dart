@@ -7,9 +7,9 @@ import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart'; // <-- 
 // import 'package:proyecto_tienda_ternos/data/mock_data.dart'; // <-- 3. YA NO NECESITAMOS MOCK_DATA
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
-import 'package:proyecto_tienda_ternos/screens/editar_cliente_screen.dart';
-import 'package:proyecto_tienda_ternos/screens/gestion_alquileres_screen.dart';
-import 'package:proyecto_tienda_ternos/screens/gestion_ventas_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_clientes/editar_cliente_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_alquiler/gestion_alquileres_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_ventas/gestion_ventas_screen.dart';
 
 class GestionClientesScreen extends StatefulWidget {
   const GestionClientesScreen({super.key});

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/models/venta.dart';
 import 'package:proyecto_tienda_ternos/providers/venta_provider.dart';
-import 'package:proyecto_tienda_ternos/screens/seleccionar_cliente_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_clientes/seleccionar_cliente_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
 import 'package:proyecto_tienda_ternos/models/cliente.dart';

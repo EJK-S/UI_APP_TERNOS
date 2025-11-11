@@ -7,7 +7,7 @@ import 'package:proyecto_tienda_ternos/providers/cita_provider.dart'; // <-- 2. 
 import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/models/cita.dart';
-import 'package:proyecto_tienda_ternos/screens/detalles_cita_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_citas/detalles_cita_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
 

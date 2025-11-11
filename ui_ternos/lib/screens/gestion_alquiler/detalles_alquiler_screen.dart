@@ -7,7 +7,7 @@ import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
 
 // --- 1. IMPORTA LA NUEVA PANTALLA ---
-import 'package:proyecto_tienda_ternos/screens/registrar_devolucion_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_alquiler/registrar_devolucion_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/providers/alquiler_provider.dart';
 

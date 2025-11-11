@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 // 1. IMPORTA LA NUEVA PANTALLA DE EDICIÓN
-import 'package:proyecto_tienda_ternos/screens/editar_venta_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_ventas/editar_venta_screen.dart';
 // 2. IMPORTA EL MODELO VENTA (necesitarás pasarlo)
 import 'package:proyecto_tienda_ternos/models/venta.dart';
 import 'package:provider/provider.dart';

@@ -6,7 +6,7 @@ import 'package:proyecto_tienda_ternos/models/venta.dart';
 import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
 // ---
-import 'package:proyecto_tienda_ternos/screens/detalles_venta_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_ventas/detalles_venta_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
 

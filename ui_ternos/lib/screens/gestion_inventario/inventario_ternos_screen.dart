@@ -4,7 +4,7 @@ import 'package:proyecto_tienda_ternos/models/inventario_categoria.dart';
 import 'package:proyecto_tienda_ternos/providers/inventario_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
-import 'package:proyecto_tienda_ternos/screens/lista_prendas_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_inventario/lista_prendas_screen.dart';
 
 // --- 1. CONVERTIDO A STATEFULWIDGET ---
 class InventarioTernosScreen extends StatefulWidget {
