@@ -1,90 +1,20 @@
+// lib/data/mock_data.dart (CORREGIDO)
+
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/models/alquiler.dart';
 import 'package:proyecto_tienda_ternos/models/venta.dart';
 import 'package:proyecto_tienda_ternos/models/pago.dart';
-import 'package:proyecto_tienda_ternos/models/inventario_categoria.dart';
-import 'package:proyecto_tienda_ternos/models/cita.dart';
+// import 'package:proyecto_tienda_ternos/models/inventario_categoria.dart'; // Ya no se usa
+// import 'package:proyecto_tienda_ternos/models/cita.dart'; // Ya no se usa
 import 'package:proyecto_tienda_ternos/models/prenda.dart';
 
-// ----- LISTA DE ALQUILERES ACTUALIZADA -----
-final List<Alquiler> mockAlquileres = [
-  const Alquiler(
-    codigo: 'ALQ-0015',
-    clienteId: '12345678', // <-- ID de Juan Pérez
-    producto: 'Esmoquin Clásico',
-    fechaInicio: '15/07/24',
-    fechaDevolucion: '20/07/24',
-    estado: AlquilerEstado.activo,
-    metodoPago: 'Tarjeta de Crédito',
-    montoTotal: 'S/ 150',
-    garantia: 'S/ 50',
-  ),
-  const Alquiler(
-    codigo: 'ALQ-0016',
-    clienteId: '87654321', // <-- ID de María López
-    producto: 'Traje de Gala Azul',
-    fechaInicio: '10/07/24',
-    fechaDevolucion: '14/07/24',
-    estado: AlquilerEstado.activo,
-    metodoPago: 'Yape - Plin',
-    montoTotal: 'S/ 280',
-    garantia: 'S/ 100',
-  ),
+// ----- LISTA DE CLIENTES ACTUALIZADA (CON ID) -----
+// (Estos datos ahora son la ÚNICA fuente simulada para los repositorios)
 
-  // ... (otros alquileres)
-  const Alquiler(
-    codigo: 'ALQ-0017',
-    clienteId: '651354189', //<-- ID de Miguel Rodríguez
-    producto: 'Frac Negro',
-    fechaInicio: '01/07/24',
-    fechaDevolucion: '05/07/24',
-    estado: AlquilerEstado.atrasado, // "En Mora"
-    // --- Datos nuevos ---
-    metodoPago: 'Efectivo',
-    montoTotal: 'S/ 180',
-    garantia: 'S/ 50',
-  ),
-];
-
-// ----- LISTA DE VENTAS ACTUALIZADA -----
-final List<Venta> mockVentas = [
-  const Venta(
-    codigo: 'VEN-1021',
-    clienteId: '12345678', // <-- ID de Juan Pérez
-    fecha: '26 de Julio, 2024',
-    producto: 'Traje Clásico Negro',
-    cantidad: 1,
-    precioUnitario: 250.00,
-    metodoPago: 'Tarjeta',
-    total: 250.00,
-  ),
-  const Venta(
-    codigo: 'VEN-1020',
-    clienteId: '87654321', // <-- ID de María López
-    fecha: '25 de Julio, 2024',
-    producto: 'Esmoquin Moderno',
-    cantidad: 1,
-    precioUnitario: 300.00,
-    metodoPago: 'Yape-Plin',
-    total: 300.00,
-  ),
-  const Venta(
-    codigo: 'VEN-1019',
-    clienteId: '28964165', // <-- ID de Otro tipazo
-    fecha: '24 de Julio, 2024',
-    producto: 'Traje de Lino Marrón',
-    cantidad: 1,
-    precioUnitario: 200.00,
-    metodoPago: 'Efectivo',
-    total: 200.00,
-  ),
-];
-
-// --- (El resto de tus listas siguen igual) ---
-// Datos para gestion_clientes_screen.dart
 final List<Cliente> mockClientes = [
   const Cliente(
-    nombre: 'Juan', // <-- Ahora solo el nombre
+    id: 1, // <-- ID NUMÉRICO
+    nombre: 'Juan',
     apellidos: 'Pérez',
     dni: '12345678',
     telefono: '987654321',
@@ -95,7 +25,8 @@ final List<Cliente> mockClientes = [
     motivoVeto: '',
   ),
   const Cliente(
-    nombre: 'María', // <-- Ahora solo el nombre
+    id: 2, // <-- ID NUMÉRICO
+    nombre: 'María',
     apellidos: 'López',
     dni: '87654321',
     telefono: '912345678',
@@ -105,13 +36,125 @@ final List<Cliente> mockClientes = [
     vetado: true,
     motivoVeto: 'No devolvió el traje a tiempo.',
   ),
+  const Cliente(
+    id: 3, // <-- ID NUMÉRICO
+    nombre: 'Miguel',
+    apellidos: 'Rodríguez',
+    dni: '651354189',
+    telefono: '958471236',
+    correo: 'miguel@correo.com',
+    direccion: 'Jr. Falso 789',
+    fechaNacimiento: '01/02/1988',
+    vetado: false,
+    motivoVeto: '',
+  ),
+  const Cliente(
+    id: 4, // <-- ID NUMÉRICO
+    nombre: 'Otro',
+    apellidos: 'Tipazo',
+    dni: '28964165',
+    telefono: '932165498',
+    correo: 'otro@correo.com',
+    direccion: 'Av. Inventada 101',
+    fechaNacimiento: '10/11/2000',
+    vetado: false,
+    motivoVeto: '',
+  ),
 ];
 
+// ----- LISTA DE ALQUILERES ACTUALIZADA (CON clienteId numérico) -----
+final List<Alquiler> mockAlquileres = [
+  const Alquiler(
+    codigo: 'ALQ-0015',
+    clienteId: 1, // <-- ID numérico de Juan Pérez
+    producto: 'Esmoquin Clásico',
+    fechaInicio: '15/07/24',
+    fechaDevolucion: '20/07/24',
+    estado: AlquilerEstado.activo,
+    metodoPago: 'Tarjeta de Crédito',
+    montoTotal: 'S/ 150',
+    garantia: 'S/ 50',
+  ),
+  const Alquiler(
+    codigo: 'ALQ-0016',
+    clienteId: 2, // <-- ID numérico de María López
+    producto: 'Traje de Gala Azul',
+    fechaInicio: '10/07/24',
+    fechaDevolucion: '14/07/24',
+    estado: AlquilerEstado.activo,
+    metodoPago: 'Yape - Plin',
+    montoTotal: 'S/ 280',
+    garantia: 'S/ 100',
+  ),
+  const Alquiler(
+    codigo: 'ALQ-0017',
+    clienteId: 3, // <-- ID numérico de Miguel Rodríguez
+    producto: 'Frac Negro',
+    fechaInicio: '01/07/24',
+    fechaDevolucion: '05/07/24',
+    estado: AlquilerEstado.atrasado, // "En Mora"
+    metodoPago: 'Efectivo',
+    montoTotal: 'S/ 180',
+    garantia: 'S/ 50',
+  ),
+];
+
+// ----- LISTA DE VENTAS ACTUALIZADA (CON clienteId numérico) -----
+final List<Venta> mockVentas = [
+  const Venta(
+    codigo: 'VEN-1021',
+    clienteId: 1, // <-- ID numérico de Juan Pérez
+    fecha: '26 de Julio, 2024',
+    producto: 'Traje Clásico Negro',
+    cantidad: 1,
+    precioUnitario: 250.00,
+    metodoPago: 'Tarjeta',
+    total: 250.00,
+  ),
+  const Venta(
+    codigo: 'VEN-1020',
+    clienteId: 2, // <-- ID numérico de María López
+    fecha: '25 de Julio, 2024',
+    producto: 'Esmoquin Moderno',
+    cantidad: 1,
+    precioUnitario: 300.00,
+    metodoPago: 'Yape-Plin',
+    total: 300.00,
+  ),
+  const Venta(
+    codigo: 'VEN-1019',
+    clienteId: 4, // <-- ID numérico de Otro Tipazo
+    fecha: '24 de Julio, 2024',
+    producto: 'Traje de Lino Marrón',
+    cantidad: 1,
+    precioUnitario: 200.00,
+    metodoPago: 'Efectivo',
+    total: 200.00,
+  ),
+  const Venta(
+    codigo: 'VEN-1018',
+    clienteId: 1, // <-- Asumimos que el cliente "Mostrador" tiene id 1
+    fecha: '23 de Julio, 2024',
+    producto: 'Traje de Lino Beige',
+    cantidad: 1,
+    precioUnitario: 200.00,
+    metodoPago: 'Efectivo',
+    total: 200.00,
+  ),
+];
+
+// --- mockCitas SE ELIMINA ---
+// (Ahora se maneja dentro de 'cita_repository.dart')
+
+// --- mockInventarioCategorias SE ELIMINA ---
+// (Ahora se calcula automáticamente desde 'prenda_provider.dart')
+
+// ----- LISTA DE PAGOS (Se mantiene igual por ahora) -----
 final List<Pago> mockPagos = [
   const Pago(
     id: '#20240001',
     fecha: '15 de mayo, 2024',
-    cliente: 'Sofia Ramirez', // (Este modelo aún no lo hemos refactorizado)
+    clienteId: 2, // <-- ID de María López (para 'VEN-1020')
     monto: 'S/ 550.00',
     tipo: TipoPago.Venta,
     metodo: MetodoPago.Tarjeta,
@@ -120,17 +163,16 @@ final List<Pago> mockPagos = [
   const Pago(
     id: '#20240002',
     fecha: '14 de mayo, 2024',
-    cliente: 'Juan Pérez', // (Este modelo aún no lo hemos refactorizado)
+    clienteId: 1, // <-- ID de Juan Pérez (para 'ALQ-0015')
     monto: 'S/ 280.00',
     tipo: TipoPago.Alquiler,
     metodo: MetodoPago.Yape,
     transaccionId: 'ALQ-0015',
   ),
-
   const Pago(
     id: '#20240003',
     fecha: '13 de mayo, 2024',
-    cliente: 'Carlos Sánchez',
+    clienteId: 4, // <-- ID de Otro Tipazo (para 'VEN-1019')
     monto: 'S/ 150.00',
     tipo: TipoPago.Venta,
     metodo: MetodoPago.Efectivo,
@@ -138,67 +180,7 @@ final List<Pago> mockPagos = [
   ),
 ];
 
-// Datos para inventario_ternos_screen.dart
-final List<InventarioCategoria> mockInventarioCategorias = [
-  const InventarioCategoria(
-    nombre: 'Traje Clásico',
-    disponibles: 15,
-    alquilados: 5,
-    mantenimiento: 2,
-  ),
-  const InventarioCategoria(
-    nombre: 'Traje de Gala',
-    disponibles: 8,
-    alquilados: 3,
-    mantenimiento: 1,
-  ),
-  const InventarioCategoria(
-    nombre: 'Traje de Verano',
-    disponibles: 12,
-    alquilados: 6,
-    mantenimiento: 0,
-  ),
-  const InventarioCategoria(
-    nombre: 'Traje de Invierno',
-    disponibles: 5,
-    alquilados: 1,
-    mantenimiento: 3,
-  ),
-];
-
-final List<Cita> mockCitas = [
-  const Cita(
-    tipo: CitaTipo.Alquiler,
-    clienteId: '12345678', // <-- ID de Juan Pérez
-    prendasResumen: 'Prendas: Terno Negro, Zapatos, Camisa',
-    fecha: '15 de Oct, 2024',
-    hora: '10:00 AM',
-    estado: CitaEstado.Pendiente,
-    prendaDetalleNombre: 'Terno Clásico Azul Marino',
-    prendaDetalleId: 'T-00123',
-  ),
-  const Cita(
-    tipo: CitaTipo.Prueba,
-    clienteId: '87654321', // <-- ID de María López
-    prendasResumen: 'Prendas: Terno Azul, Corbatín',
-    fecha: '15 de Oct, 2024',
-    hora: '02:30 PM',
-    estado: CitaEstado.Pendiente,
-    prendaDetalleNombre: 'Terno Azul',
-    prendaDetalleId: 'T-00124',
-  ),
-  const Cita(
-    tipo: CitaTipo.Devolucion,
-    clienteId: '35486153', // <-- ID de Carlos Mendoza
-    prendasResumen: 'Prendas: Terno Gris',
-    fecha: '16 de Oct, 2024',
-    hora: '11:00 AM',
-    estado: CitaEstado.Pendiente,
-    prendaDetalleNombre: 'Terno Gris',
-    prendaDetalleId: 'T-00105',
-  ),
-];
-
+// ----- LISTA DE PRENDAS (Se mantiene igual, es la fuente del inventario) -----
 final List<Prenda> mockPrendas = [
   // Trajes Clásicos (Total 22: 15 Disp, 5 Alq, 2 Mant)
   const Prenda(
@@ -288,5 +270,29 @@ final List<Prenda> mockPrendas = [
     usos: 8,
   ),
 
-  // (Y así para las otras categorías...)
+  // (Nuevos productos que ahora sí aparecerán en los dropdowns)
+  const Prenda(
+    id: 'TLB-001',
+    nombre: 'Traje de Lino Beige',
+    talla: 'M',
+    categoria: 'Traje de Verano',
+    estado: PrendaEstado.Disponible,
+    usos: 0,
+  ),
+  const Prenda(
+    id: 'ESM-001',
+    nombre: 'Esmoquin Moderno',
+    talla: 'L',
+    categoria: 'Traje de Gala',
+    estado: PrendaEstado.Disponible,
+    usos: 1,
+  ),
+  const Prenda(
+    id: 'TLM-001',
+    nombre: 'Traje de Lino Marrón',
+    talla: 'M',
+    categoria: 'Traje de Verano',
+    estado: PrendaEstado.Disponible,
+    usos: 0,
+  ),
 ];

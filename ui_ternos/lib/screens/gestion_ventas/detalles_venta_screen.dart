@@ -191,96 +191,106 @@ S/ ${v.total.toStringAsFixed(2)}
 
   // Helper para la tarjeta de Cliente y Estado
   Widget _buildClienteEstadoCard(BuildContext context, Venta venta) {
-    // --- BÚSQUEDA DEL CLIENTE ---
-    final clienteProvider = Provider.of<ClienteProvider>(
-      context,
-      listen: false,
-    );
-    Cliente? cliente;
-    try {
-      cliente = clienteProvider.clientes.firstWhere(
-        (c) => c.dni == venta.clienteId,
-      );
-    } catch (e) {
-      cliente = null;
-    }
-    final String nombreCliente = cliente != null
-        ? '${cliente.nombre} ${cliente.apellidos ?? ''}'
-        : 'Cliente (ID: ${venta.clienteId})';
-    // --- FIN DE LA BÚSQUEDA ---
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: _cardDecoration(context),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    // --- 1. Envolver la lógica en un Consumer<ClienteProvider> ---
+    return Consumer<ClienteProvider>(
+      builder: (context, clienteProvider, child) {
+        // --- 2. Lógica de búsqueda (ahora es segura) ---
+        String nombreCliente;
+        if (clienteProvider.isLoading) {
+          nombreCliente = 'Cargando cliente...';
+        } else {
+          try {
+            // Asumimos que el cliente "Mostrador" tiene id 1 (como en nueva_venta)
+            if (venta.clienteId == 1) {
+              nombreCliente = 'Mostrador';
+            } else {
+              final cliente = clienteProvider.clientes.firstWhere(
+                (c) => c.id == venta.clienteId, // Compara int con int
+              );
+              nombreCliente = '${cliente.nombre} ${cliente.apellidos ?? ''}';
+            }
+          } catch (e) {
+            nombreCliente = 'Cliente (ID: ${venta.clienteId})'; // Fallback
+          }
+        }
+        // --- Fin de la lógica de búsqueda ---
+
+        // --- 3. Devolver la UI de la tarjeta ---
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: _cardDecoration(context),
+          child: Column(
             children: [
-              Text(
-                'Cliente',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: AppColors.stone600),
-              ),
-              Text(
-                nombreCliente,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const Divider(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Método de pago',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: AppColors.stone600),
-              ),
-              Text(
-                venta.metodoPago, // <-- USA DATOS REALES
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const Divider(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Estado',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: AppColors.stone600),
-              ),
-              // Etiqueta de Estado
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade100,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  'Completada',
-                  style: TextStyle(
-                    color: Colors.green.shade800,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Cliente',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: AppColors.stone600),
                   ),
-                ),
+                  Text(
+                    nombreCliente, // <-- USA EL NOMBRE DINÁMICO
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const Divider(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Método de pago',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: AppColors.stone600),
+                  ),
+                  Text(
+                    venta.metodoPago, // <-- USA DATOS REALES
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const Divider(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Estado',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: AppColors.stone600),
+                  ),
+                  // (La etiqueta de estado no cambia)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade100,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'Completada',
+                      style: TextStyle(
+                        color: Colors.green.shade800,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

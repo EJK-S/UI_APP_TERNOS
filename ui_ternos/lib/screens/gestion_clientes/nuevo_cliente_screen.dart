@@ -23,6 +23,7 @@ class _NuevoClienteScreenState extends State<NuevoClienteScreen> {
   final _fechaNacimientoCtrl = TextEditingController();
   final _motivoVetoCtrl = TextEditingController();
   bool _vetado = false; // Por defecto, un nuevo cliente no está vetado
+  bool _isSaving = false;
 
   @override
   void dispose() {
@@ -37,29 +38,52 @@ class _NuevoClienteScreenState extends State<NuevoClienteScreen> {
     super.dispose();
   }
 
-  void _guardarCliente() {
+  Future<void> _guardarCliente() async {
     // Valida el formulario
-    if (_formKey.currentState!.validate()) {
-      // Crea el nuevo objeto Cliente
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    // 1. Inicia el estado de carga
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      // --- CORRECCIÓN EN EL CONSTRUCTOR ---
       final nuevoCliente = Cliente(
+        // 'id' NO se envía, la base de datos lo asigna
         nombre: _nombresCtrl.text,
         apellidos: _apellidosCtrl.text,
-        dni: _dniCtrl.text, // (Deberías validar que este DNI no exista)
+        dni: _dniCtrl.text, // <-- Asignado al campo 'dni'
         telefono: _telefonoCtrl.text,
         direccion: _direccionCtrl.text,
         fechaNacimiento: _fechaNacimientoCtrl.text,
         vetado: _vetado,
         motivoVeto: _motivoVetoCtrl.text,
       );
+      // --- FIN DE LA CORRECCIÓN ---
 
-      // "Habla" con el cerebro para agregar el cliente
-      Provider.of<ClienteProvider>(
-        context,
-        listen: false,
-      ).agregarCliente(nuevoCliente);
+      // 2. "Habla" con el cerebro (CON AWAIT)
+      await context.read<ClienteProvider>().agregarCliente(nuevoCliente);
 
-      // Regresa a la lista de clientes
-      Navigator.pop(context);
+      // 3. Regresa a la pantalla anterior
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error al guardar: $e')));
+      }
+    } finally {
+      // 4. Detiene el estado de carga
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 
@@ -165,13 +189,25 @@ class _NuevoClienteScreenState extends State<NuevoClienteScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: ElevatedButton(
-                child: const Text('Guardar Cliente'), // Texto cambiado
-                onPressed: _guardarCliente, // Función de guardar
+                // --- EL BOTÓN AHORA REACCIONA AL ESTADO DE CARGA ---
+                onPressed: _isSaving
+                    ? null
+                    : _guardarCliente, // Se deshabilita al guardar
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
+                child: _isSaving
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text('Guardar Cliente'),
               ),
             ),
           ],

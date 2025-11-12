@@ -131,78 +131,80 @@ class _AlquilerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 3. LEEMOS EL CLIENTEPROVIDER
-    final clienteProvider = Provider.of<ClienteProvider>(
-      context,
-      listen: false,
-    );
+    // --- 1. USA UN CONSUMER PARA ESCUCHAR AL CLIENTEPROVIDER ---
+    return Consumer<ClienteProvider>(
+      builder: (context, clienteProvider, child) {
+        String nombreCliente;
 
-    // 4. BUSCAMOS AL CLIENTE USANDO EL ID
-    Cliente? cliente;
-    try {
-      cliente = clienteProvider.clientes.firstWhere(
-        (c) => c.dni == alquiler.clienteId,
-      );
-    } catch (e) {
-      cliente = null; // El cliente no fue encontrado
-    }
+        // --- 2. COMPRUEBA SI EL PROVIDER ESTÁ CARGANDO ---
+        if (clienteProvider.isLoading) {
+          nombreCliente = 'Cargando...';
+        } else {
+          // --- 3. SI NO ESTÁ CARGANDO, BUSCA EL NOMBRE ---
+          try {
+            final cliente = clienteProvider.clientes.firstWhere(
+              (c) => c.id == alquiler.clienteId,
+            );
+            nombreCliente = '${cliente.nombre} ${cliente.apellidos ?? ''}';
+          } catch (e) {
+            nombreCliente = 'Cliente (ID: ${alquiler.clienteId})';
+          }
+        }
 
-    // Asignamos un nombre por defecto si no se encuentra
-    final String nombreCliente = cliente != null
-        ? '${cliente.nombre} ${cliente.apellidos ?? ''}'
-        : 'Cliente no encontrado';
-
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.only(bottom: 16.0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DetallesAlquilerScreen(alquiler: alquiler),
-            ),
-          );
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      nombreCliente, // <-- 5. MOSTRAMOS EL NOMBRE ENCONTRADO
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      alquiler.producto,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.stone700,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${alquiler.fechaInicio} - ${alquiler.fechaDevolucion}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.stone600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              _StatusTag(estado: alquiler.estado),
-            ],
+        // --- 4. DEVUELVE LA TARJETA CON EL NOMBRE CORRECTO ---
+        return Card(
+          elevation: 2,
+          margin: const EdgeInsets.only(bottom: 16.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-        ),
-      ),
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      DetallesAlquilerScreen(alquiler: alquiler),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          nombreCliente, // <-- AHORA ES DINÁMICO
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          alquiler.producto,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: AppColors.stone700),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '${alquiler.fechaInicio} - ${alquiler.fechaDevolucion}',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.stone600),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  _StatusTag(estado: alquiler.estado),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -1,43 +1,65 @@
+// lib/providers/cliente_provider.dart
+
 import 'package:flutter/material.dart';
-import 'package:proyecto_tienda_ternos/data/mock_data.dart';
+import 'package:proyecto_tienda_ternos/data/repositories/cliente_repository.dart';
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
 
 class ClienteProvider extends ChangeNotifier {
-  // 1. ESTADO: La lista de clientes (privada)
-  // Nota: La copiamos de mockClientes para poder modificarla.
-  final List<Cliente> _clientes = List.from(mockClientes);
+  // 1. DEPENDENCIA: El repositorio
+  final ClienteRepository _repository;
 
-  // 2. GETTER: La forma pública de LEER la lista
+  // 2. ESTADO: La lista de clientes
+  List<Cliente> _clientes = [];
+  bool _isLoading = false; // (Opcional, pero bueno para el futuro)
+
+  // 3. GETTERS: Formas públicas de LEER el estado
   List<Cliente> get clientes => _clientes;
+  bool get isLoading => _isLoading;
 
-  // 3. MÉTODOS: Las formas públicas de MODIFICAR la lista
+  // 4. CONSTRUCTOR: Recibe el repositorio
+  ClienteProvider(this._repository) {
+    // Cuando el provider se crea, carga los clientes
+    fetchClientes();
+  }
 
-  void agregarCliente(Cliente nuevoCliente) {
-    _clientes.add(nuevoCliente);
-    // Notificamos a los "oyentes" (la pantalla de lista) que hay un cambio
+  // 5. MÉTODOS ASÍNCRONOS (Ahora usan el repositorio)
+
+  Future<void> fetchClientes() async {
+    _isLoading = true;
+    notifyListeners(); // Avisa que está "cargando"
+
+    _clientes = await _repository.getClientes();
+    _isLoading = false;
+    notifyListeners(); // Avisa que ya terminó de cargar
+  }
+
+  Future<void> agregarCliente(Cliente nuevoCliente) async {
+    // 1. Llama al repositorio (API)
+    final clienteAgregado = await _repository.agregarCliente(nuevoCliente);
+
+    // 2. Actualiza el estado local
+    _clientes.add(clienteAgregado);
     notifyListeners();
   }
 
-  void editarCliente(Cliente clienteActualizado) {
-    // Buscamos al cliente en la lista por su DNI (que es un ID único)
-    final index = _clientes.indexWhere((c) => c.dni == clienteActualizado.dni);
+  Future<void> editarCliente(Cliente clienteActualizado) async {
+    // 1. Llama al repositorio (API)
+    final clienteEditado = await _repository.editarCliente(clienteActualizado);
 
+    // 2. Actualiza el estado local
+    final index = _clientes.indexWhere((c) => c.dni == clienteEditado.dni);
     if (index != -1) {
-      // Si lo encontramos, lo reemplazamos en esa posición
-      _clientes[index] = clienteActualizado;
+      _clientes[index] = clienteEditado;
       notifyListeners();
     }
   }
 
-  void eliminarCliente(Cliente clienteAEliminar) {
-    // Eliminamos al cliente de la lista (usando el DNI)
+  Future<void> eliminarCliente(Cliente clienteAEliminar) async {
+    // 1. Llama al repositorio (API)
+    await _repository.eliminarCliente(clienteAEliminar.dni);
+
+    // 2. Actualiza el estado local
     _clientes.removeWhere((c) => c.dni == clienteAEliminar.dni);
     notifyListeners();
   }
-
-  // (En el futuro, aquí llamarías a tu API de Node.js)
-  // Future<void> fetchClientesFromAPI() { ... }
-  // Future<void> postNuevoCliente(Cliente c) { ... }
-  // Future<void> putClienteActualizado(Cliente c) { ... }
-  // Future<void> deleteCliente(Cliente c) { ... }
 }

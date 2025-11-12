@@ -1,53 +1,58 @@
-// lib/models/cita.dart (Corregido)
+// lib/models/cita.dart (Actualizado para la Base de Datos)
+// 1. El enum CitaEstado [cite: 286] sigue siendo válido
+//    para la columna 'estado' de la BD.
+enum CitaEstado { Pendiente, Completada, Cancelada }
 
-// ERROR 1: Se eliminó un punto y coma (;) al final de esta línea
-enum CitaTipo { Alquiler, Prueba, Devolucion }
-
-extension CitaTipoExtension on CitaTipo {
-  String get tipoTexto {
+extension CitaEstadoExtension on CitaEstado {
+  String get texto {
     switch (this) {
-      case CitaTipo.Alquiler:
-        return 'Alquiler';
-      case CitaTipo.Prueba:
-        return 'Prueba';
-      case CitaTipo.Devolucion:
-        return 'Devolución';
+      case CitaEstado.Pendiente:
+        return 'Pendiente';
+      case CitaEstado.Completada:
+        return 'Completada';
+      case CitaEstado.Cancelada:
+        return 'Cancelada';
     }
   }
 }
 
-// ERROR 2: Se eliminó la línea corrupta "final String {; }"
+// 2. Nuevo enum para la columna 'proposito' de la BD.
+//    (El antiguo CitaTipo  queda obsoleto).
+enum CitaProposito { PRUEBA, MEDIDAS, ASESORIA, OTRO }
 
-enum CitaEstado { Pendiente, Completada, Cancelada }
-
-class Cita {
-  // Datos de la lista
-  final CitaTipo tipo;
-  final String clienteId;
-  final String prendasResumen;
-  final String fecha;
-  final String hora;
-  final CitaEstado estado;
-
-  // Datos del detalle
-  final String prendaDetalleNombre;
-  final String prendaDetalleId;
-
-  const Cita({
-    required this.tipo,
-    required this.clienteId,
-    required this.prendasResumen,
-    required this.fecha,
-    required this.hora,
-    required this.estado,
-    required this.prendaDetalleNombre,
-    required this.prendaDetalleId,
-  });
-
-  // Helper para obtener el texto del tipo
-  String get tipoTexto {
-    return tipo.tipoTexto;
+extension CitaPropositoExtension on CitaProposito {
+  String get texto {
+    switch (this) {
+      case CitaProposito.PRUEBA:
+        return 'Prueba';
+      case CitaProposito.MEDIDAS:
+        return 'Toma de Medidas';
+      case CitaProposito.ASESORIA:
+        return 'Asesoría';
+      case CitaProposito.OTRO:
+        return 'Otro';
+    }
   }
 }
 
-// ERROR 3: Se eliminó una llave de cierre (}) extra al final del archivo
+// 3. La clase Cita ahora refleja la tabla de la BD
+class Cita {
+  final int? id; // El ID de la BD (opcional en la creación)
+  final int clienteId; // ¡Debe ser int/BigInt, no String! (Ver Alerta abajo)
+  final DateTime fechaHora;
+  final CitaProposito proposito;
+  final CitaEstado estado;
+  final String? notas;
+
+  const Cita({
+    this.id,
+    required this.clienteId,
+    required this.fechaHora,
+    required this.proposito,
+    required this.estado,
+    this.notas,
+  });
+
+  // (El resto de campos como 'prendasResumen', 'prendaDetalleId' [cite: 287-291]
+  //  se eliminan porque no están en la nueva BD ni en la nueva UI)
+}

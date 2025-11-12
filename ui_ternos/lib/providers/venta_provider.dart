@@ -1,44 +1,55 @@
+// lib/providers/venta_provider.dart
+
 import 'package:flutter/material.dart';
-import 'package:proyecto_tienda_ternos/data/mock_data.dart';
+import 'package:proyecto_tienda_ternos/data/repositories/venta_repository.dart';
 import 'package:proyecto_tienda_ternos/models/venta.dart';
 
 class VentaProvider extends ChangeNotifier {
-  // 1. ESTADO: La lista de ventas (publica)
-  final List<Venta> _ventas = List.from(mockVentas);
+  // 1. DEPENDENCIA
+  final VentaRepository _repository;
 
-  // 2. GETTER: La forma pública de LEER la lista
+  // 2. ESTADO
+  List<Venta> _ventas = [];
+  bool _isLoading = false;
+
+  // 3. GETTERS
   List<Venta> get ventas => _ventas;
+  bool get isLoading => _isLoading;
 
-  // 3. MÉTODO: La forma pública de MODIFICAR la lista
-  void agregarVenta(Venta nuevaVenta) {
-    _ventas.add(nuevaVenta);
+  // 4. CONSTRUCTOR
+  VentaProvider(this._repository) {
+    fetchVentas();
+  }
 
-    // Notificamos a los "oyentes" (como la pantalla de lista) que hay un cambio
+  // 5. MÉTODOS
+
+  Future<void> fetchVentas() async {
+    _isLoading = true;
+    notifyListeners();
+
+    _ventas = await _repository.getVentas();
+    _isLoading = false;
     notifyListeners();
   }
 
-  void editarVenta(Venta ventaActualizada) {
-    // Buscamos la venta por su código (ID único)
-    final index = _ventas.indexWhere(
-      (v) => v.codigo == ventaActualizada.codigo,
-    );
+  Future<void> agregarVenta(Venta nuevaVenta) async {
+    final ventaAgregada = await _repository.agregarVenta(nuevaVenta);
+    _ventas.add(ventaAgregada);
+    notifyListeners();
+  }
 
+  Future<void> editarVenta(Venta ventaActualizada) async {
+    final ventaEditada = await _repository.editarVenta(ventaActualizada);
+    final index = _ventas.indexWhere((v) => v.codigo == ventaEditada.codigo);
     if (index != -1) {
-      // Si la encontramos, la reemplazamos
-      _ventas[index] = ventaActualizada;
+      _ventas[index] = ventaEditada;
       notifyListeners();
     }
   }
 
-  void anularVenta(Venta ventaAnular) {
-    // Simplemente eliminamos la venta de la lista
+  Future<void> anularVenta(Venta ventaAnular) async {
+    await _repository.anularVenta(ventaAnular.codigo);
     _ventas.removeWhere((v) => v.codigo == ventaAnular.codigo);
-
-    // (En el futuro, aquí llamarías a tu API:
-    //  await apiService.post('/ventas/anular', ventaAnular.codigo))
-
-    notifyListeners(); // Actualiza la lista de ventas
+    notifyListeners();
   }
-
-  // (En el futuro, aquí irían métodos como 'anularVenta', etc.)
 }

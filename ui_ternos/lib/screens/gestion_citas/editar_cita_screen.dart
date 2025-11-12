@@ -1,4 +1,4 @@
-// lib/screens/editar_cita_screen.dart (REEMPLAZAR)
+// lib/screens/gestion_citas/editar_cita_screen.dart (CORREGIDO)
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +7,7 @@ import 'package:proyecto_tienda_ternos/providers/cita_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
+import 'package:intl/intl.dart'; // <-- 1. IMPORTAR INTL
 
 class EditarCitaScreen extends StatefulWidget {
   final Cita cita;
@@ -19,36 +20,39 @@ class EditarCitaScreen extends StatefulWidget {
 class _EditarCitaScreenState extends State<EditarCitaScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controladores
+  // --- 2. CONTROLADORES Y ESTADO ACTUALIZADOS ---
   late TextEditingController _clienteCtrl;
   late TextEditingController _telefonoCtrl;
-  late TextEditingController _emailCtrl;
-  late TextEditingController _prendasCtrl;
-  late TextEditingController _fechaCtrl;
-  late TextEditingController _horaCtrl;
-  late CitaTipo _tipoCita;
+  late TextEditingController _notasCtrl; // Reemplaza a _prendasCtrl
+  late TextEditingController _fechaDisplayCtrl; // Para el texto de la fecha
+  late TextEditingController _horaDisplayCtrl; // Para el texto de la hora
 
-  // Guardamos el cliente encontrado
+  late CitaProposito _selectedProposito; // Reemplaza a _tipoCita
+  late CitaEstado _selectedEstado;
+  late DateTime _selectedFechaHora; // El estado real de la fecha/hora
+
   Cliente? _clienteSeleccionado;
+  bool _isSaving = false; // Para el botón de guardar
 
   @override
   void initState() {
     super.initState();
 
-    // --- 3. LÓGICA DE 'initState' CORREGIDA ---
     final cita = widget.cita;
 
-    // Buscamos al cliente en el ClienteProvider
+    // --- 3. LÓGICA DE 'initState' CORREGIDA ---
+
+    // Buscar cliente (esto ya estaba bien)
     try {
-      _clienteSeleccionado = Provider.of<ClienteProvider>(
-        context,
-        listen: false,
-      ).clientes.firstWhere((c) => c.dni == cita.clienteId);
+      _clienteSeleccionado = context
+          .read<ClienteProvider>()
+          .clientes
+          .firstWhere((c) => c.id == cita.clienteId);
     } catch (e) {
       _clienteSeleccionado = null;
     }
 
-    // Pre-rellenamos los campos
+    // Pre-rellenar campos de texto
     _clienteCtrl = TextEditingController(
       text: _clienteSeleccionado != null
           ? '${_clienteSeleccionado!.nombre} ${_clienteSeleccionado!.apellidos ?? ''}'
@@ -57,52 +61,124 @@ class _EditarCitaScreenState extends State<EditarCitaScreen> {
     _telefonoCtrl = TextEditingController(
       text: _clienteSeleccionado?.telefono ?? '',
     );
-    _emailCtrl = TextEditingController(
-      text: _clienteSeleccionado?.correo ?? '',
+    _notasCtrl = TextEditingController(text: cita.notas ?? '');
+
+    // Inicializar los nuevos estados
+    _selectedProposito = cita.proposito;
+    _selectedEstado = cita.estado;
+    _selectedFechaHora = cita.fechaHora;
+
+    // Inicializar los controladores de display de fecha/hora
+    _fechaDisplayCtrl = TextEditingController(
+      text: DateFormat('dd/MM/yyyy').format(_selectedFechaHora),
     );
-    _prendasCtrl = TextEditingController(text: cita.prendasResumen);
-    _fechaCtrl = TextEditingController(text: cita.fecha);
-    _horaCtrl = TextEditingController(text: cita.hora);
-    _tipoCita = cita.tipo;
+    _horaDisplayCtrl = TextEditingController(
+      text: DateFormat('hh:mm a').format(_selectedFechaHora),
+    );
   }
 
   @override
   void dispose() {
     _clienteCtrl.dispose();
     _telefonoCtrl.dispose();
-    _emailCtrl.dispose();
-    _prendasCtrl.dispose();
-    _fechaCtrl.dispose();
-    _horaCtrl.dispose();
+    _notasCtrl.dispose();
+    _fechaDisplayCtrl.dispose();
+    _horaDisplayCtrl.dispose();
     super.dispose();
   }
 
-  void _submitForm() {
+  // --- 4. FUNCIÓN _submitForm (CORREGIDA CON ASYNC/AWAIT) ---
+  Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    final citaActualizada = Cita(
-      clienteId: widget.cita.clienteId, // Mantenemos el ID del cliente original
-      tipo: _tipoCita,
-      prendasResumen: _prendasCtrl.text,
-      fecha: _fechaCtrl.text,
-      hora: _horaCtrl.text,
-      estado: widget.cita.estado, // Mantenemos el estado original
-      prendaDetalleNombre: _prendasCtrl.text.split(',').first,
-      prendaDetalleId: widget.cita.prendaDetalleId, // Mantenemos el ID original
-    );
+    setState(() => _isSaving = true);
 
-    // Llamamos al provider para editar
-    Provider.of<CitaProvider>(
-      context,
-      listen: false,
-    ).editarCita(citaActualizada);
+    try {
+      // Crear el objeto Cita actualizado con el NUEVO modelo
+      final citaActualizada = Cita(
+        id: widget.cita.id, // <-- Mantenemos el ID original
+        clienteId: widget.cita.clienteId, // El cliente no se puede cambiar
+        fechaHora: _selectedFechaHora, // <-- El nuevo DateTime
+        proposito: _selectedProposito, // <-- El nuevo Proposito
+        estado: _selectedEstado, // <-- El nuevo Estado
+        notas: _notasCtrl.text.isNotEmpty ? _notasCtrl.text : null,
+      );
 
-    Navigator.pop(context); // Cierra la pantalla de edición
-    Navigator.pop(context); // Cierra la pantalla de detalle
+      // Llamamos al provider para editar (CON AWAIT)
+      await context.read<CitaProvider>().editarCita(citaActualizada);
+
+      if (mounted) {
+        Navigator.pop(context); // Cierra la pantalla de edición
+        Navigator.pop(context); // Cierra la pantalla de detalle
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error al guardar la cita: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
   }
 
+  // --- 5. PICKERS (CORREGIDOS PARA MANEJAR UN SOLO 'DateTime') ---
+
+  Future<void> _pickDate() async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedFechaHora,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+
+    if (pickedDate != null) {
+      setState(() {
+        // Combina la nueva fecha con la hora existente
+        _selectedFechaHora = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          _selectedFechaHora.hour,
+          _selectedFechaHora.minute,
+        );
+        // Actualiza el texto del controlador
+        _fechaDisplayCtrl.text = DateFormat(
+          'dd/MM/yyyy',
+        ).format(_selectedFechaHora);
+      });
+    }
+  }
+
+  Future<void> _pickTime() async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_selectedFechaHora),
+    );
+
+    if (pickedTime != null) {
+      setState(() {
+        // Combina la fecha existente con la nueva hora
+        _selectedFechaHora = DateTime(
+          _selectedFechaHora.year,
+          _selectedFechaHora.month,
+          _selectedFechaHora.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+        // Actualiza el texto del controlador
+        _horaDisplayCtrl.text = DateFormat(
+          'hh:mm a',
+        ).format(_selectedFechaHora);
+      });
+    }
+  }
+
+  // --- 6. BUILD (CORREGIDO) ---
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,34 +189,52 @@ class _EditarCitaScreenState extends State<EditarCitaScreen> {
           child: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
-              DropdownButtonFormField<CitaTipo>(
-                value: _tipoCita,
+              // --- Propósito (Corregido) ---
+              DropdownButtonFormField<CitaProposito>(
+                value: _selectedProposito,
                 decoration: const InputDecoration(
-                  labelText: 'Tipo de cita',
+                  labelText: 'Propósito',
                   border: OutlineInputBorder(),
                 ),
-                items: CitaTipo.values.map((tipo) {
+                items: CitaProposito.values.map((proposito) {
                   return DropdownMenuItem(
-                    value: tipo,
-                    child: Text(tipo.tipoTexto),
+                    value: proposito,
+                    child: Text(proposito.texto),
                   );
                 }).toList(),
                 onChanged: (value) {
                   if (value != null) {
-                    setState(() {
-                      _tipoCita = value;
-                    });
+                    setState(() => _selectedProposito = value);
                   }
                 },
               ),
               const SizedBox(height: 16),
 
-              // --- 5. CAMPOS DE CLIENTE (AHORA DE SOLO LECTURA) ---
-              // Editar el cliente debería hacerse desde 'editar_cliente_screen.dart'
-              // Aquí solo mostramos quién es.
+              // --- Estado (Añadido) ---
+              DropdownButtonFormField<CitaEstado>(
+                value: _selectedEstado,
+                decoration: const InputDecoration(
+                  labelText: 'Estado',
+                  border: OutlineInputBorder(),
+                ),
+                items: CitaEstado.values.map((estado) {
+                  return DropdownMenuItem(
+                    value: estado,
+                    child: Text(estado.texto),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() => _selectedEstado = value);
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // --- Campos de Cliente (Solo lectura, ya estaban bien) ---
               TextFormField(
                 controller: _clienteCtrl,
-                readOnly: true, // No dejamos editar el nombre aquí
+                readOnly: true,
                 decoration: const InputDecoration(
                   labelText: 'Cliente',
                   border: OutlineInputBorder(),
@@ -150,7 +244,7 @@ class _EditarCitaScreenState extends State<EditarCitaScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _telefonoCtrl,
-                readOnly: true, // No dejamos editar el teléfono aquí
+                readOnly: true,
                 decoration: const InputDecoration(
                   labelText: 'Teléfono',
                   border: OutlineInputBorder(),
@@ -159,25 +253,27 @@ class _EditarCitaScreenState extends State<EditarCitaScreen> {
               ),
               const SizedBox(height: 16),
 
-              // --- FIN DE CAMPOS DE SOLO LECTURA ---
+              // --- Notas (Corregido) ---
               TextFormField(
-                controller: _prendasCtrl,
+                controller: _notasCtrl, // <-- CORREGIDO
                 decoration: const InputDecoration(
-                  labelText: 'Prendas',
-                  hintText: 'Ej. Terno Negro, Camisa Blanca...',
+                  labelText: 'Notas (Opcional)', // <-- CORREGIDO
+                  hintText: 'Añadir notas adicionales...',
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.checkroom),
+                  prefixIcon: Icon(Icons.notes),
                 ),
-                validator: (value) =>
-                    (value == null || value.isEmpty) ? 'Requerido' : null,
+                maxLines: 4,
+                // (Validator ya no es necesario si es opcional)
               ),
               const SizedBox(height: 16),
+
+              // --- Fecha y Hora (Corregido) ---
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: TextFormField(
-                      controller: _fechaCtrl,
+                      controller: _fechaDisplayCtrl, // <-- CORREGIDO
                       readOnly: true,
                       decoration: const InputDecoration(
                         labelText: 'Fecha',
@@ -192,7 +288,7 @@ class _EditarCitaScreenState extends State<EditarCitaScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: TextFormField(
-                      controller: _horaCtrl,
+                      controller: _horaDisplayCtrl, // <-- CORREGIDO
                       readOnly: true,
                       decoration: const InputDecoration(
                         labelText: 'Hora',
@@ -207,46 +303,31 @@ class _EditarCitaScreenState extends State<EditarCitaScreen> {
                 ],
               ),
               const SizedBox(height: 32),
+
+              // --- Botón de Guardar (Corregido) ---
               ElevatedButton(
-                onPressed: _submitForm,
+                onPressed: _isSaving ? null : _submitForm, // <-- CORREGIDO
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Text('Guardar Cambios'),
+                child:
+                    _isSaving // <-- CORREGIDO
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text('Guardar Cambios'),
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  Future<void> _pickDate() async {
-    FocusScope.of(context).requestFocus(FocusNode());
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-
-    if (pickedDate != null) {
-      _fechaCtrl.text =
-          "${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}";
-    }
-  }
-
-  Future<void> _pickTime() async {
-    FocusScope.of(context).requestFocus(FocusNode());
-    final TimeOfDay? pickedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-
-    if (pickedTime != null) {
-      _horaCtrl.text = pickedTime.format(context);
-    }
   }
 }

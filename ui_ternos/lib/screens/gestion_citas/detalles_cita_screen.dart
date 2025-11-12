@@ -1,11 +1,14 @@
+// lib/screens/gestion_citas/detalles_cita_screen.dart (CORREGIDO)
+
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; // <-- 1. IMPORTAMOS PROVIDER
+import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/models/cita.dart';
-import 'package:proyecto_tienda_ternos/providers/cita_provider.dart'; // <-- 2. IMPORTAMOS EL CEREBRO
+import 'package:proyecto_tienda_ternos/providers/cita_provider.dart';
 import 'package:proyecto_tienda_ternos/screens/gestion_citas/editar_cita_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
+import 'package:intl/intl.dart'; // <-- 1. IMPORTAR INTL
 
 class DetallesCitaScreen extends StatelessWidget {
   final Cita cita;
@@ -13,31 +16,34 @@ class DetallesCitaScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 3. Obtenemos la instancia del provider (para llamar a los métodos)
-    final citaProvider = Provider.of<CitaProvider>(context, listen: false);
-    final clienteProvider = Provider.of<ClienteProvider>(
-      context,
-      listen: false,
-    );
+    // Obtenemos los providers (sin escuchar, solo para los botones)
+    final citaProvider = context.read<CitaProvider>();
+    final clienteProvider = context.read<ClienteProvider>();
+
+    // --- Búsqueda de Cliente (tu lógica ya era correcta) ---
     Cliente? cliente;
     try {
       cliente = clienteProvider.clientes.firstWhere(
-        (c) => c.dni == cita.clienteId,
+        (c) => c.id == cita.clienteId,
       );
     } catch (e) {
-      cliente = null; // No se encontró
+      cliente = null;
     }
 
     return Scaffold(
       appBar: AppBar(title: const Text('Detalle Cita')),
-      // --- 3. USAMOS UN CONSUMER DE CITA ---
-      // (Para que el estado 'Pendiente' cambie si lo cancelas/completas)
       body: Consumer<CitaProvider>(
         builder: (context, provider, child) {
-          // Busca la versión más actualizada de la cita
+          // --- 2. AÑADIR LÓGICA DE CARGA ---
+          if (provider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // --- 3. CORREGIR BÚSQUEDA DE CITA ACTUALIZADA ---
+          // (Usar 'id' (int) en lugar de 'prendaDetalleId' (String))
           final citaActualizada = provider.citas.firstWhere(
-            (c) => c.prendaDetalleId == cita.prendaDetalleId,
-            orElse: () => cita, // Si no la encuentra, usa la original
+            (c) => c.id == cita.id, // <-- CORREGIDO
+            orElse: () => cita,
           );
 
           return SafeArea(
@@ -50,7 +56,7 @@ class DetallesCitaScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
-                // --- 4. TARJETA DE CLIENTE CORREGIDA ---
+                // --- Tarjeta de Cliente (ya estaba bien) ---
                 Text('Cliente', style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
                 _buildCard(
@@ -75,9 +81,8 @@ class DetallesCitaScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // --- FIN DE LA CORRECCIÓN ---
 
-                // --- Tarjeta Detalles de la Cita (ya estaba bien) ---
+                // --- 4. TARJETA DE DETALLES (CORREGIDA) ---
                 Text(
                   'Detalles de la Cita',
                   style: Theme.of(context).textTheme.titleMedium,
@@ -89,42 +94,53 @@ class DetallesCitaScreen extends StatelessWidget {
                     children: [
                       _InfoRow(
                         icon: Icons.list_alt_outlined,
-                        text: citaActualizada.tipo.tipoTexto,
+                        // De 'tipo.tipoTexto' a 'proposito.texto'
+                        text: citaActualizada.proposito.texto, // <-- CORREGIDO
                       ),
                       _InfoRow(
                         icon: Icons.calendar_today_outlined,
-                        text: citaActualizada.fecha,
+                        // De 'fecha' a 'fechaHora' formateada
+                        text: DateFormat(
+                          'dd/MM/yyyy',
+                        ).format(citaActualizada.fechaHora), // <-- CORREGIDO
                       ),
                       _InfoRow(
                         icon: Icons.access_time_outlined,
-                        text: citaActualizada.hora,
+                        // De 'hora' a 'fechaHora' formateada
+                        text: DateFormat(
+                          'hh:mm a',
+                        ).format(citaActualizada.fechaHora), // <-- CORREGIDO
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
 
-                // --- Tarjeta Prendas (ya estaba bien) ---
-                Text('Prendas', style: Theme.of(context).textTheme.titleMedium),
+                // --- 5. TARJETA DE NOTAS (CORREGIDA) ---
+                // (Reemplaza la antigua tarjeta "Prendas")
+                Text('Notas', style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
                 _buildCard(
                   context,
                   child: _InfoRow(
-                    icon: Icons.checkroom,
-                    text: citaActualizada.prendaDetalleNombre,
-                    subtitle: 'ID: ${citaActualizada.prendaDetalleId}',
+                    icon: Icons.notes, // <-- CORREGIDO
+                    text: citaActualizada.notas ?? 'Sin notas', // <-- CORREGIDO
+                    // (Ya no hay 'prendaDetalleId')
                   ),
                 ),
                 const SizedBox(height: 32),
 
-                // --- Botones de Acción (ya estaban bien) ---
+                // --- 6. BOTONES DE ACCIÓN (CORREGIDOS CON ASYNC/AWAIT) ---
                 _buildActionButton(
                   label: 'Marcar como Completada',
                   color: AppColors.primary,
                   textColor: Colors.white,
-                  onPressed: () {
-                    citaProvider.marcarComoCompletada(citaActualizada);
-                    Navigator.pop(context);
+                  onPressed: () async {
+                    // <-- ASYNC
+                    await citaProvider.marcarComoCompletada(
+                      citaActualizada,
+                    ); // <-- AWAIT
+                    if (context.mounted) Navigator.pop(context);
                   },
                 ),
                 const SizedBox(height: 12),
@@ -133,6 +149,7 @@ class DetallesCitaScreen extends StatelessWidget {
                   color: AppColors.borderLight,
                   textColor: AppColors.stone800,
                   onPressed: () {
+                    // (La navegación a EditarCitaScreen sigue igual)
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -148,9 +165,12 @@ class DetallesCitaScreen extends StatelessWidget {
                   label: 'Cancelar Cita',
                   color: Colors.transparent,
                   textColor: Colors.red,
-                  onPressed: () {
-                    citaProvider.cancelarCita(citaActualizada);
-                    Navigator.pop(context);
+                  onPressed: () async {
+                    // <-- ASYNC
+                    await citaProvider.cancelarCita(
+                      citaActualizada,
+                    ); // <-- AWAIT
+                    if (context.mounted) Navigator.pop(context);
                   },
                 ),
               ],
@@ -161,8 +181,7 @@ class DetallesCitaScreen extends StatelessWidget {
     );
   }
 
-  // --- NINGÚN CAMBIO DE AQUÍ PARA ABAJO ---
-  // (Todos los widgets auxiliares siguen exactamente iguales)
+  // --- Widgets Auxiliares (Sin cambios) ---
 
   Widget _buildCard(BuildContext context, {required Widget child}) {
     return Container(
@@ -188,19 +207,22 @@ class DetallesCitaScreen extends StatelessWidget {
         children: [
           Icon(icon, color: AppColors.stone600, size: 20),
           const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(text, style: const TextStyle(fontWeight: FontWeight.w600)),
-              if (subtitle != null)
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: AppColors.stone600,
-                    fontSize: 12,
+          Expanded(
+            // <-- Añadido Expanded para que las notas largas no se desborden
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(text, style: const TextStyle(fontWeight: FontWeight.w600)),
+                if (subtitle != null)
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: AppColors.stone600,
+                      fontSize: 12,
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -232,13 +254,13 @@ class DetallesCitaScreen extends StatelessWidget {
   }
 }
 
+// (El _StatusTag ya era correcto y no necesita cambios)
 class _StatusTag extends StatelessWidget {
   final CitaEstado estado;
   const _StatusTag({required this.estado});
 
   @override
   Widget build(BuildContext context) {
-    // --- LÓGICA DE UI ACTUALIZADA ---
     String text;
     Color color;
     Color backgroundColor;

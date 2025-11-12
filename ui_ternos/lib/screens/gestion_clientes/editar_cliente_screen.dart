@@ -1,7 +1,9 @@
+// lib/screens/gestion_clientes/editar_cliente_screen.dart (CORREGIDO)
+
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; // <-- 1. IMPORTA PROVIDER
+import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
-import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart'; // <-- 2. IMPORTA EL CEREBRO
+import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 
 class EditarClienteScreen extends StatefulWidget {
@@ -25,10 +27,13 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
   late TextEditingController _motivoVetoCtrl;
   late bool _vetado;
 
+  // --- 1. AÑADIR ESTADO DE CARGA ---
+  bool _isSaving = false;
+
   @override
   void initState() {
     super.initState();
-    // Pre-rellena los campos con los datos del cliente
+    // (Tu initState ya era correcto [cite: 618-624])
     _nombresCtrl = TextEditingController(text: widget.cliente.nombre);
     _apellidosCtrl = TextEditingController(
       text: widget.cliente.apellidos ?? '',
@@ -50,7 +55,6 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
 
   @override
   void dispose() {
-    // Limpia los controladores
     _nombresCtrl.dispose();
     _apellidosCtrl.dispose();
     _dniCtrl.dispose();
@@ -62,14 +66,21 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
     super.dispose();
   }
 
-  // --- 3. ACTUALIZA LA FUNCIÓN DE GUARDAR ---
-  void _guardarCambios() {
-    if (_formKey.currentState!.validate()) {
+  // --- 2. ACTUALIZAR FUNCIÓN DE GUARDAR (AHORA ASÍNCRONA) ---
+  Future<void> _guardarCambios() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    try {
       // Crea el objeto Cliente actualizado
       final clienteActualizado = Cliente(
+        id: widget.cliente.id, // <-- CORRECCIÓN: Pasar el ID original
         nombre: _nombresCtrl.text,
         apellidos: _apellidosCtrl.text,
-        dni: _dniCtrl.text, // El DNI no debería cambiar, pero lo pasamos
+        dni: _dniCtrl.text,
         telefono: _telefonoCtrl.text,
         correo: _correoCtrl.text,
         direccion: _direccionCtrl.text,
@@ -78,20 +89,26 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
         motivoVeto: _motivoVetoCtrl.text,
       );
 
-      // "Habla" con el cerebro para editar el cliente
-      Provider.of<ClienteProvider>(
-        context,
-        listen: false,
-      ).editarCliente(clienteActualizado);
+      // "Habla" con el cerebro (CON AWAIT)
+      await context.read<ClienteProvider>().editarCliente(clienteActualizado);
 
-      // Cierra la pantalla
-      Navigator.pop(context);
+      // Cierra la pantalla (solo si el widget sigue "montado")
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error al guardar: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 
-  // --- 4. NINGÚN CAMBIO EN EL RESTO DEL CÓDIGO (build, helpers) ---
-  // (El build y los helpers _buildTextField y _buildDateField
-  // ya son correctos y no necesitan cambios)
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -107,8 +124,8 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
           key: _formKey,
           child: ListView(
             padding: const EdgeInsets.all(16.0),
+            // (El contenido del ListView no necesita cambios)
             children: [
-              // Nombres y Apellidos en fila
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -132,6 +149,8 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
                 controller: _dniCtrl,
                 label: 'DNI',
                 keyboardType: TextInputType.number,
+                // Nota: Idealmente, el DNI no debería ser editable
+                // consideren hacerlo 'readOnly: true'
               ),
               const SizedBox(height: 16),
               _buildTextField(
@@ -158,7 +177,6 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
                 label: 'Fecha de Nacimiento',
               ),
               const SizedBox(height: 16),
-              // Checkbox 'Vetado'
               CheckboxListTile(
                 title: const Text('Vetado'),
                 value: _vetado,
@@ -171,7 +189,6 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
                 contentPadding: EdgeInsets.zero,
               ),
               const SizedBox(height: 16),
-              // Motivo de veto (se muestra si está vetado)
               if (_vetado)
                 _buildTextField(
                   controller: _motivoVetoCtrl,
@@ -189,23 +206,34 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
           children: [
             Expanded(
               child: OutlinedButton(
-                child: const Text('Cancelar'),
-                onPressed: () => Navigator.pop(context),
+                // --- 3. CORREGIR BOTÓN DE CANCELAR ---
+                onPressed: _isSaving ? null : () => Navigator.pop(context),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
+                child: const Text('Cancelar'),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: ElevatedButton(
-                child: const Text('Guardar Cambios'),
-                onPressed: _guardarCambios, // Conectado
+                // --- 4. CORREGIR BOTÓN DE GUARDAR ---
+                onPressed: _isSaving ? null : _guardarCambios, // Conectado
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
+                child: _isSaving
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text('Guardar Cambios'),
               ),
             ),
           ],
@@ -214,6 +242,8 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
     );
   }
 
+  // --- (Tus widgets helper _buildTextField y _buildDateField
+  //      no necesitan cambios [cite: 649-660]) ---
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,

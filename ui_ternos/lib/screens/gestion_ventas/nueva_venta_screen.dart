@@ -1,10 +1,10 @@
-// lib/screens/nueva_venta_screen.dart (CORREGIDO)
+// lib/screens/gestion_ventas/nueva_venta_screen.dart (CORREGIDO)
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:proyecto_tienda_ternos/models/cliente.dart'; // <-- 1. IMPORTA EL MODELO CLIENTE
+import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/models/venta.dart';
-import 'package:proyecto_tienda_ternos/providers/prenda_provider.dart';
+import 'package:proyecto_tienda_ternos/providers/prenda_provider.dart'; // <-- Importado
 import 'package:proyecto_tienda_ternos/providers/venta_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 
@@ -23,11 +23,11 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
   final _precioCtrl = TextEditingController();
 
   // Variables de estado
-  // --- 2. CAMBIAMOS EL CONTROLADOR DE TEXTO POR UN OBJETO CLIENTE ---
   Cliente? _selectedCliente;
   String? _selectedTraje;
   String _selectedPaymentMethod = 'Yape-Plin';
   double _total = 0.0;
+  bool _isSaving = false; // <-- 1. AÑADIR ESTADO DE CARGA
 
   @override
   void initState() {
@@ -51,12 +51,10 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
     });
   }
 
-  // --- 3. FUNCIÓN PARA ABRIR EL SELECTOR DE CLIENTES ---
   void _abrirSelectorCliente() async {
     final Cliente? clienteSeleccionado =
         await Navigator.pushNamed(context, Routes.seleccionarCliente)
             as Cliente?;
-
     if (clienteSeleccionado != null) {
       setState(() {
         _selectedCliente = clienteSeleccionado;
@@ -64,40 +62,61 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
     }
   }
 
-  // --- 4. FUNCIÓN '_submitForm' CORREGIDA ---
-  void _submitForm() {
+  // --- 2. FUNCIÓN '_submitForm' (CORREGIDA CON ASYNC/AWAIT) ---
+  Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    // Si no se seleccionó cliente, usamos 'Mostrador' (ID '00000000')
-    final String clienteId =
-        _selectedCliente?.dni ?? '00000000'; // ID por defecto
+    setState(() => _isSaving = true);
 
-    final nuevaVenta = Venta(
-      codigo: 'VEN-${DateTime.now().millisecondsSinceEpoch}',
-      clienteId: clienteId, // <-- USA EL ID
-      fecha:
-          '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
-      producto: _selectedTraje ?? 'Producto no seleccionado',
-      cantidad: int.tryParse(_cantidadCtrl.text) ?? 0,
-      precioUnitario: double.tryParse(_precioCtrl.text) ?? 0.0,
-      metodoPago: _selectedPaymentMethod,
-      total: _total,
-    );
+    try {
+      // (Tu lógica de ID de cliente ya era correcta)
+      // Asumimos que el cliente 'Mostrador' tiene el id 1 en la BD
+      final int clienteId = _selectedCliente?.id ?? 1; // ID por defecto (int)
 
-    Provider.of<VentaProvider>(context, listen: false).agregarVenta(nuevaVenta);
+      final nuevaVenta = Venta(
+        codigo: 'VEN-${DateTime.now().millisecondsSinceEpoch}',
+        clienteId: clienteId,
+        fecha:
+            '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
+        producto: _selectedTraje ?? 'Producto no seleccionado',
+        cantidad: int.tryParse(_cantidadCtrl.text) ?? 0,
+        precioUnitario: double.tryParse(_precioCtrl.text) ?? 0.0,
+        metodoPago: _selectedPaymentMethod,
+        total: _total,
+      );
 
-    Navigator.pop(context); // Regresamos
+      // Llamada al provider (CON AWAIT)
+      await context.read<VentaProvider>().agregarVenta(nuevaVenta);
+
+      if (mounted) {
+        Navigator.pop(context); // Regresamos
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error al guardar: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final prendaProvider = Provider.of<PrendaProvider>(context, listen: false);
+    // --- 3. CONECTARSE AL PRENDA PROVIDER (CON 'watch') ---
+    // Usamos 'watch' para que la pantalla se actualice si las prendas
+    // estaban cargando y terminan de cargar.
+    final prendaProvider = context.watch<PrendaProvider>();
     final List<String> productosDeInventario = prendaProvider.prendas
         .map((prenda) => prenda.nombre)
         .toSet()
         .toList();
+
     return Scaffold(
       appBar: AppBar(title: const Text('Nueva Venta')),
       body: SafeArea(
@@ -109,7 +128,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                 child: ListView(
                   padding: const EdgeInsets.all(16.0),
                   children: [
-                    // --- 5. CAMPO DE CLIENTE REEMPLAZADO ---
+                    // --- Campo de Cliente (Tu lógica ya era correcta) ---
                     Text(
                       'Cliente (opcional)',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -149,16 +168,12 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // --- FIN DEL REEMPLAZO ---
+                    // --- 4. DROPDOWN CORREGIDO ---
                     _buildDropdownField(
                       label: 'Tipo de traje',
                       hint: 'Seleccionar tipo',
                       value: _selectedTraje,
-                      items: [
-                        'Traje Clásico Negro',
-                        'Esmoquin Moderno',
-                        'Traje de Lino Beige',
-                      ],
+                      items: productosDeInventario, // <-- USA LA LISTA DINÁMICA
                       onChanged: (value) {
                         setState(() {
                           _selectedTraje = value;
@@ -166,6 +181,8 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
+
+                    // (Resto del formulario sin cambios)
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -241,8 +258,10 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
+
+                    // --- 5. BOTÓN DE GUARDAR CORREGIDO ---
                     ElevatedButton(
-                      onPressed: _submitForm,
+                      onPressed: _isSaving ? null : _submitForm,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
@@ -255,7 +274,16 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      child: const Text('Registrar Venta'),
+                      child: _isSaving
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text('Registrar Venta'),
                     ),
                   ],
                 ),
@@ -267,8 +295,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
     );
   }
 
-  // --- WIDGETS AUXILIARES (Helpers) ---
-
+  // --- (Tus 3 widgets helper no necesitan cambios) ---
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -279,6 +306,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
     TextInputType? keyboardType,
     bool isReadOnly = false,
   }) {
+    // ... (Tu código es correcto)
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -332,6 +360,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
     required List<String> items,
     required ValueChanged<String?> onChanged,
   }) {
+    // ... (Tu código es correcto)
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -360,6 +389,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
   }
 
   Widget _buildPaymentButton(String method) {
+    // ... (Tu código es correcto)
     final bool isSelected = _selectedPaymentMethod == method;
     return Expanded(
       child: Padding(

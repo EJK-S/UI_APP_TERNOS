@@ -1,46 +1,67 @@
+// lib/providers/prenda_provider.dart
+
 import 'package:flutter/material.dart';
-import 'package:proyecto_tienda_ternos/data/mock_data.dart';
+import 'package:proyecto_tienda_ternos/data/repositories/prenda_repository.dart';
 import 'package:proyecto_tienda_ternos/models/prenda.dart';
 
 class PrendaProvider extends ChangeNotifier {
-  // La lista "viva" de todas las prendas individuales
-  final List<Prenda> _prendas = List.from(mockPrendas);
+  // 1. DEPENDENCIA
+  final PrendaRepository _repository;
 
-  // Getter público
+  // 2. ESTADO
+  List<Prenda> _prendas = [];
+  bool _isLoading = false;
+
+  // 3. GETTERS
   List<Prenda> get prendas => _prendas;
+  bool get isLoading => _isLoading;
 
-  // Método para añadir una nueva prenda (desde 'registrar_terno_screen.dart')
-  void agregarPrenda(Prenda nuevaPrenda) {
-    _prendas.add(nuevaPrenda);
-    notifyListeners(); // Avisa a quien esté escuchando (el InventarioProvider)
+  // 4. CONSTRUCTOR
+  PrendaProvider(this._repository) {
+    fetchPrendas();
   }
 
-  // Método para editar una prenda (desde 'editar_prenda_screen.dart')
-  void editarPrenda(Prenda prendaActualizada) {
-    final index = _prendas.indexWhere((p) => p.id == prendaActualizada.id);
-    if (index != -1) {
-      _prendas[index] = prendaActualizada;
-      notifyListeners();
-    }
-  }
+  // 5. MÉTODOS (ASÍNCRONOS)
 
-  // Método para eliminar una prenda
-  void eliminarPrenda(String id) {
-    _prendas.removeWhere((p) => p.id == id);
+  Future<void> fetchPrendas() async {
+    _isLoading = true;
+    notifyListeners();
+    _prendas = await _repository.getPrendas();
+    _isLoading = false;
     notifyListeners();
   }
 
-  // --- MÉTODOS DE CÁLCULO ---
-  // Estos son los métodos que usará el 'InventarioProvider'
+  Future<void> agregarPrenda(Prenda nuevaPrenda) async {
+    final prendaAgregada = await _repository.agregarPrenda(nuevaPrenda);
+    _prendas.add(prendaAgregada);
+    notifyListeners(); // Avisa al InventarioProvider y a las pantallas
+  }
 
-  // Cuenta cuántas prendas hay de una categoría y estado
+  Future<void> editarPrenda(Prenda prendaActualizada) async {
+    final prendaEditada = await _repository.editarPrenda(prendaActualizada);
+    final index = _prendas.indexWhere((p) => p.id == prendaEditada.id);
+    if (index != -1) {
+      _prendas[index] = prendaEditada;
+      notifyListeners(); // Avisa al InventarioProvider y a las pantallas
+    }
+  }
+
+  Future<void> eliminarPrenda(String id) async {
+    await _repository.eliminarPrenda(id);
+    _prendas.removeWhere((p) => p.id == id);
+    notifyListeners(); // Avisa al InventarioProvider y a las pantallas
+  }
+
+  // --- MÉTODOS DE CÁLCULO (SÍNCRONOS) ---
+  // Estos métodos leen el ESTADO LOCAL (_prendas), no la base de datos.
+  // El InventarioProvider depende de ellos.
+
   int contarPorCategoriaYEstado(String categoria, PrendaEstado estado) {
     return _prendas
         .where((p) => p.categoria == categoria && p.estado == estado)
         .length;
   }
 
-  // Obtiene todas las prendas de una categoría
   List<Prenda> getPrendasPorCategoria(String categoria) {
     return _prendas.where((p) => p.categoria == categoria).toList();
   }

@@ -1,5 +1,9 @@
+// lib/screens/gestion_ventas/editar_venta_screen.dart (CORREGIDO)
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:proyecto_tienda_ternos/models/prenda.dart'; // <-- 1. IMPORTAR PRENDA
+import 'package:proyecto_tienda_ternos/providers/prenda_provider.dart'; // <-- 1. IMPORTAR PRENDA_PROVIDER
 import 'package:proyecto_tienda_ternos/models/venta.dart';
 import 'package:proyecto_tienda_ternos/providers/venta_provider.dart';
 import 'package:proyecto_tienda_ternos/screens/gestion_clientes/seleccionar_cliente_screen.dart';
@@ -23,64 +27,46 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
   late TextEditingController _cantidadCtrl;
   late TextEditingController _precioCtrl;
 
-  final List<String> _tiposDeTraje = [
-    'Traje Clásico Negro',
-    'Esmoquin Moderno',
-    'Traje de Lino Beige',
-    'Frac de Gala',
-    'Traje a Rayas',
-    'Traje de Lino Marrón', // <-- El que causaba el crash
-  ];
+  // --- 2. ELIMINAR LISTA ESTÁTICA ---
+  // final List<String> _tiposDeTraje = [ ... ]; // <-- ELIMINADO
 
   // Variables de estado
   String? _selectedTraje;
   String _selectedPaymentMethod = 'Yape-Plin';
   double _total = 0.0;
+  bool _isSaving = false; // <-- 3. AÑADIR ESTADO DE CARGA
 
-  // Guardaremos el cliente para no tener que buscarlo de nuevo
   Cliente? _clienteDeEstaVenta;
-  Cliente? _clienteSeleccionado;
+  // (El _clienteSeleccionado no se usa en 'editar', se puede quitar)
 
   @override
   void initState() {
     super.initState();
 
-    // --- 3. LÓGICA DE 'initState' CORREGIDA ---
     final venta = widget.venta;
-    // Buscamos al cliente en el ClienteProvider
+
+    // --- 4. CORREGIR LÓGICA DE 'initState' ---
     try {
-      _clienteDeEstaVenta = Provider.of<ClienteProvider>(
-        context,
-        listen: false,
-      ).clientes.firstWhere((c) => c.dni == venta.clienteId);
-      _clienteSeleccionado = _clienteDeEstaVenta;
+      // (Usamos context.read para estar seguros fuera de 'build')
+      _clienteDeEstaVenta = context.read<ClienteProvider>().clientes.firstWhere(
+        (c) => c.id == venta.clienteId, // <-- CORREGIDO: Compara int con int
+      );
     } catch (e) {
       _clienteDeEstaVenta = null;
-      _clienteSeleccionado = null;
     }
 
-    // --- Pre-rellenamos TODOS los campos ---
-
-    // 1. Cliente (Sin la línea duplicada)
+    // Pre-rellenamos campos
     _clienteCtrl = TextEditingController(
       text: _clienteDeEstaVenta != null
           ? '${_clienteDeEstaVenta!.nombre} ${_clienteDeEstaVenta!.apellidos ?? ''}'
           : 'Cliente (ID: ${venta.clienteId})',
     );
-
-    // 2. Cantidad (Línea de )
     _cantidadCtrl = TextEditingController(text: venta.cantidad.toString());
-
-    // 3. Precio (¡Esta es la línea que faltaba!)
     _precioCtrl = TextEditingController(text: venta.precioUnitario.toString());
 
-    // --- LÓGICA DE DROPDOWN CORREGIDA ---
-    // Comprueba si el producto de la venta está en nuestra lista de opciones
-    if (_tiposDeTraje.contains(venta.producto)) {
-      _selectedTraje = venta.producto;
-    } else {
-      _selectedTraje = null;
-    }
+    // Asignar el producto de la venta
+    // (La validación de si existe se hará en el 'build' contra la lista del provider)
+    _selectedTraje = venta.producto;
     _selectedPaymentMethod = venta.metodoPago;
     _total = venta.total;
 
@@ -104,45 +90,65 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
     });
   }
 
-  // --- 4. FUNCIÓN '_submitForm' CORREGIDA ---
-  void _submitForm() {
+  // --- 5. FUNCIÓN '_submitForm' (CORREGIDA CON ASYNC/AWAIT) ---
+  Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    final ventaActualizada = Venta(
-      codigo: widget.venta.codigo, // Mantenemos el código original
-      clienteId: widget.venta.clienteId, // Mantenemos el ID de cliente original
-      fecha: widget.venta.fecha, // Mantenemos la fecha original
-      producto: _selectedTraje ?? 'Producto no seleccionado',
-      cantidad: int.tryParse(_cantidadCtrl.text) ?? 0,
-      precioUnitario: double.tryParse(_precioCtrl.text) ?? 0.0,
-      metodoPago: _selectedPaymentMethod,
-      total: _total,
-    );
+    setState(() => _isSaving = true);
 
-    Provider.of<VentaProvider>(
-      context,
-      listen: false,
-    ).editarVenta(ventaActualizada);
+    try {
+      final ventaActualizada = Venta(
+        codigo: widget.venta.codigo,
+        clienteId: widget.venta.clienteId, // Mantenemos el ID original
+        fecha: widget.venta.fecha,
+        producto: _selectedTraje ?? 'Producto no seleccionado',
+        cantidad: int.tryParse(_cantidadCtrl.text) ?? 0,
+        precioUnitario: double.tryParse(_precioCtrl.text) ?? 0.0,
+        metodoPago: _selectedPaymentMethod,
+        total: _total,
+      );
 
-    Navigator.pop(context); // Regresamos al detalle
+      // Llamar al provider (CON AWAIT)
+      await context.read<VentaProvider>().editarVenta(ventaActualizada);
+
+      if (mounted) {
+        Navigator.pop(context); // Regresamos al detalle
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error al guardar: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
   }
 
+  // (La función _abrirSelectorCliente no se usa, la dejamos pero no se llama)
   void _abrirSelectorCliente() async {
-    final Cliente? clienteSeleccionado =
-        await Navigator.pushNamed(context, Routes.seleccionarCliente)
-            as Cliente?;
-
-    if (clienteSeleccionado != null) {
-      setState(() {
-        _clienteSeleccionado = clienteSeleccionado;
-      });
-    }
+    // ...
   }
 
   @override
   Widget build(BuildContext context) {
+    // --- 6. OBTENER LISTA DE PRODUCTOS DEL INVENTARIO ---
+    final List<String> productosDeInventario = context
+        .watch<PrendaProvider>()
+        .prendas
+        .map((prenda) => prenda.nombre)
+        .toSet() // Eliminar duplicados
+        .toList();
+
+    // Validar si el traje seleccionado todavía existe en el inventario
+    if (!productosDeInventario.contains(_selectedTraje)) {
+      _selectedTraje = null; // Si no existe, mostrar el hint
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Editar Venta')),
       body: SafeArea(
@@ -154,23 +160,23 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
                 child: ListView(
                   padding: const EdgeInsets.all(16.0),
                   children: [
-                    // --- 5. CAMPO CLIENTE (AHORA SOLO LECTURA) ---
+                    // Campo de Cliente (Solo lectura, ya estaba bien)
                     _buildTextField(
                       controller: _clienteCtrl,
                       label: 'Cliente',
-                      hint: null, // <-- Eliminamos el hint confuso
-                      icon: null, // <-- Eliminamos el ícono de "selección"
+                      hint: null,
+                      icon: null,
                       isRequired: false,
-                      isReadOnly: true, // Lo hacemos de solo lectura
+                      isReadOnly: true,
                     ),
                     const SizedBox(height: 16),
 
-                    // --- FIN DEL CAMBIO ---
+                    // --- 7. DROPDOWN CONECTADO AL INVENTARIO ---
                     _buildDropdownField(
                       label: 'Tipo de traje',
                       hint: 'Seleccionar tipo',
                       value: _selectedTraje,
-                      items: _tiposDeTraje, // <-- USA LA LISTA MAESTRA
+                      items: productosDeInventario, // <-- USA LA LISTA DINÁMICA
                       onChanged: (value) {
                         setState(() {
                           _selectedTraje = value;
@@ -178,6 +184,8 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
+
+                    // (El resto del formulario no cambia)
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -224,13 +232,7 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   border: Border(top: BorderSide(color: AppColors.borderLight)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, -5),
-                    ),
-                  ],
+                  // ... (shadow)
                 ),
                 child: Column(
                   children: [
@@ -253,8 +255,10 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
+
+                    // --- 8. BOTÓN DE GUARDAR CORREGIDO ---
                     ElevatedButton(
-                      onPressed: _submitForm,
+                      onPressed: _isSaving ? null : _submitForm,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
@@ -267,7 +271,16 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      child: const Text('Guardar Cambios'),
+                      child: _isSaving
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text('Guardar Cambios'),
                     ),
                   ],
                 ),
@@ -279,10 +292,7 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
     );
   }
 
-  // --- (Los widgets auxiliares _buildTextField, _buildDropdownField,
-  // --- y _buildPaymentButton son idénticos al archivo nueva_venta_screen.dart,
-  // --- así que los copio aquí por completitud) ---
-
+  // --- (Tus 3 widgets helper no necesitan cambios) ---
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -293,6 +303,7 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
     TextInputType? keyboardType,
     bool isReadOnly = false,
   }) {
+    // ... (Tu código es correcto)
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -342,6 +353,7 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
     required List<String> items,
     required ValueChanged<String?> onChanged,
   }) {
+    // ... (Tu código es correcto)
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -370,6 +382,7 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
   }
 
   Widget _buildPaymentButton(String method) {
+    // ... (Tu código es correcto)
     final bool isSelected = _selectedPaymentMethod == method;
     return Expanded(
       child: Padding(

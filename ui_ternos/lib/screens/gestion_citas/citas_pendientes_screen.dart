@@ -1,25 +1,33 @@
-// lib/screens/citas_pendientes_screen.dart (Actualizado)
+// lib/screens/citas_pendientes_screen.dart (CORREGIDO)
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; // <-- 1. IMPORTAMOS PROVIDER
-import 'package:proyecto_tienda_ternos/providers/cita_provider.dart'; // <-- 2. IMPORTAMOS EL CEREBRO
-// Ya no necesitamos importar datos de prueba
+import 'package:provider/provider.dart';
+import 'package:proyecto_tienda_ternos/providers/cita_provider.dart';
 import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/models/cita.dart';
 import 'package:proyecto_tienda_ternos/screens/gestion_citas/detalles_cita_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
+import 'package:intl/intl.dart'; // <-- 1. IMPORTAR INTL PARA FECHAS
 
 class CitasPendientesScreen extends StatelessWidget {
   const CitasPendientesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // 4. Usamos un Consumer para "escuchar" los cambios del provider
     return Consumer<CitaProvider>(
       builder: (context, citaProvider, child) {
-        // 5. Obtenemos la lista "viva" desde el provider
+        // --- 2. AÑADIR LÓGICA DE CARGA (¡IMPORTANTE!) ---
+        if (citaProvider.isLoading) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Citas Pendientes')),
+            body: const Center(child: CircularProgressIndicator()),
+            bottomNavigationBar: const MainBottomNav(currentIndex: 0),
+          );
+        }
+        // --- FIN DE LÓGICA DE CARGA ---
+
         final List<Cita> citas = citaProvider.citas
             .where((c) => c.estado == CitaEstado.Pendiente)
             .toList();
@@ -34,6 +42,7 @@ class CitasPendientesScreen extends StatelessWidget {
                     itemCount: citas.length,
                     itemBuilder: (context, index) {
                       final cita = citas[index];
+                      // El _CitaCard ya está corregido abajo
                       return _CitaCard(cita: cita);
                     },
                   ),
@@ -52,8 +61,7 @@ class CitasPendientesScreen extends StatelessWidget {
   }
 }
 
-// --- NINGÚN CAMBIO DE AQUÍ PARA ABAJO ---
-// (El widget _CitaCard sigue exactamente igual)
+// --- WIDGET _CitaCard (COMPLETAMENTE CORREGIDO) ---
 
 class _CitaCard extends StatelessWidget {
   final Cita cita;
@@ -61,23 +69,25 @@ class _CitaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // --- 2. BUSCAMOS AL CLIENTE ---
     final clienteProvider = Provider.of<ClienteProvider>(
       context,
       listen: false,
     );
+
+    // --- Lógica de Clientes (Ya estaba correcta) ---
     Cliente? cliente;
     try {
+      // (Esta línea ya estaba bien, compara 'id' (int) con 'clienteId' (int))
       cliente = clienteProvider.clientes.firstWhere(
-        (c) => c.dni == cita.clienteId,
+        (c) => c.id == cita.clienteId,
       );
     } catch (e) {
-      cliente = null; // No se encontró
+      cliente = null;
     }
     final nombreCliente = cliente != null
         ? '${cliente.nombre} ${cliente.apellidos ?? ''}'
         : 'Cliente (ID: ${cita.clienteId})';
-    // --- FIN DE LA BÚSQUEDA ---
+    // --- Fin de Búsqueda ---
 
     return Card(
       elevation: 2,
@@ -114,8 +124,11 @@ class _CitaCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // --- 3. CAMPO CORREGIDO ---
                     Text(
-                      cita.tipoTexto,
+                      cita
+                          .proposito
+                          .texto, // De 'tipoTexto' a 'proposito.texto'
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: AppColors.primary,
                         fontWeight: FontWeight.bold,
@@ -128,11 +141,15 @@ class _CitaCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
+                    // --- 4. CAMPO CORREGIDO ---
                     Text(
-                      cita.prendasResumen,
+                      // De 'prendasResumen' a 'notas' (con fallback)
+                      cita.notas ?? 'Sin notas',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.stone600,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -141,14 +158,18 @@ class _CitaCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
+                  // --- 5. CAMPO CORREGIDO (FECHA) ---
                   Text(
-                    cita.fecha,
+                    // De 'fecha' a 'fechaHora' formateada
+                    DateFormat('dd/MM/yyyy').format(cita.fechaHora),
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: AppColors.stone600),
                   ),
+                  // --- 6. CAMPO CORREGIDO (HORA) ---
                   Text(
-                    cita.hora,
+                    // De 'hora' a 'fechaHora' formateada
+                    DateFormat('hh:mm a').format(cita.fechaHora),
                     style: Theme.of(
                       context,
                     ).textTheme.bodyMedium?.copyWith(color: AppColors.stone600),

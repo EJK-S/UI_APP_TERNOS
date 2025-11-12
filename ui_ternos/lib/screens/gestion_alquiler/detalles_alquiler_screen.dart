@@ -18,41 +18,42 @@ class DetallesAlquilerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final alquilerProvider = Provider.of<AlquilerProvider>(
-      context,
-      listen: false,
-    );
-    final clienteProvider = Provider.of<ClienteProvider>(
-      context,
-      listen: false,
-    );
+    // --- 1. ELIMINAR LA LÓGICA DE BÚSQUEDA DE CLIENTE DE AQUÍ ---
+    // (Las líneas 'final clienteProvider = ...' y 'Cliente? cliente; ...' se borran)
 
-    Cliente? cliente;
-    try {
-      cliente = clienteProvider.clientes.firstWhere(
-        (c) => c.dni == alquiler.clienteId,
-      );
-    } catch (e) {
-      cliente = null; // El cliente no fue encontrado
-    }
-    final String nombreCliente = cliente != null
-        ? '${cliente.nombre} ${cliente.apellidos ?? ''}'
-        : 'Cliente no encontrado';
     return Scaffold(
       appBar: AppBar(title: const Text('Detalle de Alquiler')),
-      body: Consumer<AlquilerProvider>(
-        builder: (context, provider, child) {
-          // Buscamos la versión MÁS actualizada de este alquiler
-          final alquilerActualizado = provider.alquileres.firstWhere(
+
+      // --- 2. USAR Consumer2 PARA ESCUCHAR AMBOS PROVIDERS ---
+      body: Consumer2<AlquilerProvider, ClienteProvider>(
+        builder: (context, alquilerProvider, clienteProvider, child) {
+          // --- 3. LÓGICA DE BÚSQUEDA DE CLIENTE (AHORA ES SEGURA) ---
+          String nombreCliente;
+          if (clienteProvider.isLoading) {
+            nombreCliente = 'Cargando cliente...';
+          } else {
+            try {
+              final cliente = clienteProvider.clientes.firstWhere(
+                (c) => c.id == alquiler.clienteId, // Compara int con int
+              );
+              nombreCliente = '${cliente.nombre} ${cliente.apellidos ?? ''}';
+            } catch (e) {
+              nombreCliente = 'Cliente (ID: ${alquiler.clienteId})';
+            }
+          }
+          // --- Fin de la lógica de cliente ---
+
+          // --- Lógica del AlquilerProvider (que ya tenías) ---
+          final alquilerActualizado = alquilerProvider.alquileres.firstWhere(
             (a) => a.codigo == alquiler.codigo,
-            orElse: () => alquiler, // Si no lo encuentra, usa el original
+            orElse: () => alquiler,
           );
 
+          // --- 4. DEVOLVER LA UI ---
           return SafeArea(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
               children: [
-                // --- Sección de Detalles ---
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   decoration: BoxDecoration(
@@ -62,7 +63,7 @@ class DetallesAlquilerScreen extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      // --- 5. MOSTRAMOS EL NOMBRE ENCONTRADO ---
+                      // --- 5. PASAR EL NOMBRE CORREGIDO ---
                       _buildDetailRow(context, 'Cliente', nombreCliente),
                       _buildDetailRow(
                         context,
@@ -100,16 +101,15 @@ class DetallesAlquilerScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // --- Botones de Acción ---
+                // --- Botones de Acción (SIN CAMBIOS) ---
                 _buildActionButton(
                   label: 'Prolongar Alquiler (S/25)',
                   color: AppColors.primary,
                   textColor: Colors.white,
                   onPressed: () {
-                    // Llama a la nueva función del diálogo
                     _mostrarDialogoProlongar(
                       context,
-                      alquilerProvider,
+                      alquilerProvider, // <-- Pasa el provider del builder
                       alquiler,
                     );
                   },
@@ -119,17 +119,12 @@ class DetallesAlquilerScreen extends StatelessWidget {
                   label: 'Registrar Devolución',
                   color: AppColors.borderLight,
                   textColor: AppColors.stone800,
-
-                  // --- 2. ACTUALIZA EL 'onPressed' ---
                   onPressed: () {
-                    // Navega a la nueva pantalla de registro
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        // Le pasa el alquiler actual a la nueva pantalla
                         builder: (context) =>
                             RegistrarDevolucionScreen(alquiler: alquiler),
-                        // Opcional: hace que la pantalla aparezca desde abajo
                         fullscreenDialog: true,
                       ),
                     );
@@ -137,7 +132,7 @@ class DetallesAlquilerScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
 
-                // --- Historial de Acciones ---
+                // --- Historial de Acciones (SIN CAMBIOS) ---
                 Text(
                   'Historial de Acciones',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(

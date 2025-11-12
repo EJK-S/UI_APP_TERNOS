@@ -23,31 +23,78 @@ import 'package:proyecto_tienda_ternos/screens/gestion_citas/nueva_cita_screen.d
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/providers/prenda_provider.dart';
 import 'package:proyecto_tienda_ternos/screens/gestion_clientes/seleccionar_cliente_screen.dart';
+import 'package:proyecto_tienda_ternos/data/repositories/cliente_repository.dart';
+import 'package:proyecto_tienda_ternos/data/repositories/venta_repository.dart';
+import 'package:proyecto_tienda_ternos/data/repositories/alquiler_repository.dart';
+import 'package:proyecto_tienda_ternos/data/repositories/cita_repository.dart';
+import 'package:proyecto_tienda_ternos/data/repositories/prenda_repository.dart';
+import 'package:proyecto_tienda_ternos/data/repositories/pago_repository.dart';
+import 'package:proyecto_tienda_ternos/providers/pago_provider.dart';
 
 void main() {
   runApp(
     MultiProvider(
       providers: [
+        Provider(create: (context) => ClienteRepository()),
+        Provider(create: (context) => VentaRepository()),
+        Provider(create: (context) => AlquilerRepository()),
+        Provider(create: (context) => CitaRepository()),
+        Provider(create: (context) => PrendaRepository()),
+        Provider(create: (context) => PagoRepository()),
+
         // <-- Corchetes de LISTA
-        ChangeNotifierProvider(create: (context) => AlquilerProvider()),
-        ChangeNotifierProvider(create: (context) => CitaProvider()),
-        ChangeNotifierProvider(create: (context) => VentaProvider()),
-        ChangeNotifierProvider(create: (context) => ClienteProvider()),
+        ChangeNotifierProxyProvider<AlquilerRepository, AlquilerProvider>(
+          create: (context) => AlquilerProvider(
+            Provider.of<AlquilerRepository>(context, listen: false),
+          ),
+          update: (context, repository, previousProvider) =>
+              previousProvider ?? AlquilerProvider(repository),
+        ),
+        ChangeNotifierProxyProvider<CitaRepository, CitaProvider>(
+          create: (context) =>
+              CitaProvider(Provider.of<CitaRepository>(context, listen: false)),
+          update: (context, repository, previousProvider) =>
+              previousProvider ?? CitaProvider(repository),
+        ),
+        ChangeNotifierProxyProvider<VentaRepository, VentaProvider>(
+          create: (context) => VentaProvider(
+            Provider.of<VentaRepository>(context, listen: false),
+          ),
+          update: (context, repository, previousProvider) =>
+              previousProvider ?? VentaProvider(repository),
+        ),
+        ChangeNotifierProxyProvider<ClienteRepository, ClienteProvider>(
+          create: (context) => ClienteProvider(
+            Provider.of<ClienteRepository>(context, listen: false),
+          ),
+          update: (context, repository, previousProvider) =>
+              previousProvider ?? ClienteProvider(repository),
+        ),
         ChangeNotifierProvider(create: (context) => SettingsProvider()),
-        ChangeNotifierProvider(create: (context) => PrendaProvider()),
+        ChangeNotifierProxyProvider<PrendaRepository, PrendaProvider>(
+          create: (context) => PrendaProvider(
+            Provider.of<PrendaRepository>(context, listen: false),
+          ),
+          update: (context, repository, previousProvider) =>
+              previousProvider ?? PrendaProvider(repository),
+        ),
         ChangeNotifierProxyProvider<PrendaProvider, InventarioProvider>(
-          // 'create' solo crea la instancia inicial
           create: (context) => InventarioProvider(
-            // <-- Corregí mi typo de 'InventioProvider'
             Provider.of<PrendaProvider>(context, listen: false),
           ),
 
-          // 'update' se asegura de que se actualice cuando PrendaProvider cambie
           update: (context, prendaProvider, inventarioProvider) {
             if (inventarioProvider == null)
               return InventarioProvider(prendaProvider);
             return inventarioProvider..update(prendaProvider);
           },
+        ),
+
+        ChangeNotifierProxyProvider<PagoRepository, PagoProvider>(
+          create: (context) =>
+              PagoProvider(Provider.of<PagoRepository>(context, listen: false)),
+          update: (context, repository, previousProvider) =>
+              previousProvider ?? PagoProvider(repository),
         ),
       ],
       child: const AppRoot(),

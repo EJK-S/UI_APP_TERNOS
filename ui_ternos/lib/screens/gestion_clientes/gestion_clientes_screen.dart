@@ -39,8 +39,19 @@ class _GestionClientesScreenState extends State<GestionClientesScreen> {
       // 5. USAMOS UN CONSUMER PARA "ESCUCHAR" CAMBIOS EN LA LISTA
       body: Consumer<ClienteProvider>(
         builder: (context, clienteProvider, child) {
+          // --- ¡NUEVA LÓGICA DE CARGA! ---
+          if (clienteProvider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          // --- FIN DE LA LÓGICA DE CARGA ---
+
           // 6. Obtenemos la lista "viva" desde el provider
           final List<Cliente> clientes = clienteProvider.clientes;
+
+          // (Opcional: un buen 'fallback' si la lista está vacía)
+          if (clientes.isEmpty) {
+            return const Center(child: Text('No hay clientes registrados.'));
+          }
 
           return SafeArea(
             child: ListView(
@@ -84,7 +95,7 @@ class _GestionClientesScreenState extends State<GestionClientesScreen> {
                               ),
                             ),
                             subtitle: Text(
-                              'DNI: ${c.dni}   Tel: ${c.telefono}',
+                              'DNI: ${c.id}   Tel: ${c.telefono}',
                               style: TextStyle(
                                 fontSize: 12,
                                 color:

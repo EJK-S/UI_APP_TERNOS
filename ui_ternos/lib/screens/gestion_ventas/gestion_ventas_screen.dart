@@ -91,85 +91,91 @@ class _VentaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // --- BÚSQUEDA DEL CLIENTE ---
-    final clienteProvider = Provider.of<ClienteProvider>(
-      context,
-      listen: false,
-    );
-    Cliente? cliente;
-    try {
-      cliente = clienteProvider.clientes.firstWhere(
-        (c) => c.dni == venta.clienteId,
-      );
-    } catch (e) {
-      cliente = null; // No se encontró
-    }
-    // Si no es un cliente real (ID '00000000'), asumimos que es 'Mostrador'
-    final String nombreCliente = venta.clienteId == '00000000'
-        ? 'Mostrador'
-        : (cliente != null
-              ? '${cliente.nombre} ${cliente.apellidos ?? ''}'
-              : 'Cliente no encontrado');
-    // --- FIN DE LA BÚSQUEDA ---
+    // --- 1. USA UN CONSUMER PARA ESCUCHAR AL CLIENTEPROVIDER ---
+    return Consumer<ClienteProvider>(
+      builder: (context, clienteProvider, child) {
+        String nombreCliente;
 
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.only(bottom: 16.0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DetallesVentaScreen(venta: venta),
-            ),
-          );
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      venta.fecha,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.stone600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      venta.producto,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Cliente: $nombreCliente', // <-- USAMOS EL NOMBRE ENCONTRADO
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.stone700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Text(
-                'S/ ${venta.total.toStringAsFixed(2)}',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+        // --- 2. COMPRUEBA SI EL PROVIDER ESTÁ CARGANDO ---
+        if (clienteProvider.isLoading) {
+          nombreCliente = 'Cargando...';
+        } else {
+          // --- 3. SI NO ESTÁ CARGANDO, BUSCA EL NOMBRE ---
+          try {
+            // (Manejo especial para el cliente "Mostrador" con id 1)
+            if (venta.clienteId == 1) {
+              nombreCliente = 'Mostrador';
+            } else {
+              final cliente = clienteProvider.clientes.firstWhere(
+                (c) => c.id == venta.clienteId,
+              );
+              nombreCliente = '${cliente.nombre} ${cliente.apellidos ?? ''}';
+            }
+          } catch (e) {
+            nombreCliente = 'Cliente (ID: ${venta.clienteId})';
+          }
+        }
+
+        // --- 4. DEVUELVE LA TARJETA CON EL NOMBRE CORRECTO ---
+        return Card(
+          elevation: 2,
+          margin: const EdgeInsets.only(bottom: 16.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-        ),
-      ),
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DetallesVentaScreen(venta: venta),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          venta.fecha,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.stone600),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          venta.producto,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Cliente: $nombreCliente', // <-- AHORA ES DINÁMICO
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: AppColors.stone700),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    'S/ ${venta.total.toStringAsFixed(2)}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

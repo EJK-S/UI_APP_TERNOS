@@ -1,12 +1,10 @@
-// lib/models/venta.dart (Actualizado)
+// lib/models/venta.dart (CORREGIDO)
 
 class Venta {
   final String codigo;
-  final String clienteId;
+  final int clienteId; // <-- CAMBIO: De 'String' a 'int'
   final String fecha;
-
-  // --- Campos actualizados ---
-  final String producto; // Era 'tipo de traje' en el form
+  final String producto;
   final int cantidad;
   final double precioUnitario;
   final String metodoPago;
@@ -14,7 +12,7 @@ class Venta {
 
   const Venta({
     required this.codigo,
-    required this.clienteId,
+    required this.clienteId, // <-- 'int'
     required this.fecha,
     required this.producto,
     required this.cantidad,

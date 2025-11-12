@@ -1,4 +1,5 @@
 class Cliente {
+  final int? id;
   final String nombre;
   final String? apellidos;
   final String dni;
@@ -10,6 +11,7 @@ class Cliente {
   final String? motivoVeto;
 
   const Cliente({
+    this.id, // <-- AÑADIDO
     required this.nombre,
     this.apellidos,
     required this.dni,

@@ -1,9 +1,13 @@
+// lib/screens/gestion_alquileres/nuevo_alquiler_screen.dart (CORREGIDO)
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/models/alquiler.dart';
-import 'package:proyecto_tienda_ternos/models/cliente.dart'; // <-- 1. IMPORTA EL MODELO CLIENTE
+import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/providers/alquiler_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
+// --- 1. IMPORTAR PROVIDER DE PRENDA ---
+import 'package:proyecto_tienda_ternos/providers/prenda_provider.dart';
 
 class NuevoAlquilerScreen extends StatefulWidget {
   const NuevoAlquilerScreen({super.key});
@@ -21,12 +25,11 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
   final TextEditingController _garantiaCtrl = TextEditingController();
   final TextEditingController _montoTotalCtrl = TextEditingController();
 
-  // --- 2. CAMBIAMOS EL CONTROLADOR DE TEXTO POR UN OBJETO CLIENTE ---
-  Cliente? _selectedCliente; // Aquí guardaremos el cliente seleccionado
-
   // Variables de estado
+  Cliente? _selectedCliente;
   String? _selectedTraje;
   String _selectedPaymentMethod = 'Yape - Plin';
+  bool _isSaving = false; // <-- 2. AÑADIR ESTADO DE CARGA
 
   @override
   void dispose() {
@@ -37,13 +40,28 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
     super.dispose();
   }
 
-  void _submitForm() {
-    // 3. VALIDAMOS EL CLIENTE MANUALMENTE
-    if (_formKey.currentState!.validate() && _selectedCliente != null) {
+  // --- 3. FUNCIÓN '_submitForm' (CORREGIDA CON ASYNC/AWAIT) ---
+  Future<void> _submitForm() async {
+    // Validar formulario y cliente
+    if (!_formKey.currentState!.validate()) return;
+
+    if (_selectedCliente == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor, seleccione un cliente.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    try {
       final nuevoAlquiler = Alquiler(
         codigo: 'ALQ-${DateTime.now().millisecondsSinceEpoch}',
-        // --- 4. USAMOS EL ID DEL CLIENTE SELECCIONADO ---
-        clienteId: _selectedCliente!.dni,
+        clienteId:
+            _selectedCliente!.id!, // (Tu corrección '!.id!' ya era correcta)
         producto: _selectedTraje ?? 'Traje (No seleccionado)',
         fechaInicio: _fechaAlquilerCtrl.text,
         fechaDevolucion: _fechaDevolucionCtrl.text,
@@ -53,31 +71,30 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
         garantia: 'S/ ${_garantiaCtrl.text}',
       );
 
-      Provider.of<AlquilerProvider>(
-        context,
-        listen: false,
-      ).agregarAlquiler(nuevoAlquiler);
+      // Llamar al provider (CON AWAIT)
+      await context.read<AlquilerProvider>().agregarAlquiler(nuevoAlquiler);
 
-      Navigator.pop(context);
-    } else if (_selectedCliente == null) {
-      // Mostramos un error si no se seleccionó cliente
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, seleccione un cliente.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error al guardar: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 
-  // --- 5. FUNCIÓN PARA ABRIR EL SELECTOR DE CLIENTES ---
+  // (Tu función _abrirSelectorCliente ya es correcta)
   void _abrirSelectorCliente() async {
-    // Navegamos a la pantalla y ESPERAMOS a que devuelva un resultado
     final Cliente? clienteSeleccionado =
         await Navigator.pushNamed(context, Routes.seleccionarCliente)
             as Cliente?;
-
-    // Si el usuario seleccionó un cliente (no cerró la pantalla)
     if (clienteSeleccionado != null) {
       setState(() {
         _selectedCliente = clienteSeleccionado;
@@ -85,11 +102,15 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
     }
   }
 
-  // -----------------------------------------------------------------
-  // MÉTODO build() (La interfaz)
-  // -----------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
+    // --- 4. CONECTARSE AL PRENDA PROVIDER (CON 'watch') ---
+    final prendaProvider = context.watch<PrendaProvider>();
+    final List<String> productosDeInventario = prendaProvider.prendas
+        .map((prenda) => prenda.nombre)
+        .toSet()
+        .toList();
+
     return Scaffold(
       appBar: AppBar(title: const Text('Nuevo Alquiler')),
       body: SafeArea(
@@ -98,6 +119,7 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
           child: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
+              // --- Campo de Cliente (Tu lógica ya era correcta) ---
               Text(
                 'Nombre del cliente *',
                 style: Theme.of(
@@ -105,7 +127,6 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
                 ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
-              // Este es el "falso" campo de texto que abre el selector
               InkWell(
                 onTap: _abrirSelectorCliente,
                 child: Container(
@@ -138,16 +159,12 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
               ),
               const SizedBox(height: 16),
 
-              // --- Tipo de traje (Dropdown) ---
+              // --- 5. DROPDOWN CORREGIDO (CONECTADO AL INVENTARIO) ---
               _buildDropdownField(
                 label: 'Tipo de traje',
                 hint: 'Seleccionar tipo de traje',
                 value: _selectedTraje,
-                items: [
-                  'Esmoquin Clásico',
-                  'Traje de Gala',
-                  'Frac Negro',
-                ], // Datos de ejemplo
+                items: productosDeInventario, // <-- USA LA LISTA DINÁMICA
                 onChanged: (value) {
                   setState(() {
                     _selectedTraje = value;
@@ -156,7 +173,7 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
               ),
               const SizedBox(height: 16),
 
-              // --- Fila de Fechas ---
+              // (Resto del formulario sin cambios)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -176,8 +193,6 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-
-              // --- Método de pago (Botones) ---
               Text(
                 'Método de pago',
                 style: Theme.of(
@@ -193,8 +208,6 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-
-              // --- Monto Total ---
               _buildTextField(
                 controller: _montoTotalCtrl,
                 label: 'Monto Total',
@@ -202,8 +215,6 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
                 hint: '150',
               ),
               const SizedBox(height: 16),
-
-              // --- Monto de garantía (TextField) ---
               _buildTextField(
                 controller: _garantiaCtrl,
                 label: 'Monto de garantía',
@@ -212,9 +223,9 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
               ),
               const SizedBox(height: 24),
 
-              // --- Botón de Registrar ---
+              // --- 6. BOTÓN DE REGISTRAR (CORREGIDO) ---
               ElevatedButton(
-                onPressed: _submitForm,
+                onPressed: _isSaving ? null : _submitForm,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -227,7 +238,16 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                child: const Text('Registrar Alquiler'),
+                child: _isSaving
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text('Registrar Alquiler'),
               ),
             ],
           ),
@@ -235,17 +255,8 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
       ),
     );
   }
-  // -----------------------------------------------------------------
-  // FIN DEL MÉTODO build()
-  // -----------------------------------------------------------------
 
-  //
-  // --- FUNCIONES AUXILIARES (Helpers) ---
-  // (Deben estar DENTRO de la clase _NuevoAlquilerScreenState
-  // pero FUERA del método build())
-  //
-
-  // Widget para los campos de Dropdown
+  // --- (Tus 4 widgets helper no necesitan cambios) ---
   Widget _buildDropdownField({
     required String label,
     required String hint,
@@ -253,6 +264,7 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
     required List<String> items,
     required ValueChanged<String?> onChanged,
   }) {
+    // ... (Tu código es correcto)
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -280,11 +292,11 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
     );
   }
 
-  // Widget para los campos de Fecha
   Widget _buildDateField({
     required TextEditingController controller,
     required String label,
   }) {
+    // ... (Tu código es correcto)
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -324,14 +336,14 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
     );
   }
 
-  // Widget para los campos de texto (Cliente, Monto Total, Garantía)
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
     String? prefix,
     String? hint,
-    IconData? icon, // Acepta un ícono opcional
+    IconData? icon,
   }) {
+    // ... (Tu código es correcto)
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -359,7 +371,6 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
             if (value == null || value.isEmpty) {
               return 'Campo requerido';
             }
-            // Solo valida como número si NO tiene ícono
             if (icon == null && double.tryParse(value) == null) {
               return 'Monto inválido';
             }
@@ -370,8 +381,8 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
     );
   }
 
-  // Widget para los botones de Método de Pago
   Widget _buildPaymentButton(String method) {
+    // ... (Tu código es correcto)
     final bool isSelected = _selectedPaymentMethod == method;
 
     return Expanded(
@@ -403,8 +414,4 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
       ),
     );
   }
-
-  // -----------------------------------------------------------------
-  // ESTA ES LA ÚLTIMA LLAVE. CIERRA LA CLASE _NuevoAlquilerScreenState
-  // -----------------------------------------------------------------
 }

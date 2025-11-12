@@ -1,73 +1,81 @@
+// lib/providers/cita_provider.dart (CORREGIDO)
+
 import 'package:flutter/material.dart';
-import 'package:proyecto_tienda_ternos/data/mock_data.dart';
+import 'package:proyecto_tienda_ternos/data/repositories/cita_repository.dart';
 import 'package:proyecto_tienda_ternos/models/cita.dart';
 
 class CitaProvider extends ChangeNotifier {
-  // 1. ESTADO: La lista de citas (privada)
-  final List<Cita> _citas = mockCitas;
+  // 1. DEPENDENCIA
+  final CitaRepository _repository;
 
-  // 2. GETTER: La forma pública de LEER la lista
+  // 2. ESTADO
+  List<Cita> _citas = [];
+  bool _isLoading = false;
+
+  // 3. GETTERS
   List<Cita> get citas => _citas;
+  bool get isLoading => _isLoading;
 
-  // 3. MÉTODOS: Las formas públicas de MODIFICAR la lista
+  // 4. CONSTRUCTOR
+  CitaProvider(this._repository) {
+    fetchCitas();
+  }
 
-  void agregarCita(Cita nuevaCita) {
-    _citas.add(nuevaCita);
-    // Notificamos a los "oyentes" (como la pantalla de lista) que hay un cambio
+  // 5. MÉTODOS
+
+  Future<void> fetchCitas() async {
+    _isLoading = true;
+    notifyListeners();
+    _citas = await _repository.getCitas();
+    _isLoading = false;
     notifyListeners();
   }
 
-  void marcarComoCompletada(Cita cita) {
-    // Busca la cita por su ID (usaremos prendaDetalleId como ID único)
-    final index = _citas.indexWhere(
-      (c) => c.prendaDetalleId == cita.prendaDetalleId,
-    );
-    if (index == -1) return; // No se encontró
-
-    // Crea una copia actualizada de la cita
-    _citas[index] = Cita(
-      tipo: cita.tipo,
-      clienteId: cita.clienteId,
-      prendasResumen: cita.prendasResumen,
-      fecha: cita.fecha,
-      hora: cita.hora,
-      prendaDetalleNombre: cita.prendaDetalleNombre,
-      prendaDetalleId: cita.prendaDetalleId,
-      estado: CitaEstado.Completada, // <-- CAMBIO DE ESTADO
-    );
-    notifyListeners(); // Avisa a las pantallas que se redibujen
+  Future<void> agregarCita(Cita nuevaCita) async {
+    final citaAgregada = await _repository.agregarCita(nuevaCita);
+    _citas.add(citaAgregada);
+    notifyListeners();
   }
 
-  void cancelarCita(Cita cita) {
-    // Busca la cita por su ID
+  // --- MÉTODOS CORREGIDOS (USAN 'id' numérico) ---
+
+  Future<void> marcarComoCompletada(Cita cita) async {
+    // Usamos 'cita.id'. El '!' es seguro porque una cita que
+    // se marca como completada DEBE tener un id.
+    final citaActualizada = await _repository.marcarComoCompletada(cita.id!);
+
+    // Actualiza el estado local
     final index = _citas.indexWhere(
-      (c) => c.prendaDetalleId == cita.prendaDetalleId,
+      (c) => c.id == citaActualizada.id, // <-- Compara por 'id'
     );
-    if (index == -1) return;
-
-    // Crea una copia actualizada de la cita
-    _citas[index] = Cita(
-      tipo: cita.tipo,
-      clienteId: cita.clienteId,
-      prendasResumen: cita.prendasResumen,
-      fecha: cita.fecha,
-      hora: cita.hora,
-      prendaDetalleNombre: cita.prendaDetalleNombre,
-      prendaDetalleId: cita.prendaDetalleId,
-      estado: CitaEstado.Cancelada, // <-- CAMBIO DE ESTADO
-    );
-    notifyListeners(); // Avisa a las pantallas que se redibujen
-  }
-
-  void editarCita(Cita citaActualizada) {
-    // Buscamos la cita. Necesitaremos un ID único.
-    // Usaremos el 'prendaDetalleId' como ID único por ahora.
-    final index = _citas.indexWhere(
-      (c) => c.prendaDetalleId == citaActualizada.prendaDetalleId,
-    );
-
     if (index != -1) {
       _citas[index] = citaActualizada;
+      notifyListeners();
+    }
+  }
+
+  Future<void> cancelarCita(Cita cita) async {
+    final citaActualizada = await _repository.cancelarCita(cita.id!);
+
+    // Actualiza el estado local
+    final index = _citas.indexWhere(
+      (c) => c.id == citaActualizada.id, // <-- Compara por 'id'
+    );
+    if (index != -1) {
+      _citas[index] = citaActualizada;
+      notifyListeners();
+    }
+  }
+
+  Future<void> editarCita(Cita citaActualizada) async {
+    final citaEditada = await _repository.editarCita(citaActualizada);
+
+    // Actualiza el estado local
+    final index = _citas.indexWhere(
+      (c) => c.id == citaEditada.id, // <-- Compara por 'id'
+    );
+    if (index != -1) {
+      _citas[index] = citaEditada;
       notifyListeners();
     }
   }
