@@ -27,7 +27,7 @@ class AlquilerProvider extends ChangeNotifier {
   Future<void> fetchAlquileres() async {
     _isLoading = true;
     notifyListeners();
-    _alquileres = await _repository.getAlquileres();
+    _alquileres = List.from(await _repository.getAlquileres());
     _isLoading = false;
     notifyListeners();
   }

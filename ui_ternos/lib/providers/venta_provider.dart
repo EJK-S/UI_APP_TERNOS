@@ -27,7 +27,7 @@ class VentaProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    _ventas = await _repository.getVentas();
+    _ventas = List.from(await _repository.getVentas());
     _isLoading = false;
     notifyListeners();
   }

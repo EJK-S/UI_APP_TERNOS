@@ -19,7 +19,7 @@ class PagoProvider extends ChangeNotifier {
   Future<void> fetchPagos() async {
     _isLoading = true;
     notifyListeners();
-    _pagos = await _repository.getPagos();
+    _pagos = List.from(await _repository.getPagos());
     _isLoading = false;
     notifyListeners();
   }

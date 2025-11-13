@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/models/prenda.dart';
 import 'package:proyecto_tienda_ternos/providers/prenda_provider.dart';
 import 'package:proyecto_tienda_ternos/screens/gestion_inventario/editar_prenda_screen.dart';
+import 'package:proyecto_tienda_ternos/screens/gestion_inventario/registrar_terno_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 
 class ListaPrendasScreen extends StatelessWidget {
@@ -33,7 +34,16 @@ class ListaPrendasScreen extends StatelessWidget {
           floatingActionButton: FloatingActionButton(
             onPressed: () {
               // Navega a la pantalla de "Registrar Terno"
-              Navigator.pushNamed(context, Routes.inventarioNuevo);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => RegistrarTernoScreen(
+                    // ¡AQUÍ ESTÁ LA MAGIA!
+                    // Pasamos la categoría de esta pantalla a la siguiente
+                    categoriaPreseleccionada: categoriaNombre,
+                  ),
+                ),
+              );
             },
             backgroundColor: AppColors.primary,
             child: const Icon(Icons.add, color: Colors.white),

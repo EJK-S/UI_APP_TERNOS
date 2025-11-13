@@ -118,7 +118,7 @@ class Routes {
   static const String reportes = '/reportes';
   static const String configuracionSistema = '/config';
   static const String citasPendientes = '/citas';
-  static const String inventarioNuevo = '/inventario/nuevo';
+  //static const String inventarioNuevo = '/inventario/nuevo';
   static const String nuevaCita = '/citas/nueva';
   static const String detallesCita = '/citas/detalle';
   static const String editarCita = '/citas/editar';

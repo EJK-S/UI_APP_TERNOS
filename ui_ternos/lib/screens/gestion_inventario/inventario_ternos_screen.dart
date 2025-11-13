@@ -172,8 +172,53 @@ class _InventarioCategoryCard extends StatelessWidget {
 
   const _InventarioCategoryCard({required this.categoria, required this.onTap});
 
+  // NUEVA FUNCIÓN DE DIÁLOGO DE ELIMINACIÓN
+  void _mostrarDialogoEliminar(
+    BuildContext context,
+    InventarioProvider provider,
+  ) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Eliminar Categoría'),
+        content: Text(
+          '¿Seguro que quieres eliminar la categoría "${categoria.nombre}"?\n\nSolo puedes eliminar categorías que no tengan prendas (stock en 0).',
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Cancelar'),
+            onPressed: () => Navigator.of(ctx).pop(),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Eliminar'),
+            onPressed: () async {
+              try {
+                // Llama al provider
+                await provider.eliminarCategoria(categoria.nombre);
+                if (context.mounted) Navigator.of(ctx).pop();
+              } catch (e) {
+                // Muestra el error si no se puede eliminar
+                if (context.mounted) {
+                  Navigator.of(ctx).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(e.toString()),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final inventarioProvider = context.read<InventarioProvider>();
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 16),
@@ -193,6 +238,14 @@ class _InventarioCategoryCard extends StatelessWidget {
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
+
+              IconButton(
+                icon: Icon(Icons.delete_outline, color: Colors.red.shade400),
+                onPressed: () {
+                  _mostrarDialogoEliminar(context, inventarioProvider);
+                },
+              ),
+
               const Divider(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -26,7 +26,7 @@ class CitaProvider extends ChangeNotifier {
   Future<void> fetchCitas() async {
     _isLoading = true;
     notifyListeners();
-    _citas = await _repository.getCitas();
+    _citas = List.from(await _repository.getCitas());
     _isLoading = false;
     notifyListeners();
   }

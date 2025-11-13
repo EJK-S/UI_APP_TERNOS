@@ -133,7 +133,6 @@ class AppRoot extends StatelessWidget {
             '/reportes': (_) => const GenerarReportesScreen(),
             '/config': (_) => const ConfiguracionSistemaScreen(),
             Routes.citasPendientes: (_) => const CitasPendientesScreen(),
-            Routes.inventarioNuevo: (_) => const RegistrarTernoScreen(),
             Routes.nuevaCita: (_) => const NuevaCitaScreen(),
             Routes.seleccionarCliente: (_) => const SeleccionarClienteScreen(),
           }, // <-- Llaves de MAPA

@@ -99,4 +99,26 @@ class InventarioProvider extends ChangeNotifier {
     _calcularCategorias();
     notifyListeners();
   }
+
+  Future<void> eliminarCategoria(String nombreCategoria) async {
+    // 1. Limpiar el nombre
+    final nombreTrimmed = nombreCategoria.trim();
+
+    // 2. Comprobar si la categoría está vacía
+    final prendasEnCategoria = _prendaProvider
+        .getPrendasPorCategoria(nombreTrimmed)
+        .length;
+
+    if (prendasEnCategoria > 0) {
+      // 3. Si no está vacía, lanzar un error
+      throw Exception(
+        'No se puede eliminar: La categoría "$nombreCategoria" todavía tiene $prendasEnCategoria prendas.',
+      );
+    }
+
+    // 4. Si está vacía, eliminarla de la lista maestra y recalcular
+    _nombresDeCategorias.removeWhere((cat) => cat == nombreTrimmed);
+    _calcularCategorias();
+    notifyListeners();
+  }
 }

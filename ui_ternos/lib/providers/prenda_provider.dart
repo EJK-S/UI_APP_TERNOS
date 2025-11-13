@@ -26,7 +26,7 @@ class PrendaProvider extends ChangeNotifier {
   Future<void> fetchPrendas() async {
     _isLoading = true;
     notifyListeners();
-    _prendas = await _repository.getPrendas();
+    _prendas = List.from(await _repository.getPrendas());
     _isLoading = false;
     notifyListeners();
   }

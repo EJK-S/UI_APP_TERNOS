@@ -28,7 +28,7 @@ class ClienteProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners(); // Avisa que está "cargando"
 
-    _clientes = await _repository.getClientes();
+    _clientes = List.from(await _repository.getClientes());
     _isLoading = false;
     notifyListeners(); // Avisa que ya terminó de cargar
   }
