@@ -5,6 +5,7 @@ import 'package:proyecto_tienda_ternos/models/alquiler.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
+import 'package:intl/intl.dart';
 
 // --- 1. IMPORTA LA NUEVA PANTALLA ---
 import 'package:proyecto_tienda_ternos/screens/gestion_alquiler/registrar_devolucion_screen.dart';
@@ -73,7 +74,8 @@ class DetallesAlquilerScreen extends StatelessWidget {
                       _buildDetailRow(
                         context,
                         'Fechas',
-                        '${alquilerActualizado.fechaInicio} - ${alquilerActualizado.fechaDevolucion}',
+                        // <-- CORREGIDO -->
+                        '${DateFormat('dd/MM/yy').format(alquilerActualizado.fechaInicio)} - ${DateFormat('dd/MM/yy').format(alquilerActualizado.fechaDevolucion)}',
                       ),
                       _buildDetailRow(
                         context,
@@ -328,37 +330,50 @@ class DetallesAlquilerScreen extends StatelessWidget {
     AlquilerProvider provider,
     Alquiler alquiler,
   ) async {
+    // 1. Mostrar el DatePicker
     DateTime? nuevaFecha = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: alquiler.fechaDevolucion.isBefore(DateTime.now())
+          ? DateTime.now()
+          : alquiler.fechaDevolucion,
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
 
+    // 2. Si el usuario seleccionó una fecha (y no canceló)
     if (nuevaFecha != null) {
-      // Si el usuario seleccionó una fecha
-      String fechaFormateada =
-          "${nuevaFecha.day.toString().padLeft(2, '0')}/${nuevaFecha.month.toString().padLeft(2, '0')}/${nuevaFecha.year}";
+      // Formatear el texto solo para el diálogo de confirmación
+      String fechaFormateadaParaDialogo = DateFormat(
+        'dd/MM/yyyy',
+      ).format(nuevaFecha);
 
-      // Muestra el diálogo de confirmación
+      // 3. Mostrar el diálogo de confirmación
       _mostrarDialogoConfirmacion(
         context: context,
         titulo: 'Prolongar Alquiler',
         contenido:
-            '¿Prolongar este alquiler hasta el $fechaFormateada por un costo adicional de S/ 25?',
-        onConfirmar: () {
-          // Llama al provider
-          provider.prolongarAlquiler(alquiler, fechaFormateada, 25.0);
+            '¿Prolongar este alquiler hasta el $fechaFormateadaParaDialogo por un costo adicional de S/ 25?',
+        onConfirmar: () async {
+          // <-- 4. HACER ASÍNCRONO
 
-          // Cierra el diálogo de confirmación
-          Navigator.pop(context);
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Alquiler prolongado exitosamente.'),
-              backgroundColor: Colors.green,
-            ),
+          // 5. Llamar al provider con el objeto DateTime, no el String
+          await provider.prolongarAlquiler(
+            alquiler: alquiler,
+            nuevaFechaDevolucion: nuevaFecha, // <-- CORREGIDO
+            montoAdicional: 25.0,
           );
+
+          if (context.mounted) {
+            // Cierra el diálogo de confirmación
+            Navigator.pop(context);
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Alquiler prolongado exitosamente.'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
         },
       );
     }

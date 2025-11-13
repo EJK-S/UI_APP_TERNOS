@@ -1,4 +1,4 @@
-// lib/screens/gestion_alquileres/nuevo_alquiler_screen.dart (CORREGIDO)
+// lib/screens/gestion_alquiler/nuevo_alquiler_screen.dart (CORREGIDO)
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -6,8 +6,8 @@ import 'package:proyecto_tienda_ternos/models/alquiler.dart';
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/providers/alquiler_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
-// --- 1. IMPORTAR PROVIDER DE PRENDA ---
 import 'package:proyecto_tienda_ternos/providers/prenda_provider.dart';
+import 'package:intl/intl.dart'; // <-- 1. IMPORTAR INTL
 
 class NuevoAlquilerScreen extends StatefulWidget {
   const NuevoAlquilerScreen({super.key});
@@ -19,17 +19,19 @@ class NuevoAlquilerScreen extends StatefulWidget {
 class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controladores
+  // Controladores (Solo para mostrar texto)
   final TextEditingController _fechaAlquilerCtrl = TextEditingController();
   final TextEditingController _fechaDevolucionCtrl = TextEditingController();
   final TextEditingController _garantiaCtrl = TextEditingController();
   final TextEditingController _montoTotalCtrl = TextEditingController();
 
-  // Variables de estado
+  // --- 2. AÑADIR ESTADO PARA DATETIME ---
   Cliente? _selectedCliente;
   String? _selectedTraje;
   String _selectedPaymentMethod = 'Yape - Plin';
-  bool _isSaving = false; // <-- 2. AÑADIR ESTADO DE CARGA
+  bool _isSaving = false;
+  DateTime? _selectedFechaInicio; // <-- AÑADIDO
+  DateTime? _selectedFechaDevolucion; // <-- AÑADIDO
 
   @override
   void dispose() {
@@ -40,18 +42,22 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
     super.dispose();
   }
 
-  // --- 3. FUNCIÓN '_submitForm' (CORREGIDA CON ASYNC/AWAIT) ---
+  // --- 3. CORREGIR _submitForm ---
   Future<void> _submitForm() async {
-    // Validar formulario y cliente
+    // Validar formulario
     if (!_formKey.currentState!.validate()) return;
 
+    // Validar cliente y fechas
     if (_selectedCliente == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, seleccione un cliente.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showError('Por favor, seleccione un cliente.');
+      return;
+    }
+    if (_selectedFechaInicio == null) {
+      _showError('Por favor, seleccione una fecha de alquiler.');
+      return;
+    }
+    if (_selectedFechaDevolucion == null) {
+      _showError('Por favor, seleccione una fecha de devolución.');
       return;
     }
 
@@ -60,37 +66,32 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
     try {
       final nuevoAlquiler = Alquiler(
         codigo: 'ALQ-${DateTime.now().millisecondsSinceEpoch}',
-        clienteId:
-            _selectedCliente!.id!, // (Tu corrección '!.id!' ya era correcta)
+        clienteId: _selectedCliente!.id!,
         producto: _selectedTraje ?? 'Traje (No seleccionado)',
-        fechaInicio: _fechaAlquilerCtrl.text,
-        fechaDevolucion: _fechaDevolucionCtrl.text,
+        fechaInicio: _selectedFechaInicio!, // <-- CORREGIDO
+        fechaDevolucion: _selectedFechaDevolucion!, // <-- CORREGIDO
         estado: AlquilerEstado.activo,
         metodoPago: _selectedPaymentMethod,
         montoTotal: 'S/ ${_montoTotalCtrl.text}',
         garantia: 'S/ ${_garantiaCtrl.text}',
       );
 
-      // Llamar al provider (CON AWAIT)
       await context.read<AlquilerProvider>().agregarAlquiler(nuevoAlquiler);
 
-      if (mounted) {
-        Navigator.pop(context);
-      }
+      if (mounted) Navigator.pop(context);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error al guardar: $e')));
-      }
+      if (mounted) _showError('Error al guardar: $e');
     } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
-  // (Tu función _abrirSelectorCliente ya es correcta)
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
   void _abrirSelectorCliente() async {
     final Cliente? clienteSeleccionado =
         await Navigator.pushNamed(context, Routes.seleccionarCliente)
@@ -104,7 +105,6 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // --- 4. CONECTARSE AL PRENDA PROVIDER (CON 'watch') ---
     final prendaProvider = context.watch<PrendaProvider>();
     final List<String> productosDeInventario = prendaProvider.prendas
         .map((prenda) => prenda.nombre)
@@ -119,7 +119,7 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
           child: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
-              // --- Campo de Cliente (Tu lógica ya era correcta) ---
+              // (Selector de cliente - sin cambios)
               Text(
                 'Nombre del cliente *',
                 style: Theme.of(
@@ -159,12 +159,12 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
               ),
               const SizedBox(height: 16),
 
-              // --- 5. DROPDOWN CORREGIDO (CONECTADO AL INVENTARIO) ---
+              // (Dropdown de traje - sin cambios)
               _buildDropdownField(
                 label: 'Tipo de traje',
                 hint: 'Seleccionar tipo de traje',
                 value: _selectedTraje,
-                items: productosDeInventario, // <-- USA LA LISTA DINÁMICA
+                items: productosDeInventario,
                 onChanged: (value) {
                   setState(() {
                     _selectedTraje = value;
@@ -173,7 +173,7 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
               ),
               const SizedBox(height: 16),
 
-              // (Resto del formulario sin cambios)
+              // --- 4. CORREGIR FILA DE FECHAS ---
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -181,6 +181,9 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
                     child: _buildDateField(
                       controller: _fechaAlquilerCtrl,
                       label: 'Fecha de alquiler',
+                      onDateSelected: (date) {
+                        setState(() => _selectedFechaInicio = date);
+                      },
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -188,11 +191,16 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
                     child: _buildDateField(
                       controller: _fechaDevolucionCtrl,
                       label: 'Fecha de devolución',
+                      onDateSelected: (date) {
+                        setState(() => _selectedFechaDevolucion = date);
+                      },
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
+
+              // (Método de pago - sin cambios)
               Text(
                 'Método de pago',
                 style: Theme.of(
@@ -208,6 +216,8 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
                 ],
               ),
               const SizedBox(height: 16),
+
+              // (Montos - sin cambios)
               _buildTextField(
                 controller: _montoTotalCtrl,
                 label: 'Monto Total',
@@ -223,7 +233,7 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
               ),
               const SizedBox(height: 24),
 
-              // --- 6. BOTÓN DE REGISTRAR (CORREGIDO) ---
+              // (Botón de registrar - sin cambios)
               ElevatedButton(
                 onPressed: _isSaving ? null : _submitForm,
                 style: ElevatedButton.styleFrom(
@@ -253,6 +263,54 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  // --- 5. CORREGIR _buildDateField ---
+  Widget _buildDateField({
+    required TextEditingController controller,
+    required String label,
+    required ValueChanged<DateTime> onDateSelected, // <-- AÑADIDO
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: Theme.of(
+            context,
+          ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          readOnly: true,
+          decoration: const InputDecoration(
+            hintText: 'dd/MM/yyyy', // <-- Cambiado el formato
+            border: OutlineInputBorder(),
+            suffixIcon: Icon(Icons.calendar_today),
+            contentPadding: EdgeInsets.symmetric(horizontal: 12),
+          ),
+          validator: (value) =>
+              value == null || value.isEmpty ? 'Requerido' : null,
+          onTap: () async {
+            FocusScope.of(context).requestFocus(new FocusNode());
+            final DateTime? picked = await showDatePicker(
+              context: context,
+              initialDate: DateTime.now(),
+              firstDate: DateTime(2020),
+              lastDate: DateTime(2030),
+            );
+            if (picked != null) {
+              // Actualiza el estado y el texto
+              onDateSelected(picked); // <-- AÑADIDO
+              controller.text = DateFormat(
+                'dd/MM/yyyy',
+              ).format(picked); // <-- CORREGIDO
+            }
+          },
+        ),
+      ],
     );
   }
 
@@ -287,50 +345,6 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
           }).toList(),
           onChanged: onChanged,
           validator: (value) => value == null ? 'Campo requerido' : null,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDateField({
-    required TextEditingController controller,
-    required String label,
-  }) {
-    // ... (Tu código es correcto)
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          readOnly: true,
-          decoration: const InputDecoration(
-            hintText: 'mm/dd/yyyy',
-            border: OutlineInputBorder(),
-            suffixIcon: Icon(Icons.calendar_today),
-            contentPadding: EdgeInsets.symmetric(horizontal: 12),
-          ),
-          validator: (value) =>
-              value == null || value.isEmpty ? 'Requerido' : null,
-          onTap: () async {
-            FocusScope.of(context).requestFocus(new FocusNode());
-            final DateTime? picked = await showDatePicker(
-              context: context,
-              initialDate: DateTime.now(),
-              firstDate: DateTime(2020),
-              lastDate: DateTime(2030),
-            );
-            if (picked != null) {
-              controller.text =
-                  "${picked.month.toString().padLeft(2, '0')}/${picked.day.toString().padLeft(2, '0')}/${picked.year}";
-            }
-          },
         ),
       ],
     );

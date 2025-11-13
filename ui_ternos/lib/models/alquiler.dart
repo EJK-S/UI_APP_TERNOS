@@ -4,10 +4,10 @@ enum AlquilerEstado { pendiente, atrasado, activo }
 
 class Alquiler {
   final String codigo;
-  final int clienteId; // <-- CAMBIO: De 'String' a 'int'
+  final int clienteId;
   final String producto;
-  final String fechaInicio;
-  final String fechaDevolucion;
+  final DateTime fechaInicio; // <-- CAMBIO: De 'String' a 'DateTime'
+  final DateTime fechaDevolucion; // <-- CAMBIO: De 'String' a 'DateTime'
   final AlquilerEstado estado;
   final String metodoPago;
   final String montoTotal;
@@ -15,10 +15,10 @@ class Alquiler {
 
   const Alquiler({
     required this.codigo,
-    required this.clienteId, // <-- 'int'
+    required this.clienteId,
     required this.producto,
-    required this.fechaInicio,
-    required this.fechaDevolucion,
+    required this.fechaInicio, // <-- 'DateTime'
+    required this.fechaDevolucion, // <-- 'DateTime'
     required this.estado,
     required this.metodoPago,
     required this.montoTotal,

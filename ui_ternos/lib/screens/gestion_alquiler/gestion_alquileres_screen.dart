@@ -11,6 +11,7 @@ import 'package:proyecto_tienda_ternos/models/alquiler.dart';
 import 'package:proyecto_tienda_ternos/screens/gestion_alquiler/detalles_alquiler_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
+import 'package:intl/intl.dart';
 
 class GestionAlquileresScreen extends StatelessWidget {
   final String? filtroClienteNombre;
@@ -190,7 +191,8 @@ class _AlquilerCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '${alquiler.fechaInicio} - ${alquiler.fechaDevolucion}',
+                          // <-- CORREGIDO -->
+                          '${DateFormat('dd/MM/yy').format(alquiler.fechaInicio)} - ${DateFormat('dd/MM/yy').format(alquiler.fechaDevolucion)}',
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: AppColors.stone600),
                         ),

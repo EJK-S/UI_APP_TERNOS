@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/providers/venta_provider.dart'; // <-- 1. IMPORTA PROVIDER
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:intl/intl.dart';
 
 class DetallesVentaScreen extends StatelessWidget {
   final Venta venta;
@@ -78,7 +79,8 @@ S/ ${v.total.toStringAsFixed(2)}
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Serie 001-000001\nFecha: ${ventaActualizada.fecha}',
+                  // <-- CORREGIDO -->
+                  'Serie 001-000001\nFecha: ${DateFormat('dd/MM/yyyy').format(ventaActualizada.fecha)}',
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(color: AppColors.stone600),

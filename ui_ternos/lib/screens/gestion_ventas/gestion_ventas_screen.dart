@@ -9,6 +9,7 @@ import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/screens/gestion_ventas/detalles_venta_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
+import 'package:intl/intl.dart';
 
 class GestionVentasScreen extends StatelessWidget {
   final String? filtroClienteNombre;
@@ -143,7 +144,9 @@ class _VentaCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          venta.fecha,
+                          DateFormat(
+                            'dd/MM/yyyy',
+                          ).format(venta.fecha), // <-- CORREGIDO
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: AppColors.stone600),
                         ),

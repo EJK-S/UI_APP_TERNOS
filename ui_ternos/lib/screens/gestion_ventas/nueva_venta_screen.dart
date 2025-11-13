@@ -78,8 +78,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
       final nuevaVenta = Venta(
         codigo: 'VEN-${DateTime.now().millisecondsSinceEpoch}',
         clienteId: clienteId,
-        fecha:
-            '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
+        fecha: DateTime.now(),
         producto: _selectedTraje ?? 'Producto no seleccionado',
         cantidad: int.tryParse(_cantidadCtrl.text) ?? 0,
         precioUnitario: double.tryParse(_precioCtrl.text) ?? 0.0,

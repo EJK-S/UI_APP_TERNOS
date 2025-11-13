@@ -2,8 +2,8 @@
 
 class Venta {
   final String codigo;
-  final int clienteId; // <-- CAMBIO: De 'String' a 'int'
-  final String fecha;
+  final int clienteId;
+  final DateTime fecha; // <-- CAMBIO: De 'String' a 'DateTime'
   final String producto;
   final int cantidad;
   final double precioUnitario;
@@ -12,8 +12,8 @@ class Venta {
 
   const Venta({
     required this.codigo,
-    required this.clienteId, // <-- 'int'
-    required this.fecha,
+    required this.clienteId,
+    required this.fecha, // <-- 'DateTime'
     required this.producto,
     required this.cantidad,
     required this.precioUnitario,

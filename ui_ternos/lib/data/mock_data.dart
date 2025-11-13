@@ -50,8 +50,8 @@ final List<Cliente> mockClientes = [
   ),
   const Cliente(
     id: 4, // <-- ID NUMÉRICO
-    nombre: 'Otro',
-    apellidos: 'Tipazo',
+    nombre: 'Alexander',
+    apellidos: 'Tapia',
     dni: '28964165',
     telefono: '932165498',
     correo: 'otro@correo.com',
@@ -64,35 +64,35 @@ final List<Cliente> mockClientes = [
 
 // ----- LISTA DE ALQUILERES ACTUALIZADA (CON clienteId numérico) -----
 final List<Alquiler> mockAlquileres = [
-  const Alquiler(
+  Alquiler(
     codigo: 'ALQ-0015',
-    clienteId: 1, // <-- ID numérico de Juan Pérez
+    clienteId: 1, // Juan Pérez
     producto: 'Esmoquin Clásico',
-    fechaInicio: '15/07/24',
-    fechaDevolucion: '20/07/24',
+    fechaInicio: DateTime(2024, 7, 15), // <-- CAMBIO: DateTime(YYYY, MM, DD)
+    fechaDevolucion: DateTime(2024, 7, 20), // <-- CAMBIO
     estado: AlquilerEstado.activo,
     metodoPago: 'Tarjeta de Crédito',
     montoTotal: 'S/ 150',
     garantia: 'S/ 50',
   ),
-  const Alquiler(
+  Alquiler(
     codigo: 'ALQ-0016',
-    clienteId: 2, // <-- ID numérico de María López
+    clienteId: 2, // María López
     producto: 'Traje de Gala Azul',
-    fechaInicio: '10/07/24',
-    fechaDevolucion: '14/07/24',
+    fechaInicio: DateTime(2024, 7, 10), // <-- CAMBIO
+    fechaDevolucion: DateTime(2024, 7, 14), // <-- CAMBIO
     estado: AlquilerEstado.activo,
     metodoPago: 'Yape - Plin',
     montoTotal: 'S/ 280',
     garantia: 'S/ 100',
   ),
-  const Alquiler(
+  Alquiler(
     codigo: 'ALQ-0017',
-    clienteId: 3, // <-- ID numérico de Miguel Rodríguez
+    clienteId: 3, // Miguel Rodríguez
     producto: 'Frac Negro',
-    fechaInicio: '01/07/24',
-    fechaDevolucion: '05/07/24',
-    estado: AlquilerEstado.atrasado, // "En Mora"
+    fechaInicio: DateTime(2024, 7, 1), // <-- CAMBIO
+    fechaDevolucion: DateTime(2024, 7, 5), // <-- CAMBIO
+    estado: AlquilerEstado.atrasado,
     metodoPago: 'Efectivo',
     montoTotal: 'S/ 180',
     garantia: 'S/ 50',
@@ -101,40 +101,40 @@ final List<Alquiler> mockAlquileres = [
 
 // ----- LISTA DE VENTAS ACTUALIZADA (CON clienteId numérico) -----
 final List<Venta> mockVentas = [
-  const Venta(
+  Venta(
     codigo: 'VEN-1021',
-    clienteId: 1, // <-- ID numérico de Juan Pérez
-    fecha: '26 de Julio, 2024',
+    clienteId: 1, // Juan Pérez
+    fecha: DateTime(2024, 7, 26), // <-- CAMBIO
     producto: 'Traje Clásico Negro',
     cantidad: 1,
     precioUnitario: 250.00,
     metodoPago: 'Tarjeta',
     total: 250.00,
   ),
-  const Venta(
+  Venta(
     codigo: 'VEN-1020',
-    clienteId: 2, // <-- ID numérico de María López
-    fecha: '25 de Julio, 2024',
+    clienteId: 2, // María López
+    fecha: DateTime.now(), // <-- CAMBIO
     producto: 'Esmoquin Moderno',
     cantidad: 1,
     precioUnitario: 300.00,
     metodoPago: 'Yape-Plin',
     total: 300.00,
   ),
-  const Venta(
+  Venta(
     codigo: 'VEN-1019',
-    clienteId: 4, // <-- ID numérico de Otro Tipazo
-    fecha: '24 de Julio, 2024',
+    clienteId: 4, // Alexander Tapia
+    fecha: DateTime(2024, 7, 24), // <-- CAMBIO
     producto: 'Traje de Lino Marrón',
     cantidad: 1,
     precioUnitario: 200.00,
     metodoPago: 'Efectivo',
     total: 200.00,
   ),
-  const Venta(
+  Venta(
     codigo: 'VEN-1018',
-    clienteId: 1, // <-- Asumimos que el cliente "Mostrador" tiene id 1
-    fecha: '23 de Julio, 2024',
+    clienteId: 1, // Mostrador (asumiendo id 1)
+    fecha: DateTime(2024, 7, 23), // <-- CAMBIO
     producto: 'Traje de Lino Beige',
     cantidad: 1,
     precioUnitario: 200.00,
@@ -172,7 +172,7 @@ final List<Pago> mockPagos = [
   const Pago(
     id: '#20240003',
     fecha: '13 de mayo, 2024',
-    clienteId: 4, // <-- ID de Otro Tipazo (para 'VEN-1019')
+    clienteId: 4, // <-- ID de Alexander Tapia (para 'VEN-1019')
     monto: 'S/ 150.00',
     tipo: TipoPago.Venta,
     metodo: MetodoPago.Efectivo,

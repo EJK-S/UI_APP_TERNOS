@@ -1,8 +1,9 @@
-// lib/providers/alquiler_provider.dart
+// lib/providers/alquiler_provider.dart (CORREGIDO)
 
 import 'package:flutter/material.dart';
 import 'package:proyecto_tienda_ternos/data/repositories/alquiler_repository.dart';
 import 'package:proyecto_tienda_ternos/models/alquiler.dart';
+import 'package:proyecto_tienda_ternos/models/pieza_item.dart'; // <-- Import del paso anterior
 
 class AlquilerProvider extends ChangeNotifier {
   // 1. DEPENDENCIA
@@ -37,18 +38,20 @@ class AlquilerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> registrarDevolucion(
-    Alquiler alquilerDevuelto,
-    String observaciones,
-    bool garantiaRetenida,
-  ) async {
-    final alquilerActualizado = await _repository.registrarDevolucion(
-      alquilerDevuelto.codigo,
-      observaciones,
-      garantiaRetenida,
+  // (Este es el método de devolución detallada que añadimos antes)
+  Future<void> registrarDevolucionDetallada({
+    required Alquiler alquiler,
+    required List<PiezaItem> piezasDevueltas,
+    required String observaciones,
+    required bool garantiaRetenida,
+  }) async {
+    final alquilerActualizado = await _repository.registrarDevolucionDetallada(
+      alquilerCodigo: alquiler.codigo,
+      piezasDevueltas: piezasDevueltas,
+      observaciones: observaciones,
+      garantiaRetenida: garantiaRetenida,
     );
 
-    // Actualiza el estado local
     final index = _alquileres.indexWhere(
       (a) => a.codigo == alquilerActualizado.codigo,
     );
@@ -58,15 +61,17 @@ class AlquilerProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> prolongarAlquiler(
-    Alquiler alquiler,
-    String nuevaFechaDevolucion,
-    double montoAdicional,
-  ) async {
+  // --- MÉTODO CORREGIDO (AHORA ACEPTA DATETIME) ---
+  Future<void> prolongarAlquiler({
+    required Alquiler alquiler,
+    required DateTime
+    nuevaFechaDevolucion, // <-- CAMBIO: De 'String' a 'DateTime'
+    required double montoAdicional,
+  }) async {
     final alquilerActualizado = await _repository.prolongarAlquiler(
-      alquiler.codigo,
-      nuevaFechaDevolucion,
-      montoAdicional,
+      codigo: alquiler.codigo,
+      nuevaFechaDevolucion: nuevaFechaDevolucion, // <-- Pasa el DateTime
+      montoAdicional: montoAdicional,
     );
 
     // Actualiza el estado local
