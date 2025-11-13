@@ -11,56 +11,56 @@ import 'package:proyecto_tienda_ternos/models/prenda.dart';
 // ----- LISTA DE CLIENTES ACTUALIZADA (CON ID) -----
 // (Estos datos ahora son la ÚNICA fuente simulada para los repositorios)
 
-final List<Cliente> mockClientes = [
+/*final List<Cliente> mockClientes = [
   const Cliente(
     id: 1, // <-- ID NUMÉRICO
-    nombre: 'Juan',
+    nombres: 'Juan',
     apellidos: 'Pérez',
     dni: '12345678',
-    telefono: '987654321',
-    correo: 'juan@correo.com',
+    celular: '987654321',
+    //correo: 'juan@correo.com',
     direccion: 'Av. Siempre Viva 123',
-    fechaNacimiento: '15/05/1990',
+    fechaNac: '15/05/1990',
     vetado: false,
     motivoVeto: '',
   ),
   const Cliente(
     id: 2, // <-- ID NUMÉRICO
-    nombre: 'María',
+    nombres: 'María',
     apellidos: 'López',
     dni: '87654321',
-    telefono: '912345678',
-    correo: 'maria@correo.com',
+    celular: '912345678',
+    //correo: 'maria@correo.com',
     direccion: 'Calle Falsa 456',
-    fechaNacimiento: '20/10/1995',
+    fechaNac: '20/10/1995',
     vetado: true,
     motivoVeto: 'No devolvió el traje a tiempo.',
   ),
   const Cliente(
     id: 3, // <-- ID NUMÉRICO
-    nombre: 'Miguel',
+    nombres: 'Miguel',
     apellidos: 'Rodríguez',
     dni: '651354189',
-    telefono: '958471236',
-    correo: 'miguel@correo.com',
+    celular: '958471236',
+    //correo: 'miguel@correo.com',
     direccion: 'Jr. Falso 789',
-    fechaNacimiento: '01/02/1988',
+    fechaNac: '01/02/1988',
     vetado: false,
     motivoVeto: '',
   ),
   const Cliente(
     id: 4, // <-- ID NUMÉRICO
-    nombre: 'Otro',
+    nombres: 'Otro',
     apellidos: 'Tipazo',
     dni: '28964165',
-    telefono: '932165498',
-    correo: 'otro@correo.com',
+    celular: '932165498',
+    //correo: 'otro@correo.com',
     direccion: 'Av. Inventada 101',
-    fechaNacimiento: '10/11/2000',
+    fechaNac: '10/11/2000',
     vetado: false,
     motivoVeto: '',
   ),
-];
+];*/
 
 // ----- LISTA DE ALQUILERES ACTUALIZADA (CON clienteId numérico) -----
 final List<Alquiler> mockAlquileres = [

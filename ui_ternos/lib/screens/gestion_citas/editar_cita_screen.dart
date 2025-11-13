@@ -55,11 +55,11 @@ class _EditarCitaScreenState extends State<EditarCitaScreen> {
     // Pre-rellenar campos de texto
     _clienteCtrl = TextEditingController(
       text: _clienteSeleccionado != null
-          ? '${_clienteSeleccionado!.nombre} ${_clienteSeleccionado!.apellidos ?? ''}'
+          ? '${_clienteSeleccionado!.nombres} ${_clienteSeleccionado!.apellidos ?? ''}'
           : 'Cliente no encontrado',
     );
     _telefonoCtrl = TextEditingController(
-      text: _clienteSeleccionado?.telefono ?? '',
+      text: _clienteSeleccionado?.celular ?? '',
     );
     _notasCtrl = TextEditingController(text: cita.notas ?? '');
 
@@ -191,7 +191,7 @@ class _EditarCitaScreenState extends State<EditarCitaScreen> {
             children: [
               // --- Propósito (Corregido) ---
               DropdownButtonFormField<CitaProposito>(
-                value: _selectedProposito,
+                initialValue: _selectedProposito,
                 decoration: const InputDecoration(
                   labelText: 'Propósito',
                   border: OutlineInputBorder(),
@@ -212,7 +212,7 @@ class _EditarCitaScreenState extends State<EditarCitaScreen> {
 
               // --- Estado (Añadido) ---
               DropdownButtonFormField<CitaEstado>(
-                value: _selectedEstado,
+                initialValue: _selectedEstado,
                 decoration: const InputDecoration(
                   labelText: 'Estado',
                   border: OutlineInputBorder(),

@@ -91,8 +91,9 @@ class _PagoCard extends StatelessWidget {
         );
       } else if (pago.tipo == TipoPago.Alquiler) {
         // Busca el Alquiler (manejando el 'isLoading')
-        if (alquilerProvider.isLoading)
+        if (alquilerProvider.isLoading) {
           return; // No hacer nada si está cargando
+        }
         final alquiler = alquilerProvider.alquileres.firstWhere(
           (a) => a.codigo == pago.transaccionId,
         );
@@ -124,7 +125,7 @@ class _PagoCard extends StatelessWidget {
       try {
         nombreCliente = clienteProvider.clientes
             .firstWhere((c) => c.id == pago.clienteId)
-            .nombre;
+            .nombres;
       } catch (e) {
         nombreCliente = 'Cliente (ID: ${pago.clienteId})';
       }

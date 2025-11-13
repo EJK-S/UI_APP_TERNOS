@@ -49,7 +49,7 @@ class _NuevaCitaScreenState extends State<NuevaCitaScreen> {
       setState(() {
         _selectedCliente = clienteSeleccionado;
         _clienteCtrl.text =
-            '${clienteSeleccionado.nombre} ${clienteSeleccionado.apellidos ?? ''}';
+            '${clienteSeleccionado.nombres} ${clienteSeleccionado.apellidos ?? ''}';
       });
     }
   }
@@ -250,7 +250,7 @@ class _NuevaCitaScreenState extends State<NuevaCitaScreen> {
                         ),
                         const SizedBox(height: 8),
                         DropdownButtonFormField<CitaProposito>(
-                          value: _selectedProposito,
+                          initialValue: _selectedProposito,
                           hint: const Text('Seleccionar propósito'),
                           items: CitaProposito.values.map((proposito) {
                             return DropdownMenuItem(
@@ -272,7 +272,7 @@ class _NuevaCitaScreenState extends State<NuevaCitaScreen> {
                         ),
                         const SizedBox(height: 8),
                         DropdownButtonFormField<CitaEstado>(
-                          value: _selectedEstado,
+                          initialValue: _selectedEstado,
                           hint: const Text('Seleccionar estado'),
                           items: CitaEstado.values.map((estado) {
                             return DropdownMenuItem(

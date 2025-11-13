@@ -58,7 +58,7 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
     // Pre-rellenamos campos
     _clienteCtrl = TextEditingController(
       text: _clienteDeEstaVenta != null
-          ? '${_clienteDeEstaVenta!.nombre} ${_clienteDeEstaVenta!.apellidos ?? ''}'
+          ? '${_clienteDeEstaVenta!.nombres} ${_clienteDeEstaVenta!.apellidos ?? ''}'
           : 'Cliente (ID: ${venta.clienteId})',
     );
     _cantidadCtrl = TextEditingController(text: venta.cantidad.toString());
@@ -365,7 +365,7 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: value,
+          initialValue: value,
           hint: Text(hint),
           decoration: const InputDecoration(
             border: OutlineInputBorder(),

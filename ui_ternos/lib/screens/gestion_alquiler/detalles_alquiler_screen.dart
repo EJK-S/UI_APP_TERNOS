@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:proyecto_tienda_ternos/models/alquiler.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
-import 'package:proyecto_tienda_ternos/models/cliente.dart';
+//import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
 
 // --- 1. IMPORTA LA NUEVA PANTALLA ---
@@ -36,7 +36,7 @@ class DetallesAlquilerScreen extends StatelessWidget {
               final cliente = clienteProvider.clientes.firstWhere(
                 (c) => c.id == alquiler.clienteId, // Compara int con int
               );
-              nombreCliente = '${cliente.nombre} ${cliente.apellidos ?? ''}';
+              nombreCliente = '${cliente.nombres} ${cliente.apellidos ?? ''}';
             } catch (e) {
               nombreCliente = 'Cliente (ID: ${alquiler.clienteId})';
             }
@@ -309,13 +309,13 @@ class DetallesAlquilerScreen extends StatelessWidget {
               },
             ),
             ElevatedButton(
-              child: const Text('Confirmar'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors
                     .primary, // Necesitas importar AppColors si no está
                 foregroundColor: Colors.white,
               ),
               onPressed: onConfirmar,
+              child: const Text('Confirmar'),
             ),
           ],
         );

@@ -35,7 +35,7 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
-        Provider(create: (context) => ClienteRepository()),
+        //Provider(create: (context) => ClienteRepository()),
         Provider(create: (context) => VentaRepository()),
         Provider(create: (context) => AlquilerRepository()),
         Provider(create: (context) => CitaRepository()),
@@ -63,13 +63,9 @@ void main() {
           update: (context, repository, previousProvider) =>
               previousProvider ?? VentaProvider(repository),
         ),
-        ChangeNotifierProxyProvider<ClienteRepository, ClienteProvider>(
-          create: (context) => ClienteProvider(
-            Provider.of<ClienteRepository>(context, listen: false),
-          ),
-          update: (context, repository, previousProvider) =>
-              previousProvider ?? ClienteProvider(repository),
-        ),
+
+        ChangeNotifierProvider(create: (_) => ClienteProvider()),
+
         ChangeNotifierProvider(create: (context) => SettingsProvider()),
         ChangeNotifierProxyProvider<PrendaRepository, PrendaProvider>(
           create: (context) => PrendaProvider(
@@ -84,8 +80,9 @@ void main() {
           ),
 
           update: (context, prendaProvider, inventarioProvider) {
-            if (inventarioProvider == null)
+            if (inventarioProvider == null) {
               return InventarioProvider(prendaProvider);
+            }
             return inventarioProvider..update(prendaProvider);
           },
         ),

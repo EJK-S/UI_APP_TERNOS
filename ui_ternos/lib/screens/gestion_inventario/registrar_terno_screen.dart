@@ -94,7 +94,7 @@ class _RegistrarTernoScreenState extends State<RegistrarTernoScreen> {
               const SizedBox(height: 16),
               // Dropdown para el Estado
               DropdownButtonFormField<PrendaEstado>(
-                value: _estado,
+                initialValue: _estado,
                 decoration: const InputDecoration(
                   labelText: 'Estado Inicial',
                   border: OutlineInputBorder(),

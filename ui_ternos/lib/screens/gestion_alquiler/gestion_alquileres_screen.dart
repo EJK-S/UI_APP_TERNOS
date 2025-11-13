@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/providers/alquiler_provider.dart';
 // 1. IMPORTA EL CLIENTE PROVIDER Y EL MODELO
 import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
-import 'package:proyecto_tienda_ternos/models/cliente.dart';
 // ---
 import 'package:proyecto_tienda_ternos/models/alquiler.dart';
 import 'package:proyecto_tienda_ternos/screens/gestion_alquiler/detalles_alquiler_screen.dart';
@@ -37,7 +36,7 @@ class GestionAlquileresScreen extends StatelessWidget {
           try {
             // Buscamos el cliente por nombre
             final cliente = clienteProvider.clientes.firstWhere(
-              (c) => '${c.nombre} ${c.apellidos ?? ''}' == filtroClienteNombre,
+              (c) => '${c.nombres} ${c.apellidos ?? ''}' == filtroClienteNombre,
             );
             clienteId = cliente.dni; // Usamos su DNI (ID)
           } catch (e) {
@@ -145,7 +144,7 @@ class _AlquilerCard extends StatelessWidget {
             final cliente = clienteProvider.clientes.firstWhere(
               (c) => c.id == alquiler.clienteId,
             );
-            nombreCliente = '${cliente.nombre} ${cliente.apellidos ?? ''}';
+            nombreCliente = '${cliente.nombres} ${cliente.apellidos ?? ''}';
           } catch (e) {
             nombreCliente = 'Cliente (ID: ${alquiler.clienteId})';
           }

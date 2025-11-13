@@ -1,7 +1,6 @@
-// lib/screens/gestion_clientes/editar_cliente_screen.dart (CORREGIDO)
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
@@ -20,37 +19,27 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
   late TextEditingController _nombresCtrl;
   late TextEditingController _apellidosCtrl;
   late TextEditingController _dniCtrl;
-  late TextEditingController _telefonoCtrl;
-  late TextEditingController _correoCtrl;
+  late TextEditingController _celularCtrl;
   late TextEditingController _direccionCtrl;
-  late TextEditingController _fechaNacimientoCtrl;
+  late TextEditingController _fechaCtrl;
   late TextEditingController _motivoVetoCtrl;
   late bool _vetado;
 
-  // --- 1. AÑADIR ESTADO DE CARGA ---
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    // (Tu initState ya era correcto [cite: 618-624])
-    _nombresCtrl = TextEditingController(text: widget.cliente.nombre);
-    _apellidosCtrl = TextEditingController(
-      text: widget.cliente.apellidos ?? '',
-    );
-    _dniCtrl = TextEditingController(text: widget.cliente.dni);
-    _telefonoCtrl = TextEditingController(text: widget.cliente.telefono);
-    _correoCtrl = TextEditingController(text: widget.cliente.correo ?? '');
-    _direccionCtrl = TextEditingController(
-      text: widget.cliente.direccion ?? '',
-    );
-    _fechaNacimientoCtrl = TextEditingController(
-      text: widget.cliente.fechaNacimiento ?? '',
-    );
-    _motivoVetoCtrl = TextEditingController(
-      text: widget.cliente.motivoVeto ?? '',
-    );
-    _vetado = widget.cliente.vetado ?? false;
+    final c = widget.cliente;
+
+    _nombresCtrl = TextEditingController(text: c.nombres);
+    _apellidosCtrl = TextEditingController(text: c.apellidos);
+    _dniCtrl = TextEditingController(text: c.dni);
+    _celularCtrl = TextEditingController(text: c.celular);
+    _direccionCtrl = TextEditingController(text: c.direccion ?? '');
+    _fechaCtrl = TextEditingController(text: c.fechaNac ?? '');
+    _vetado = c.vetado;
+    _motivoVetoCtrl = TextEditingController(text: c.motivoVeto ?? '');
   }
 
   @override
@@ -58,43 +47,67 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
     _nombresCtrl.dispose();
     _apellidosCtrl.dispose();
     _dniCtrl.dispose();
-    _telefonoCtrl.dispose();
-    _correoCtrl.dispose();
+    _celularCtrl.dispose();
     _direccionCtrl.dispose();
-    _fechaNacimientoCtrl.dispose();
+    _fechaCtrl.dispose();
     _motivoVetoCtrl.dispose();
     super.dispose();
   }
 
-  // --- 2. ACTUALIZAR FUNCIÓN DE GUARDAR (AHORA ASÍNCRONA) ---
-  Future<void> _guardarCambios() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
+  Future<void> _pickFecha() async {
+    final now = DateTime.now();
+    final initial = _fechaCtrl.text.isNotEmpty
+        ? DateTime.tryParse(_fechaCtrl.text) ?? DateTime(now.year - 18)
+        : DateTime(now.year - 18);
+
+    final picked = await showDatePicker(
+      context: context,
+      firstDate: DateTime(1900),
+      lastDate: now,
+      initialDate: initial,
+    );
+
+    if (picked != null) {
+      // mismo formato que en NuevoCliente (YYYY-MM-DD)
+      _fechaCtrl.text = picked.toIso8601String().split('T').first;
+      setState(() {});
     }
+  }
+
+  Future<void> _guardarCambios() async {
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
+    final prov = context.read<ClienteProvider>();
+
+    final data = <String, dynamic>{
+      'id': widget.cliente.id,
+      'nombres': _nombresCtrl.text.trim(),
+      'apellidos': _apellidosCtrl.text.trim(),
+      'dni': _dniCtrl.text.trim(),
+      'celular': _celularCtrl.text.trim(),
+      'direccion': _direccionCtrl.text.trim().isEmpty
+          ? null
+          : _direccionCtrl.text.trim(),
+      'fecha_nac': _fechaCtrl.text.trim().isEmpty
+          ? null
+          : _fechaCtrl.text.trim(),
+      'vetado': _vetado,
+      'motivo_veto': _vetado ? _motivoVetoCtrl.text.trim() : null,
+    };
 
     try {
-      // Crea el objeto Cliente actualizado
-      final clienteActualizado = Cliente(
-        id: widget.cliente.id, // <-- CORRECCIÓN: Pasar el ID original
-        nombre: _nombresCtrl.text,
-        apellidos: _apellidosCtrl.text,
-        dni: _dniCtrl.text,
-        telefono: _telefonoCtrl.text,
-        correo: _correoCtrl.text,
-        direccion: _direccionCtrl.text,
-        fechaNacimiento: _fechaNacimientoCtrl.text,
-        vetado: _vetado,
-        motivoVeto: _motivoVetoCtrl.text,
-      );
+      final ok = await prov.actualizarCliente(data);
 
-      // "Habla" con el cerebro (CON AWAIT)
-      await context.read<ClienteProvider>().editarCliente(clienteActualizado);
+      if (!mounted) return;
 
-      // Cierra la pantalla (solo si el widget sigue "montado")
-      if (mounted) {
-        Navigator.pop(context);
+      if (ok) {
+        Navigator.pop(context, true); // volvemos avisando que hubo cambios
+      } else {
+        final msg = prov.error ?? 'No se pudo guardar los cambios';
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(msg)));
       }
     } catch (e) {
       if (mounted) {
@@ -111,12 +124,14 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Editar Cliente'),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => Navigator.pop(context),
+          onPressed: _isSaving ? null : () => Navigator.pop(context),
         ),
       ),
       body: SafeArea(
@@ -124,7 +139,6 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
           key: _formKey,
           child: ListView(
             padding: const EdgeInsets.all(16.0),
-            // (El contenido del ListView no necesita cambios)
             children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,23 +161,28 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
               const SizedBox(height: 16),
               _buildTextField(
                 controller: _dniCtrl,
-                label: 'DNI',
+                label: 'DNI (8 dígitos)',
                 keyboardType: TextInputType.number,
-                // Nota: Idealmente, el DNI no debería ser editable
-                // consideren hacerlo 'readOnly: true'
+                validator: (v) {
+                  final s = (v ?? '').trim();
+                  if (s.length != 8 || int.tryParse(s) == null) {
+                    return 'DNI inválido';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               _buildTextField(
-                controller: _telefonoCtrl,
-                label: 'Teléfono',
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 16),
-              _buildTextField(
-                controller: _correoCtrl,
-                label: 'Correo',
-                keyboardType: TextInputType.emailAddress,
-                isRequired: false,
+                controller: _celularCtrl,
+                label: 'Celular (9 dígitos)',
+                keyboardType: TextInputType.number,
+                validator: (v) {
+                  final s = (v ?? '').trim();
+                  if (s.length != 9 || int.tryParse(s) == null) {
+                    return 'Celular inválido';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               _buildTextField(
@@ -173,8 +192,8 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
               ),
               const SizedBox(height: 16),
               _buildDateField(
-                controller: _fechaNacimientoCtrl,
-                label: 'Fecha de Nacimiento',
+                controller: _fechaCtrl,
+                label: 'Fecha de nacimiento',
               ),
               const SizedBox(height: 16),
               CheckboxListTile(
@@ -194,7 +213,7 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
                   controller: _motivoVetoCtrl,
                   label: 'Motivo de veto',
                   hint: 'Ingresar motivo',
-                  isRequired: false,
+                  isRequired: true,
                 ),
             ],
           ),
@@ -206,7 +225,6 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
           children: [
             Expanded(
               child: OutlinedButton(
-                // --- 3. CORREGIR BOTÓN DE CANCELAR ---
                 onPressed: _isSaving ? null : () => Navigator.pop(context),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -217,8 +235,7 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: ElevatedButton(
-                // --- 4. CORREGIR BOTÓN DE GUARDAR ---
-                onPressed: _isSaving ? null : _guardarCambios, // Conectado
+                onPressed: _isSaving ? null : _guardarCambios,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -233,7 +250,7 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text('Guardar Cambios'),
+                    : const Text('Guardar cambios'),
               ),
             ),
           ],
@@ -242,23 +259,23 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
     );
   }
 
-  // --- (Tus widgets helper _buildTextField y _buildDateField
-  //      no necesitan cambios [cite: 649-660]) ---
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
     String? hint,
     TextInputType? keyboardType,
     bool isRequired = true,
+    String? Function(String?)? validator,
   }) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+          ),
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -272,12 +289,14 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
               vertical: 12,
             ),
           ),
-          validator: (value) {
-            if (isRequired && (value == null || value.isEmpty)) {
-              return 'Requerido';
-            }
-            return null;
-          },
+          validator:
+              validator ??
+              (value) {
+                if (isRequired && (value == null || value.trim().isEmpty)) {
+                  return 'Requerido';
+                }
+                return null;
+              },
         ),
       ],
     );
@@ -287,14 +306,15 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
     required TextEditingController controller,
     required String label,
   }) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+          ),
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -305,19 +325,7 @@ class _EditarClienteScreenState extends State<EditarClienteScreen> {
             suffixIcon: Icon(Icons.calendar_today),
             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           ),
-          onTap: () async {
-            FocusScope.of(context).requestFocus(new FocusNode());
-            final DateTime? picked = await showDatePicker(
-              context: context,
-              initialDate: DateTime.now(),
-              firstDate: DateTime(1900),
-              lastDate: DateTime.now(),
-            );
-            if (picked != null) {
-              controller.text =
-                  "${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}";
-            }
-          },
+          onTap: _pickFecha,
         ),
       ],
     );

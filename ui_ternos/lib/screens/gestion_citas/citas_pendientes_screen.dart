@@ -85,7 +85,7 @@ class _CitaCard extends StatelessWidget {
       cliente = null;
     }
     final nombreCliente = cliente != null
-        ? '${cliente.nombre} ${cliente.apellidos ?? ''}'
+        ? '${cliente.nombres} ${cliente.apellidos ?? ''}'
         : 'Cliente (ID: ${cita.clienteId})';
     // --- Fin de Búsqueda ---
 

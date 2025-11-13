@@ -16,7 +16,7 @@ class DetallesVentaScreen extends StatelessWidget {
 
   void _compartirVenta(Venta v, Cliente? c) {
     final String nombreCliente = c != null
-        ? '${c.nombre} ${c.apellidos ?? ''}'
+        ? '${c.nombres} ${c.apellidos ?? ''}'
         : 'Mostrador';
 
     final String resumen =
@@ -207,7 +207,7 @@ S/ ${v.total.toStringAsFixed(2)}
               final cliente = clienteProvider.clientes.firstWhere(
                 (c) => c.id == venta.clienteId, // Compara int con int
               );
-              nombreCliente = '${cliente.nombre} ${cliente.apellidos ?? ''}';
+              nombreCliente = '${cliente.nombres} ${cliente.apellidos ?? ''}';
             }
           } catch (e) {
             nombreCliente = 'Cliente (ID: ${venta.clienteId})'; // Fallback
@@ -446,12 +446,12 @@ S/ ${v.total.toStringAsFixed(2)}
               },
             ),
             ElevatedButton(
-              child: const Text('Confirmar'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
               ),
-              onPressed: onConfirmar, // Ejecuta la acción
+              onPressed: onConfirmar,
+              child: const Text('Confirmar'), // Ejecuta la acción
             ),
           ],
         );

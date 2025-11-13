@@ -1,5 +1,3 @@
-// lib/screens/gestion_clientes/seleccionar_cliente_screen.dart (CORREGIDO)
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
@@ -14,80 +12,67 @@ class SeleccionarClienteScreen extends StatefulWidget {
 }
 
 class _SeleccionarClienteScreenState extends State<SeleccionarClienteScreen> {
-  String _filtro = '';
+  final _searchCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => context.read<ClienteProvider>().cargarClientes());
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  void _buscar() {
+    context.read<ClienteProvider>().cargarClientes(search: _searchCtrl.text);
+  }
 
   @override
   Widget build(BuildContext context) {
-    // 1. Obtenemos el provider (con 'watch' para reaccionar a los cambios)
-    final clienteProvider = context.watch<ClienteProvider>();
-
+    final prov = context.watch<ClienteProvider>();
     return Scaffold(
-      appBar: AppBar(title: const Text('Seleccionar Cliente')),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // --- Barra de Búsqueda (Sin cambios) ---
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextField(
-                decoration: const InputDecoration(
-                  hintText: 'Buscar por nombre o DNI...',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
+      appBar: AppBar(
+        title: const Text('Seleccionar cliente'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(56),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            child: TextField(
+              controller: _searchCtrl,
+              onSubmitted: (_) => _buscar(),
+              decoration: InputDecoration(
+                hintText: 'Buscar...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    _searchCtrl.clear();
+                    _buscar();
+                  },
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    _filtro = value;
-                  });
-                },
+                border: const OutlineInputBorder(),
+                isDense: true,
               ),
             ),
-
-            // --- 2. MANEJAR ESTADO DE CARGA ---
-            Expanded(
-              child: clienteProvider.isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _buildListaClientes(clienteProvider.clientes),
-            ),
-          ],
+          ),
         ),
       ),
-    );
-  }
-
-  // --- 3. WIDGET AUXILIAR PARA LA LISTA (Más limpio) ---
-  Widget _buildListaClientes(List<Cliente> todosLosClientes) {
-    // --- 4. LÓGICA DE FILTRADO CORREGIDA ---
-    final List<Cliente> clientesFiltrados = todosLosClientes.where((cliente) {
-      final nombreCompleto = '${cliente.nombre} ${cliente.apellidos ?? ''}'
-          .toLowerCase();
-
-      // CORRECCIÓN: Usar 'cliente.dni' (String) en lugar de 'cliente.id' (int?)
-      final dni = cliente.dni.toLowerCase();
-
-      final busqueda = _filtro.toLowerCase();
-      return nombreCompleto.contains(busqueda) || dni.contains(busqueda);
-    }).toList();
-
-    if (clientesFiltrados.isEmpty) {
-      return const Center(child: Text('No se encontraron clientes.'));
-    }
-
-    return ListView.builder(
-      itemCount: clientesFiltrados.length,
-      itemBuilder: (context, index) {
-        final cliente = clientesFiltrados[index];
-        return ListTile(
-          leading: const CircleAvatar(child: Icon(Icons.person)),
-          title: Text('${cliente.nombre} ${cliente.apellidos ?? ''}'),
-          // (Tu subtítulo ya era correcto)
-          subtitle: Text('DNI: ${cliente.dni}'),
-          onTap: () {
-            // Devuelve el objeto 'cliente' completo
-            Navigator.pop(context, cliente);
-          },
-        );
-      },
+      body: prov.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: prov.clientes.length,
+              itemBuilder: (_, i) {
+                final c = prov.clientes[i];
+                return ListTile(
+                  title: Text('${c.nombres} ${c.apellidos}'),
+                  subtitle: Text('DNI: ${c.dni}  •  Cel: ${c.celular}'),
+                  onTap: () => Navigator.pop<Cliente>(context, c),
+                );
+              },
+            ),
     );
   }
 }

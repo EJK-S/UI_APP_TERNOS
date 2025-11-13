@@ -66,17 +66,17 @@ class DetallesCitaScreen extends StatelessWidget {
                       _InfoRow(
                         icon: Icons.person_outline,
                         text: cliente != null
-                            ? '${cliente.nombre} ${cliente.apellidos ?? ''}'
+                            ? '${cliente.nombres} ${cliente.apellidos ?? ''}'
                             : 'Cliente no encontrado',
                       ),
                       _InfoRow(
                         icon: Icons.phone_outlined,
-                        text: cliente?.telefono ?? 'Sin teléfono',
+                        text: cliente?.celular ?? 'Sin teléfono',
                       ),
-                      _InfoRow(
+                      /*_InfoRow(
                         icon: Icons.email_outlined,
                         text: cliente?.correo ?? 'Sin correo',
-                      ),
+                      ),*/
                     ],
                   ),
                 ),

@@ -28,7 +28,7 @@ class _InventarioTernosScreenState extends State<InventarioTernosScreen> {
     BuildContext context,
     InventarioProvider inventarioProvider,
   ) {
-    final TextEditingController _categoriaCtrl = TextEditingController();
+    final TextEditingController categoriaCtrl = TextEditingController();
 
     showDialog(
       context: context,
@@ -36,7 +36,7 @@ class _InventarioTernosScreenState extends State<InventarioTernosScreen> {
         return AlertDialog(
           title: const Text('Agregar Nuevo Tipo'),
           content: TextField(
-            controller: _categoriaCtrl,
+            controller: categoriaCtrl,
             decoration: const InputDecoration(hintText: 'Ej. Smokings'),
             autofocus: true, // Abre el teclado automáticamente
           ),
@@ -49,7 +49,7 @@ class _InventarioTernosScreenState extends State<InventarioTernosScreen> {
               child: const Text('Agregar'),
               onPressed: () {
                 // 1. Llama al provider (que se pasó como argumento)
-                inventarioProvider.agregarCategoria(_categoriaCtrl.text);
+                inventarioProvider.agregarCategoria(categoriaCtrl.text);
                 // 2. Cierra el diálogo
                 Navigator.of(ctx).pop();
               },

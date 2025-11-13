@@ -144,7 +144,7 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
                       Text(
                         _selectedCliente == null
                             ? 'Seleccionar cliente'
-                            : '${_selectedCliente!.nombre} ${_selectedCliente!.apellidos ?? ''}',
+                            : '${_selectedCliente!.nombres} ${_selectedCliente!.apellidos ?? ''}',
                         style: TextStyle(
                           fontSize: 16,
                           color: _selectedCliente == null
@@ -276,7 +276,7 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: value,
+          initialValue: value,
           hint: Text(hint),
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
@@ -319,7 +319,7 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
           validator: (value) =>
               value == null || value.isEmpty ? 'Requerido' : null,
           onTap: () async {
-            FocusScope.of(context).requestFocus(new FocusNode());
+            FocusScope.of(context).requestFocus(FocusNode());
             final DateTime? picked = await showDatePicker(
               context: context,
               initialDate: DateTime.now(),

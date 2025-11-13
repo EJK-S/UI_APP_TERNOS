@@ -9,7 +9,7 @@ class InventarioProvider extends ChangeNotifier {
   // --- CAMBIO CLAVE ---
   // Esta es la "lista maestra" de categorías.
   // La extraemos de las prendas al inicio.
-  List<String> _nombresDeCategorias = [];
+  final List<String> _nombresDeCategorias = [];
 
   // La lista de categorías que mostramos (calculada)
   List<InventarioCategoria> _categoriasCalculadas = [];

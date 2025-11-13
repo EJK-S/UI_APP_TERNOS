@@ -4,7 +4,6 @@ import 'package:proyecto_tienda_ternos/providers/venta_provider.dart';
 import 'package:proyecto_tienda_ternos/models/venta.dart';
 // --- Importa lo necesario para buscar al cliente ---
 import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
-import 'package:proyecto_tienda_ternos/models/cliente.dart';
 // ---
 import 'package:proyecto_tienda_ternos/screens/gestion_ventas/detalles_venta_screen.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
@@ -30,7 +29,7 @@ class GestionVentasScreen extends StatelessWidget {
           String clienteId = '';
           try {
             final cliente = clienteProvider.clientes.firstWhere(
-              (c) => '${c.nombre} ${c.apellidos ?? ''}' == filtroClienteNombre,
+              (c) => '${c.nombres} ${c.apellidos ?? ''}' == filtroClienteNombre,
             );
             clienteId = cliente.dni;
           } catch (e) {
@@ -109,7 +108,7 @@ class _VentaCard extends StatelessWidget {
               final cliente = clienteProvider.clientes.firstWhere(
                 (c) => c.id == venta.clienteId,
               );
-              nombreCliente = '${cliente.nombre} ${cliente.apellidos ?? ''}';
+              nombreCliente = '${cliente.nombres} ${cliente.apellidos ?? ''}';
             }
           } catch (e) {
             nombreCliente = 'Cliente (ID: ${venta.clienteId})';

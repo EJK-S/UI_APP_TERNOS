@@ -105,7 +105,7 @@ class _EditarPrendaScreenState extends State<EditarPrendaScreen> {
               const SizedBox(height: 16),
               // Dropdown para el Estado
               DropdownButtonFormField<PrendaEstado>(
-                value: _estado,
+                initialValue: _estado,
                 decoration: const InputDecoration(
                   labelText: 'Estado',
                   border: OutlineInputBorder(),

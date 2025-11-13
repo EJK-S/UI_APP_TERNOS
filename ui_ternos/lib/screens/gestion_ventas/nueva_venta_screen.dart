@@ -153,7 +153,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                             Text(
                               _selectedCliente == null
                                   ? 'Seleccionar cliente (por defecto: Mostrador)'
-                                  : '${_selectedCliente!.nombre} ${_selectedCliente!.apellidos ?? ''}',
+                                  : '${_selectedCliente!.nombres} ${_selectedCliente!.apellidos ?? ''}',
                               style: TextStyle(
                                 fontSize: 16,
                                 color: _selectedCliente == null
@@ -372,7 +372,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: value,
+          initialValue: value,
           hint: Text(hint),
           decoration: const InputDecoration(
             border: OutlineInputBorder(),

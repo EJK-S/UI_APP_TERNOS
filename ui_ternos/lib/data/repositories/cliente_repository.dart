@@ -1,5 +1,5 @@
 // lib/data/repositories/cliente_repository.dart
-
+/*
 import 'package:proyecto_tienda_ternos/data/mock_data.dart';
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
 
@@ -8,7 +8,7 @@ import 'package:proyecto_tienda_ternos/models/cliente.dart';
 class ClienteRepository {
   // Lista temporal que simula la base de datos
   // La copiamos de mockClientes para poder modificarla.
-  final List<Cliente> _clientesDB = List.from(mockClientes);
+  //final List<Cliente> _clientesDB = List.from();
 
   // --- AÑADIDO: Simula el AUTO_INCREMENT ---
   int _nextClienteId = 5; // (Porque mockClientes tiene 4)
@@ -26,13 +26,13 @@ class ClienteRepository {
     // Simula la asignación de ID por la BD
     final clienteConId = Cliente(
       id: _nextClienteId++, // <-- Asigna el nuevo ID
-      nombre: nuevoCliente.nombre,
+      nombres: nuevoCliente.nombres,
       apellidos: nuevoCliente.apellidos,
       dni: nuevoCliente.dni,
-      telefono: nuevoCliente.telefono,
-      correo: nuevoCliente.correo,
+      celular: nuevoCliente.celular,
+      //correo: nuevoCliente.correo,
       direccion: nuevoCliente.direccion,
-      fechaNacimiento: nuevoCliente.fechaNacimiento,
+      fechaNac: nuevoCliente.fechaNac,
       vetado: nuevoCliente.vetado,
       motivoVeto: nuevoCliente.motivoVeto,
     );
@@ -60,3 +60,4 @@ class ClienteRepository {
     _clientesDB.removeWhere((c) => c.dni == dni);
   }
 }
+*/

@@ -64,7 +64,7 @@ class _RegistrarDevolucionScreenState extends State<RegistrarDevolucionScreen> {
       cliente = null; // No se encontró
     }
     final String nombreCliente = cliente != null
-        ? '${cliente.nombre} ${cliente.apellidos ?? ''}'
+        ? '${cliente.nombres} ${cliente.apellidos ?? ''}'
         : 'Cliente (ID: ${widget.alquiler.clienteId})';
     // --- FIN DE LA BÚSQUEDA ---
 
