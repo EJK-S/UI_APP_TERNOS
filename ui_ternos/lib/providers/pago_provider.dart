@@ -23,4 +23,10 @@ class PagoProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
+
+  Future<void> agregarPago(Pago nuevoPago) async {
+    final pagoAgregado = await _repository.agregarPago(nuevoPago);
+    _pagos.add(pagoAgregado);
+    notifyListeners();
+  }
 }

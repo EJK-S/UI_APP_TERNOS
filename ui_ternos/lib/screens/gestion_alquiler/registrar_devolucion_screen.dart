@@ -289,6 +289,7 @@ class _RegistrarDevolucionScreenState extends State<RegistrarDevolucionScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      disabledForegroundColor: Colors.white.withOpacity(0.8),
                     ),
                     child: const Text('Registrar y Retener Garantía'),
                   ),

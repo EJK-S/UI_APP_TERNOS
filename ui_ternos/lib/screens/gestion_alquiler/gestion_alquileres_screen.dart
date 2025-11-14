@@ -200,7 +200,7 @@ class _AlquilerCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  _StatusTag(estado: alquiler.estado),
+                  _StatusTag(alquiler: alquiler),
                 ],
               ),
             ),
@@ -213,16 +213,31 @@ class _AlquilerCard extends StatelessWidget {
 
 // --- (El _StatusTag no cambia) ---
 class _StatusTag extends StatelessWidget {
-  final AlquilerEstado estado;
-  const _StatusTag({required this.estado});
+  // --- CAMBIADO: Ahora acepta el alquiler completo ---
+  final Alquiler alquiler;
+  const _StatusTag({required this.alquiler});
 
   @override
   Widget build(BuildContext context) {
+    // --- LÓGICA DE CÁLCULO AÑADIDA ---
+    AlquilerEstado estadoCalculado = alquiler.estado;
+    final now = DateTime.now();
+    // (Añadimos un chequeo de 2 días de gracia como dice RF-05)
+    final fechaMora = alquiler.fechaDevolucion.add(const Duration(days: 2));
+
+    // Si el alquiler aún dice "activo" PERO la fecha de mora ya pasó...
+    if (alquiler.estado == AlquilerEstado.activo && now.isAfter(fechaMora)) {
+      // ...fuerza el estado a "atrasado" (En Mora)
+      estadoCalculado = AlquilerEstado.atrasado;
+    }
+    // --- FIN DE LÓGICA ---
+
     String text;
     Color color;
     Color backgroundColor;
 
-    switch (estado) {
+    // El switch ahora usa el estado 'calculado'
+    switch (estadoCalculado) {
       case AlquilerEstado.activo:
         text = 'Activo';
         color = Colors.green.shade800;

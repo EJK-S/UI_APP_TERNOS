@@ -7,6 +7,8 @@ import 'package:proyecto_tienda_ternos/models/venta.dart';
 import 'package:proyecto_tienda_ternos/providers/prenda_provider.dart'; // <-- Importado
 import 'package:proyecto_tienda_ternos/providers/venta_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
+import 'package:proyecto_tienda_ternos/providers/pago_provider.dart';
+import 'package:proyecto_tienda_ternos/models/pago.dart';
 
 class NuevaVentaScreen extends StatefulWidget {
   const NuevaVentaScreen({super.key});
@@ -67,18 +69,17 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-
     setState(() => _isSaving = true);
 
     try {
-      // (Tu lógica de ID de cliente ya era correcta)
-      // Asumimos que el cliente 'Mostrador' tiene el id 1 en la BD
-      final int clienteId = _selectedCliente?.id ?? 1; // ID por defecto (int)
+      final int clienteId = _selectedCliente?.id ?? 1;
+      final String codigoVenta = 'VEN-${DateTime.now().millisecondsSinceEpoch}';
+      final DateTime fechaActual = DateTime.now();
 
       final nuevaVenta = Venta(
-        codigo: 'VEN-${DateTime.now().millisecondsSinceEpoch}',
+        codigo: codigoVenta, // <-- Usar variable
         clienteId: clienteId,
-        fecha: DateTime.now(),
+        fecha: fechaActual, // <-- Usar variable
         producto: _selectedTraje ?? 'Producto no seleccionado',
         cantidad: int.tryParse(_cantidadCtrl.text) ?? 0,
         precioUnitario: double.tryParse(_precioCtrl.text) ?? 0.0,
@@ -86,22 +87,29 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
         total: _total,
       );
 
-      // Llamada al provider (CON AWAIT)
-      await context.read<VentaProvider>().agregarVenta(nuevaVenta);
+      // --- ¡AÑADIDO! ---
+      final nuevoPago = Pago(
+        id: 'PGO-${DateTime.now().millisecondsSinceEpoch}',
+        fecha: fechaActual,
+        clienteId: clienteId,
+        monto: 'S/ ${_total.toStringAsFixed(2)}',
+        tipo: TipoPago.Venta,
+        metodo: _selectedPaymentMethod,
+        transaccionId: codigoVenta,
+      );
 
-      if (mounted) {
-        Navigator.pop(context); // Regresamos
-      }
+      // Llamar a ambos providers
+      await context.read<VentaProvider>().agregarVenta(nuevaVenta);
+      await context.read<PagoProvider>().agregarPago(
+        nuevoPago,
+      ); // <-- ¡AÑADIDO!
+      // ------------------
+
+      if (mounted) Navigator.pop(context);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error al guardar: $e')));
-      }
+      // ... (tu catch/finally)
     } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 

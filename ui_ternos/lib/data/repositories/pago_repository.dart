@@ -11,4 +11,10 @@ class PagoRepository {
     await Future.delayed(const Duration(milliseconds: 600));
     return _pagosDB;
   }
+
+  Future<Pago> agregarPago(Pago nuevoPago) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    _pagosDB.add(nuevoPago);
+    return nuevoPago;
+  }
 }

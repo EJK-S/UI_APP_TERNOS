@@ -149,33 +149,33 @@ final List<Venta> mockVentas = [
 // --- mockInventarioCategorias SE ELIMINA ---
 // (Ahora se calcula automáticamente desde 'prenda_provider.dart')
 
-// ----- LISTA DE PAGOS (Se mantiene igual por ahora) -----
 final List<Pago> mockPagos = [
-  const Pago(
+  Pago(
     id: '#20240001',
-    fecha: '15 de mayo, 2024',
-    clienteId: 2, // <-- ID de María López (para 'VEN-1020')
+    fecha: DateTime(2024, 5, 15),
+    clienteId: 2, // María López
     monto: 'S/ 550.00',
     tipo: TipoPago.Venta,
-    metodo: MetodoPago.Tarjeta,
+    metodo: 'Yape-Plin', // <-- CORREGIDO (Coincide con Venta VEN-1020)
     transaccionId: 'VEN-1020',
   ),
-  const Pago(
+  Pago(
     id: '#20240002',
-    fecha: '14 de mayo, 2024',
-    clienteId: 1, // <-- ID de Juan Pérez (para 'ALQ-0015')
+    fecha: DateTime(2024, 5, 14),
+    clienteId: 1, // Juan Pérez
     monto: 'S/ 280.00',
     tipo: TipoPago.Alquiler,
-    metodo: MetodoPago.Yape,
+    metodo:
+        'Tarjeta de Crédito', // <-- CORREGIDO (Coincide con Alquiler ALQ-0015)
     transaccionId: 'ALQ-0015',
   ),
-  const Pago(
+  Pago(
     id: '#20240003',
-    fecha: '13 de mayo, 2024',
-    clienteId: 4, // <-- ID de Alexander Tapia (para 'VEN-1019')
+    fecha: DateTime(2024, 5, 13), // <-- CAMBIO
+    clienteId: 4,
     monto: 'S/ 150.00',
     tipo: TipoPago.Venta,
-    metodo: MetodoPago.Efectivo,
+    metodo: 'Efectivo', // <-- CAMBIO
     transaccionId: 'VEN-1019',
   ),
 ];

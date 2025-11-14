@@ -1,6 +1,7 @@
 // lib/screens/pagos/gestion_pagos_screen.dart (CORREGIDO)
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:proyecto_tienda_ternos/models/pago.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
@@ -58,17 +59,6 @@ class GestionPagosScreen extends StatelessWidget {
 class _PagoCard extends StatelessWidget {
   final Pago pago;
   const _PagoCard({required this.pago});
-
-  String _getMetodoPagoIcon(MetodoPago metodo) {
-    switch (metodo) {
-      case MetodoPago.Tarjeta:
-        return '💳';
-      case MetodoPago.Yape:
-        return '📱';
-      case MetodoPago.Efectivo:
-        return '💵';
-    }
-  }
 
   // --- 4. FUNCIÓN onTap ASÍNCRONA ---
   void _onTapCard(BuildContext context) {
@@ -147,7 +137,9 @@ class _PagoCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      pago.fecha,
+                      DateFormat(
+                        'dd/MM/yyyy',
+                      ).format(pago.fecha), // <-- CORREGIDO
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.stone600,
                       ),
@@ -161,7 +153,7 @@ class _PagoCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${_getMetodoPagoIcon(pago.metodo)} ${pago.metodo.name} • ${pago.tipo.name}',
+                      pago.metodo, // <-- CORREGIDO (ya no usa el ícono)
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.stone700,
                       ),

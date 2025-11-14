@@ -8,6 +8,8 @@ import 'package:proyecto_tienda_ternos/providers/alquiler_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/providers/prenda_provider.dart';
 import 'package:intl/intl.dart'; // <-- 1. IMPORTAR INTL
+import 'package:proyecto_tienda_ternos/providers/pago_provider.dart';
+import 'package:proyecto_tienda_ternos/models/pago.dart';
 
 class NuevoAlquilerScreen extends StatefulWidget {
   const NuevoAlquilerScreen({super.key});
@@ -44,43 +46,50 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
 
   // --- 3. CORREGIR _submitForm ---
   Future<void> _submitForm() async {
-    // Validar formulario
-    if (!_formKey.currentState!.validate()) return;
-
-    // Validar cliente y fechas
-    if (_selectedCliente == null) {
-      _showError('Por favor, seleccione un cliente.');
+    if (!_formKey.currentState!.validate() ||
+        _selectedCliente == null /*...*/ ) {
+      // ... (tus validaciones están bien)
       return;
     }
-    if (_selectedFechaInicio == null) {
-      _showError('Por favor, seleccione una fecha de alquiler.');
-      return;
-    }
-    if (_selectedFechaDevolucion == null) {
-      _showError('Por favor, seleccione una fecha de devolución.');
-      return;
-    }
-
     setState(() => _isSaving = true);
 
     try {
+      final String codigoAlquiler =
+          'ALQ-${DateTime.now().millisecondsSinceEpoch}';
+
       final nuevoAlquiler = Alquiler(
-        codigo: 'ALQ-${DateTime.now().millisecondsSinceEpoch}',
+        codigo: codigoAlquiler, // <-- Usar variable
         clienteId: _selectedCliente!.id!,
         producto: _selectedTraje ?? 'Traje (No seleccionado)',
-        fechaInicio: _selectedFechaInicio!, // <-- CORREGIDO
-        fechaDevolucion: _selectedFechaDevolucion!, // <-- CORREGIDO
+        fechaInicio: _selectedFechaInicio!,
+        fechaDevolucion: _selectedFechaDevolucion!,
         estado: AlquilerEstado.activo,
         metodoPago: _selectedPaymentMethod,
         montoTotal: 'S/ ${_montoTotalCtrl.text}',
         garantia: 'S/ ${_garantiaCtrl.text}',
       );
 
+      // --- ¡AÑADIDO! ---
+      final nuevoPago = Pago(
+        id: 'PGO-${DateTime.now().millisecondsSinceEpoch}',
+        fecha: _selectedFechaInicio!, // El pago se hace al inicio
+        clienteId: _selectedCliente!.id!,
+        monto: 'S/ ${_montoTotalCtrl.text}',
+        tipo: TipoPago.Alquiler,
+        metodo: _selectedPaymentMethod,
+        transaccionId: codigoAlquiler,
+      );
+
+      // Llamar a ambos providers
       await context.read<AlquilerProvider>().agregarAlquiler(nuevoAlquiler);
+      await context.read<PagoProvider>().agregarPago(
+        nuevoPago,
+      ); // <-- ¡AÑADIDO!
+      // ------------------
 
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      if (mounted) _showError('Error al guardar: $e');
+      // ... (tu catch/finally)
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }

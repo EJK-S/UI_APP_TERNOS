@@ -96,7 +96,7 @@ class DetallesAlquilerScreen extends StatelessWidget {
                         context,
                         'Estado',
                         '',
-                        widget: _StatusTag(estado: alquilerActualizado.estado),
+                        widget: _StatusTag(alquiler: alquilerActualizado),
                       ),
                     ],
                   ),
@@ -117,10 +117,15 @@ class DetallesAlquilerScreen extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 12),
-                _buildActionButton(
-                  label: 'Registrar Devolución',
-                  color: AppColors.borderLight,
-                  textColor: AppColors.stone800,
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    side: BorderSide(color: AppColors.borderLight),
+                    foregroundColor: Theme.of(context).colorScheme.onSurface,
+                  ),
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -131,6 +136,10 @@ class DetallesAlquilerScreen extends StatelessWidget {
                       ),
                     );
                   },
+                  child: const Text(
+                    'Registrar Devolución',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
                 const SizedBox(height: 12),
 
@@ -382,16 +391,29 @@ class DetallesAlquilerScreen extends StatelessWidget {
 
 // Widget para la etiqueta de estado "Activo"
 class _StatusTag extends StatelessWidget {
-  final AlquilerEstado estado;
-  const _StatusTag({required this.estado});
+  // --- CAMBIADO: Ahora acepta el alquiler completo ---
+  final Alquiler alquiler;
+  const _StatusTag({required this.alquiler});
 
   @override
   Widget build(BuildContext context) {
+    // --- LÓGICA DE CÁLCULO AÑADIDA ---
+    AlquilerEstado estadoCalculado = alquiler.estado;
+    final now = DateTime.now();
+    // (Añadimos un chequeo de 2 días de gracia como dice RF-05)
+    final fechaMora = alquiler.fechaDevolucion.add(const Duration(days: 2));
+
+    if (alquiler.estado == AlquilerEstado.activo && now.isAfter(fechaMora)) {
+      estadoCalculado = AlquilerEstado.atrasado;
+    }
+    // --- FIN DE LÓGICA ---
+
     String text;
     Color color;
     Color backgroundColor;
 
-    switch (estado) {
+    // El switch ahora usa el estado 'calculado'
+    switch (estadoCalculado) {
       case AlquilerEstado.activo:
         text = 'Activo';
         color = Colors.green.shade800;
@@ -408,7 +430,6 @@ class _StatusTag extends StatelessWidget {
         backgroundColor = Colors.grey.shade200;
         break;
     }
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
