@@ -23,10 +23,8 @@ import 'package:proyecto_tienda_ternos/screens/gestion_citas/nueva_cita_screen.d
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/providers/prenda_provider.dart';
 import 'package:proyecto_tienda_ternos/screens/gestion_clientes/seleccionar_cliente_screen.dart';
-import 'package:proyecto_tienda_ternos/data/repositories/cliente_repository.dart';
 import 'package:proyecto_tienda_ternos/data/repositories/venta_repository.dart';
 import 'package:proyecto_tienda_ternos/data/repositories/alquiler_repository.dart';
-import 'package:proyecto_tienda_ternos/data/repositories/cita_repository.dart';
 import 'package:proyecto_tienda_ternos/data/repositories/prenda_repository.dart';
 import 'package:proyecto_tienda_ternos/data/repositories/pago_repository.dart';
 import 'package:proyecto_tienda_ternos/providers/pago_provider.dart';
@@ -38,7 +36,7 @@ void main() {
         //Provider(create: (context) => ClienteRepository()),
         Provider(create: (context) => VentaRepository()),
         Provider(create: (context) => AlquilerRepository()),
-        Provider(create: (context) => CitaRepository()),
+        //Provider(create: (context) => CitaRepository()),
         Provider(create: (context) => PrendaRepository()),
         Provider(create: (context) => PagoRepository()),
 
@@ -50,12 +48,9 @@ void main() {
           update: (context, repository, previousProvider) =>
               previousProvider ?? AlquilerProvider(repository),
         ),
-        ChangeNotifierProxyProvider<CitaRepository, CitaProvider>(
-          create: (context) =>
-              CitaProvider(Provider.of<CitaRepository>(context, listen: false)),
-          update: (context, repository, previousProvider) =>
-              previousProvider ?? CitaProvider(repository),
-        ),
+
+        ChangeNotifierProvider(create: (_) => CitaProvider()),
+
         ChangeNotifierProxyProvider<VentaRepository, VentaProvider>(
           create: (context) => VentaProvider(
             Provider.of<VentaRepository>(context, listen: false),

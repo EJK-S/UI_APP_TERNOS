@@ -1,12 +1,13 @@
-// lib/screens/nueva_cita_screen.dart (Actualizado al nuevo diseño)
+// lib/screens/nueva_cita_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+
 import 'package:proyecto_tienda_ternos/models/cita.dart';
 import 'package:proyecto_tienda_ternos/providers/cita_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
-import 'package:intl/intl.dart'; // Necesario para formatear fechas y horas
 
 class NuevaCitaScreen extends StatefulWidget {
   const NuevaCitaScreen({super.key});
@@ -29,7 +30,8 @@ class _NuevaCitaScreenState extends State<NuevaCitaScreen> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   CitaProposito? _selectedProposito;
-  CitaEstado _selectedEstado = CitaEstado.Pendiente; // Valor por defecto
+  // El estado en backend SIEMPRE inicia como PENDIENTE
+  final CitaEstado _estadoFijo = CitaEstado.Pendiente;
 
   @override
   void dispose() {
@@ -40,7 +42,7 @@ class _NuevaCitaScreenState extends State<NuevaCitaScreen> {
     super.dispose();
   }
 
-  // --- 1. Lógica para abrir el selector de clientes ---
+  // --- 1. Selector de clientes ---
   void _abrirSelectorCliente() async {
     final Cliente? clienteSeleccionado =
         await Navigator.pushNamed(context, Routes.seleccionarCliente)
@@ -54,12 +56,10 @@ class _NuevaCitaScreenState extends State<NuevaCitaScreen> {
     }
   }
 
-  // --- 2. Lógica de envío del formulario ---
-  void _submitForm() {
-    // Validar el formulario
+  // --- 2. Envío del formulario ---
+  Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Validar selecciones manuales
     if (_selectedCliente == null) {
       _showError('Por favor, seleccione un cliente.');
       return;
@@ -77,8 +77,7 @@ class _NuevaCitaScreenState extends State<NuevaCitaScreen> {
       return;
     }
 
-    // ¡CRÍTICO! Combinar fecha y hora en un solo DateTime
-    final DateTime fechaHoraCompleta = DateTime(
+    final fechaHoraCompleta = DateTime(
       _selectedDate!.year,
       _selectedDate!.month,
       _selectedDate!.day,
@@ -86,17 +85,23 @@ class _NuevaCitaScreenState extends State<NuevaCitaScreen> {
       _selectedTime!.minute,
     );
 
-    // Crear el nuevo objeto Cita
     final nuevaCita = Cita(
-      // ⚠️ ¡VER ALERTA CRÍTICA ABAJO!
-      clienteId: _selectedCliente!.id!, // Asumiendo que 'id' existe
+      clienteId: _selectedCliente!.id!,
       fechaHora: fechaHoraCompleta,
       proposito: _selectedProposito!,
-      estado: _selectedEstado,
+      estado: CitaEstado.Pendiente,
       notas: _notasCtrl.text.isNotEmpty ? _notasCtrl.text : null,
     );
 
-    Provider.of<CitaProvider>(context, listen: false).agregarCita(nuevaCita);
+    final prov = Provider.of<CitaProvider>(context, listen: false);
+    final ok = await prov.agregarCita(nuevaCita);
+
+    if (!ok) {
+      _showError(prov.error ?? 'No se pudo registrar la cita');
+      return;
+    }
+
+    if (!mounted) return;
     Navigator.pop(context);
   }
 
@@ -108,11 +113,12 @@ class _NuevaCitaScreenState extends State<NuevaCitaScreen> {
 
   // --- 3. Pickers de Fecha y Hora ---
   Future<void> _pickDate() async {
+    final DateTime now = DateTime.now();
     final DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now().subtract(const Duration(days: 30)),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDate: now,
+      firstDate: DateTime(now.year, now.month, now.day), // no fechas pasadas
+      lastDate: now.add(const Duration(days: 365)),
     );
     if (pickedDate != null) {
       setState(() {
@@ -130,7 +136,6 @@ class _NuevaCitaScreenState extends State<NuevaCitaScreen> {
     if (pickedTime != null) {
       setState(() {
         _selectedTime = pickedTime;
-        // Formatear la hora
         final now = DateTime.now();
         final dt = DateTime(
           now.year,
@@ -144,7 +149,7 @@ class _NuevaCitaScreenState extends State<NuevaCitaScreen> {
     }
   }
 
-  // --- 4. Construcción de la Interfaz ---
+  // --- 4. UI ---
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -164,7 +169,7 @@ class _NuevaCitaScreenState extends State<NuevaCitaScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // --- Card de Formulario ---
+                  // --- Card principal --- //
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -174,7 +179,7 @@ class _NuevaCitaScreenState extends State<NuevaCitaScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // --- Cliente ---
+                        // --- Cliente --- //
                         Text(
                           'Cliente',
                           style: Theme.of(context).textTheme.titleSmall,
@@ -188,10 +193,16 @@ class _NuevaCitaScreenState extends State<NuevaCitaScreen> {
                             hintText: 'Buscar o seleccionar cliente',
                             suffixIcon: Icon(Icons.search),
                           ),
+                          validator: (_) {
+                            if (_selectedCliente == null) {
+                              return 'Seleccione un cliente';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 16),
 
-                        // --- Fecha y Hora en Fila ---
+                        // --- Fecha y Hora en fila --- //
                         Row(
                           children: [
                             Expanded(
@@ -210,8 +221,14 @@ class _NuevaCitaScreenState extends State<NuevaCitaScreen> {
                                     readOnly: true,
                                     onTap: _pickDate,
                                     decoration: const InputDecoration(
-                                      hintText: 'mm/dd/yyyy',
+                                      hintText: 'dd/MM/yyyy',
                                     ),
+                                    validator: (_) {
+                                      if (_selectedDate == null) {
+                                        return 'Seleccione una fecha';
+                                      }
+                                      return null;
+                                    },
                                   ),
                                 ],
                               ),
@@ -235,6 +252,12 @@ class _NuevaCitaScreenState extends State<NuevaCitaScreen> {
                                     decoration: const InputDecoration(
                                       hintText: '--:--',
                                     ),
+                                    validator: (_) {
+                                      if (_selectedTime == null) {
+                                        return 'Seleccione una hora';
+                                      }
+                                      return null;
+                                    },
                                   ),
                                 ],
                               ),
@@ -243,14 +266,14 @@ class _NuevaCitaScreenState extends State<NuevaCitaScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // --- Propósito ---
+                        // --- Propósito --- //
                         Text(
                           'Propósito',
                           style: Theme.of(context).textTheme.titleSmall,
                         ),
                         const SizedBox(height: 8),
                         DropdownButtonFormField<CitaProposito>(
-                          initialValue: _selectedProposito,
+                          value: _selectedProposito,
                           hint: const Text('Seleccionar propósito'),
                           items: CitaProposito.values.map((proposito) {
                             return DropdownMenuItem(
@@ -262,34 +285,53 @@ class _NuevaCitaScreenState extends State<NuevaCitaScreen> {
                             setState(() => _selectedProposito = value);
                           },
                           decoration: const InputDecoration(),
+                          validator: (value) {
+                            if (value == null) {
+                              return 'Seleccione un propósito';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 16),
 
-                        // --- Estado ---
+                        // --- Estado (solo info, siempre Pendiente) --- //
                         Text(
-                          'Estado',
+                          'Estado inicial',
                           style: Theme.of(context).textTheme.titleSmall,
                         ),
                         const SizedBox(height: 8),
-                        DropdownButtonFormField<CitaEstado>(
-                          initialValue: _selectedEstado,
-                          hint: const Text('Seleccionar estado'),
-                          items: CitaEstado.values.map((estado) {
-                            return DropdownMenuItem(
-                              value: estado,
-                              child: Text(estado.texto),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() => _selectedEstado = value);
-                            }
-                          },
-                          decoration: const InputDecoration(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade400),
+                            color: Colors.grey.shade100,
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.info_outline,
+                                size: 18,
+                                color: AppColors.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _estadoFijo.texto, // "Pendiente"
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 16),
 
-                        // --- Notas ---
+                        // --- Notas --- //
                         Text(
                           'Notas (Opcional)',
                           style: Theme.of(context).textTheme.titleSmall,
@@ -306,7 +348,7 @@ class _NuevaCitaScreenState extends State<NuevaCitaScreen> {
                     ),
                   ),
 
-                  // --- Botones de Acción ---
+                  // --- Botones --- //
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: _submitForm,

@@ -10,9 +10,6 @@ import 'package:proyecto_tienda_ternos/providers/pago_provider.dart';
 import 'package:proyecto_tienda_ternos/providers/alquiler_provider.dart';
 import 'package:proyecto_tienda_ternos/providers/venta_provider.dart';
 import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
-import 'package:proyecto_tienda_ternos/models/cliente.dart';
-import 'package:proyecto_tienda_ternos/models/venta.dart';
-import 'package:proyecto_tienda_ternos/models/alquiler.dart';
 import 'package:proyecto_tienda_ternos/screens/gestion_alquiler/detalles_alquiler_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/gestion_ventas/detalles_venta_screen.dart';
 // (Ya no se importa mock_data)

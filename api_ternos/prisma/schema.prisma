@@ -1,5 +1,3 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,25 +5,60 @@ generator client {
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
-  charset  = "utf8mb4"
 }
 
-
 model cliente {
-  id           BigInt     @id @default(autoincrement())
-  nombres      String     @db.VarChar(60)
-  apellidos    String     @db.VarChar(60)
-  celular      String     @db.VarChar(20)
-  direccion    String?    @db.VarChar(120)
-  dni          String     @unique @db.VarChar(15)
-  fecha_nac    DateTime?  @db.Date
-  vetado       Boolean    @default(false)
-  motivo_veto  String?    @db.VarChar(200)
-  created_at   DateTime   @default(now()) @db.Timestamp(0)
-  updated_at   DateTime   @default(now()) @updatedAt @db.Timestamp(0)
-  deleted_at   DateTime?  @db.Timestamp(0)
+  id          BigInt    @id @default(autoincrement())
+  nombres     String    @db.VarChar(60)
+  apellidos   String    @db.VarChar(60)
+  celular     String    @db.VarChar(20)
+  direccion   String?   @db.VarChar(120)
+  dni         String    @unique @db.VarChar(15)
+  fecha_nac   DateTime? @db.Date
+  vetado      Boolean   @default(false)
+  motivo_veto String?   @db.VarChar(200)
+  created_at  DateTime  @default(now()) @db.Timestamp(0)
+  deleted_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime  @default(now()) @updatedAt @db.Timestamp(0)
+  citas       cita[]
 
   @@index([nombres])
   @@index([apellidos])
   @@index([celular])
+}
+
+model cita {
+  id         BigInt        @id @default(autoincrement())
+  cliente_id BigInt
+  fecha_hora DateTime      @db.DateTime(0)
+  proposito  PropositoCita @default(PRUEBA)
+  estado     EstadoCita    @default(PENDIENTE)
+  notas      String?       @db.VarChar(200)
+  created_at DateTime      @default(now()) @db.Timestamp(0)
+  cliente    cliente       @relation(fields: [cliente_id], references: [id], map: "fk_cita_cliente")
+
+  @@index([cliente_id], map: "idx_cita_cliente")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model parametros {
+  id              Int      @id @db.TinyInt
+  garantia_pen    Decimal  @default(150.00) @db.Decimal(10, 2)
+  mora_diaria_usd Decimal  @default(10.00) @db.Decimal(10, 2)
+  mora_tope_pen   Decimal  @default(150.00) @db.Decimal(10, 2)
+  prolong_sem_usd Decimal  @default(25.00) @db.Decimal(10, 2)
+  updated_at      DateTime @default(now()) @db.Timestamp(0)
+}
+
+enum PropositoCita {
+  PRUEBA
+  MEDIDAS
+  ASESORIA
+  OTRO
+}
+
+enum EstadoCita {
+  PENDIENTE
+  COMPLETADA
+  CANCELADA
 }

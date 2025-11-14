@@ -1,6 +1,5 @@
 // lib/data/mock_data.dart (CORREGIDO)
 
-import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/models/alquiler.dart';
 import 'package:proyecto_tienda_ternos/models/venta.dart';
 import 'package:proyecto_tienda_ternos/models/pago.dart';

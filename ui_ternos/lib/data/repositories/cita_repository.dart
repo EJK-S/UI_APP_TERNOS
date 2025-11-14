@@ -1,4 +1,4 @@
-// lib/data/repositories/cita_repository.dart (CORREGIDO)
+/*// lib/data/repositories/cita_repository.dart (CORREGIDO)
 
 import 'package:proyecto_tienda_ternos/models/cita.dart';
 // Nota: Ya no dependemos de 'mock_data.dart' directamente,
@@ -125,4 +125,4 @@ class CitaRepository {
       throw Exception('Cita no encontrada');
     }
   }
-}
+}*/

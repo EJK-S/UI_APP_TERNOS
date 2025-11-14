@@ -4,6 +4,7 @@ import morgan from "morgan";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import clientesRouter from "./routes/clientes.routes.js";
+import citaRouter from "./routes/cita.routes.js";
 import { errorHandler, notFound } from "./middlewares/error.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./docs/swagger.js";
@@ -36,6 +37,7 @@ app.get("/api/health", (_req, res) => {
 });
 
 app.use("/api/clientes", clientesRouter);
+app.use("/api/citas", citaRouter);
 
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 

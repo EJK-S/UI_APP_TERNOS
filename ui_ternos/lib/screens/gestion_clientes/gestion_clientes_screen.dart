@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
-import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/widgets/main_bottom_nav.dart';
 import 'editar_cliente_screen.dart';
 import 'package:proyecto_tienda_ternos/screens/gestion_clientes/nuevo_cliente_screen.dart';

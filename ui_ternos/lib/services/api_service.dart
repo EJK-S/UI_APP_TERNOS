@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart'; // kIsWeb
 class ApiService {
   ApiService() {
     // ignore: avoid_print
-    print('🌐 API baseUrl = ${_baseUrl}');
+    print('🌐 API baseUrl = $_baseUrl');
     _dio.interceptors.add(
       LogInterceptor(
         request: true,
@@ -98,8 +98,9 @@ class ApiService {
       final res = await _dio.get('/clientes/$id');
       final body = res.data;
       if (body is Map<String, dynamic>) return body;
-      if (body is Map && body['data'] is Map)
+      if (body is Map && body['data'] is Map) {
         return Map<String, dynamic>.from(body['data']);
+      }
       return null;
     } on DioException catch (e) {
       _handleError(e);
@@ -157,6 +158,47 @@ class ApiService {
       _handleError(e);
       return null;
     }
+  }
+
+  // =========================================
+  //                C I T A S
+  // =========================================
+
+  // GET /api/citas
+  Future<List<dynamic>> getCitas() async {
+    final res = await _dio.get('/citas');
+    final data = res.data;
+    if (data is List) {
+      return data;
+    }
+    if (data is Map && data['data'] is List) {
+      return List<dynamic>.from(data['data'] as List);
+    }
+    throw Exception('Respuesta inesperada al listar citas: $data');
+  }
+
+  // POST /api/citas
+  Future<dynamic> createCita(Map<String, dynamic> body) async {
+    final res = await _dio.post('/citas', data: body);
+    return res.data; // el backend devuelve la cita creada
+  }
+
+  // PUT /api/citas/:id
+  Future<dynamic> updateCita(String id, Map<String, dynamic> body) async {
+    final res = await _dio.put('/citas/$id', data: body);
+    return res.data;
+  }
+
+  // PATCH /api/citas/:id/estado
+  Future<dynamic> updateEstadoCita(String id, String estado) async {
+    final res = await _dio.patch('/citas/$id/estado', data: {'estado': estado});
+    return res.data;
+  }
+
+  // DELETE /api/citas/:id
+  Future<bool> deleteCita(String id) async {
+    final res = await _dio.delete('/citas/$id');
+    return res.statusCode == 200 || res.statusCode == 204;
   }
 
   // ===============================
