@@ -1,19 +1,15 @@
-// lib/data/mock_data.dart (CORREGIDO)
+// lib/data/mock_data.dart (CORREGIDO CON prendaId)
 
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/models/alquiler.dart';
 import 'package:proyecto_tienda_ternos/models/venta.dart';
 import 'package:proyecto_tienda_ternos/models/pago.dart';
-// import 'package:proyecto_tienda_ternos/models/inventario_categoria.dart'; // Ya no se usa
-// import 'package:proyecto_tienda_ternos/models/cita.dart'; // Ya no se usa
 import 'package:proyecto_tienda_ternos/models/prenda.dart';
 
-// ----- LISTA DE CLIENTES ACTUALIZADA (CON ID) -----
-// (Estos datos ahora son la ÚNICA fuente simulada para los repositorios)
-
+// ----- LISTA DE CLIENTES (Estaba correcta) -----
 final List<Cliente> mockClientes = [
   const Cliente(
-    id: 1, // <-- ID NUMÉRICO
+    id: 1,
     nombre: 'Juan',
     apellidos: 'Pérez',
     dni: '12345678',
@@ -25,7 +21,7 @@ final List<Cliente> mockClientes = [
     motivoVeto: '',
   ),
   const Cliente(
-    id: 2, // <-- ID NUMÉRICO
+    id: 2,
     nombre: 'María',
     apellidos: 'López',
     dni: '87654321',
@@ -37,7 +33,7 @@ final List<Cliente> mockClientes = [
     motivoVeto: 'No devolvió el traje a tiempo.',
   ),
   const Cliente(
-    id: 3, // <-- ID NUMÉRICO
+    id: 3,
     nombre: 'Miguel',
     apellidos: 'Rodríguez',
     dni: '651354189',
@@ -49,7 +45,7 @@ final List<Cliente> mockClientes = [
     motivoVeto: '',
   ),
   const Cliente(
-    id: 4, // <-- ID NUMÉRICO
+    id: 4,
     nombre: 'Alexander',
     apellidos: 'Tapia',
     dni: '28964165',
@@ -62,14 +58,16 @@ final List<Cliente> mockClientes = [
   ),
 ];
 
-// ----- LISTA DE ALQUILERES ACTUALIZADA (CON clienteId numérico) -----
+// ----- LISTA DE ALQUILERES (CORREGIDA CON prendaId) -----
 final List<Alquiler> mockAlquileres = [
   Alquiler(
     codigo: 'ALQ-0015',
     clienteId: 1, // Juan Pérez
     producto: 'Esmoquin Clásico',
-    fechaInicio: DateTime(2024, 7, 15), // <-- CAMBIO: DateTime(YYYY, MM, DD)
-    fechaDevolucion: DateTime(2024, 7, 20), // <-- CAMBIO
+    prendaId:
+        'ESM-001', // <-- AÑADIDO (Debe coincidir con un ID de mockPrendas)
+    fechaInicio: DateTime(2024, 7, 15),
+    fechaDevolucion: DateTime(2024, 7, 20),
     estado: AlquilerEstado.activo,
     metodoPago: 'Tarjeta de Crédito',
     montoTotal: 'S/ 150',
@@ -79,8 +77,9 @@ final List<Alquiler> mockAlquileres = [
     codigo: 'ALQ-0016',
     clienteId: 2, // María López
     producto: 'Traje de Gala Azul',
-    fechaInicio: DateTime(2024, 7, 10), // <-- CAMBIO
-    fechaDevolucion: DateTime(2024, 7, 14), // <-- CAMBIO
+    prendaId: 'TG-001', // <-- AÑADIDO
+    fechaInicio: DateTime(2024, 7, 10),
+    fechaDevolucion: DateTime(2024, 7, 14),
     estado: AlquilerEstado.activo,
     metodoPago: 'Yape - Plin',
     montoTotal: 'S/ 280',
@@ -90,8 +89,9 @@ final List<Alquiler> mockAlquileres = [
     codigo: 'ALQ-0017',
     clienteId: 3, // Miguel Rodríguez
     producto: 'Frac Negro',
-    fechaInicio: DateTime(2024, 7, 1), // <-- CAMBIO
-    fechaDevolucion: DateTime(2024, 7, 5), // <-- CAMBIO
+    prendaId: 'TG-009', // <-- AÑADIDO (Asignado a 'Traje de Gala Negro')
+    fechaInicio: DateTime(2024, 7, 1),
+    fechaDevolucion: DateTime(2024, 7, 5),
     estado: AlquilerEstado.atrasado,
     metodoPago: 'Efectivo',
     montoTotal: 'S/ 180',
@@ -99,13 +99,14 @@ final List<Alquiler> mockAlquileres = [
   ),
 ];
 
-// ----- LISTA DE VENTAS ACTUALIZADA (CON clienteId numérico) -----
+// ----- LISTA DE VENTAS (CORREGIDA CON prendaId) -----
 final List<Venta> mockVentas = [
   Venta(
     codigo: 'VEN-1021',
     clienteId: 1, // Juan Pérez
-    fecha: DateTime(2024, 7, 26), // <-- CAMBIO
+    fecha: DateTime(2024, 7, 26),
     producto: 'Traje Clásico Negro',
+    prendaId: 'TC-001', // <-- AÑADIDO
     cantidad: 1,
     precioUnitario: 250.00,
     metodoPago: 'Tarjeta',
@@ -114,8 +115,9 @@ final List<Venta> mockVentas = [
   Venta(
     codigo: 'VEN-1020',
     clienteId: 2, // María López
-    fecha: DateTime.now(), // <-- CAMBIO
+    fecha: DateTime.now(),
     producto: 'Esmoquin Moderno',
+    prendaId: 'ESM-001', // <-- AÑADIDO
     cantidad: 1,
     precioUnitario: 300.00,
     metodoPago: 'Yape-Plin',
@@ -124,8 +126,9 @@ final List<Venta> mockVentas = [
   Venta(
     codigo: 'VEN-1019',
     clienteId: 4, // Alexander Tapia
-    fecha: DateTime(2024, 7, 24), // <-- CAMBIO
+    fecha: DateTime(2024, 7, 24),
     producto: 'Traje de Lino Marrón',
+    prendaId: 'TLM-001', // <-- AÑADIDO
     cantidad: 1,
     precioUnitario: 200.00,
     metodoPago: 'Efectivo',
@@ -134,8 +137,9 @@ final List<Venta> mockVentas = [
   Venta(
     codigo: 'VEN-1018',
     clienteId: 1, // Mostrador (asumiendo id 1)
-    fecha: DateTime(2024, 7, 23), // <-- CAMBIO
+    fecha: DateTime(2024, 7, 23),
     producto: 'Traje de Lino Beige',
+    prendaId: 'TLB-001', // <-- AÑADIDO
     cantidad: 1,
     precioUnitario: 200.00,
     metodoPago: 'Efectivo',
@@ -143,46 +147,42 @@ final List<Venta> mockVentas = [
   ),
 ];
 
-// --- mockCitas SE ELIMINA ---
-// (Ahora se maneja dentro de 'cita_repository.dart')
+// (Comentarios de Citas e Inventario - correctos)
 
-// --- mockInventarioCategorias SE ELIMINA ---
-// (Ahora se calcula automáticamente desde 'prenda_provider.dart')
-
+// ----- LISTA DE PAGOS (CORREGIDA CON ';') -----
 final List<Pago> mockPagos = [
   Pago(
     id: '#20240001',
     fecha: DateTime(2024, 5, 15),
     clienteId: 2, // María López
-    monto: 'S/ 550.00',
+    monto: 'S/ 300.00',
     tipo: TipoPago.Venta,
-    metodo: 'Yape-Plin', // <-- CORREGIDO (Coincide con Venta VEN-1020)
+    metodo: 'Yape-Plin',
     transaccionId: 'VEN-1020',
   ),
   Pago(
     id: '#20240002',
     fecha: DateTime(2024, 5, 14),
     clienteId: 1, // Juan Pérez
-    monto: 'S/ 280.00',
+    monto: 'S/ 150.00',
     tipo: TipoPago.Alquiler,
-    metodo:
-        'Tarjeta de Crédito', // <-- CORREGIDO (Coincide con Alquiler ALQ-0015)
+    metodo: 'Tarjeta de Crédito',
     transaccionId: 'ALQ-0015',
   ),
   Pago(
     id: '#20240003',
-    fecha: DateTime(2024, 5, 13), // <-- CAMBIO
-    clienteId: 4,
-    monto: 'S/ 150.00',
+    fecha: DateTime(2024, 5, 13),
+    clienteId: 4, // Alexander Tapia
+    monto: 'S/ 200.00',
     tipo: TipoPago.Venta,
-    metodo: 'Efectivo', // <-- CAMBIO
+    metodo: 'Efectivo',
     transaccionId: 'VEN-1019',
   ),
-];
+]; // <-- AÑADIDO EL PUNTO Y COMA
 
-// ----- LISTA DE PRENDAS (Se mantiene igual, es la fuente del inventario) -----
+// ----- LISTA DE PRENDAS (Estaba correcta) -----
 final List<Prenda> mockPrendas = [
-  // Trajes Clásicos (Total 22: 15 Disp, 5 Alq, 2 Mant)
+  // ... (tu lista de prendas es correcta)
   const Prenda(
     id: 'TC-001',
     nombre: 'Terno Clásico Negro',
@@ -207,7 +207,6 @@ final List<Prenda> mockPrendas = [
     estado: PrendaEstado.Disponible,
     usos: 3,
   ),
-  // ... (Imagina 12 más disponibles) ...
   const Prenda(
     id: 'TC-016',
     nombre: 'Terno Clásico Gris',
@@ -224,7 +223,6 @@ final List<Prenda> mockPrendas = [
     estado: PrendaEstado.Alquilado,
     usos: 8,
   ),
-  // ... (Imagina 3 más alquilados) ...
   const Prenda(
     id: 'TC-021',
     nombre: 'Terno Clásico Negro',
@@ -241,8 +239,6 @@ final List<Prenda> mockPrendas = [
     estado: PrendaEstado.Mantenimiento,
     usos: 22,
   ),
-
-  // Trajes de Gala (Total 12: 8 Disp, 3 Alq, 1 Mant)
   const Prenda(
     id: 'TG-001',
     nombre: 'Traje de Gala Azul',
@@ -251,7 +247,6 @@ final List<Prenda> mockPrendas = [
     estado: PrendaEstado.Disponible,
     usos: 1,
   ),
-  // ... (Imagina 7 más disponibles) ...
   const Prenda(
     id: 'TG-009',
     nombre: 'Traje de Gala Negro',
@@ -260,7 +255,6 @@ final List<Prenda> mockPrendas = [
     estado: PrendaEstado.Alquilado,
     usos: 4,
   ),
-  // ... (Imagina 2 más alquilados) ...
   const Prenda(
     id: 'TG-012',
     nombre: 'Traje de Gala Blanco',
@@ -269,8 +263,6 @@ final List<Prenda> mockPrendas = [
     estado: PrendaEstado.Mantenimiento,
     usos: 8,
   ),
-
-  // (Nuevos productos que ahora sí aparecerán en los dropdowns)
   const Prenda(
     id: 'TLB-001',
     nombre: 'Traje de Lino Beige',

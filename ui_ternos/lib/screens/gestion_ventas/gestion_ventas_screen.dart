@@ -20,67 +20,63 @@ class GestionVentasScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool enModoFiltro = (filtroClienteNombre != null);
 
-    return Consumer<VentaProvider>(
-      builder: (context, ventaProvider, child) {
-        List<Venta> ventas;
-        if (enModoFiltro) {
-          final clienteProvider = Provider.of<ClienteProvider>(
-            context,
-            listen: false,
-          );
-          String clienteId = '';
-          try {
-            final cliente = clienteProvider.clientes.firstWhere(
-              (c) => '${c.nombre} ${c.apellidos ?? ''}' == filtroClienteNombre,
-            );
-            clienteId = cliente.dni;
-          } catch (e) {
-            // Cliente no encontrado
-          }
+    // 1. AHORA USAMOS 'context.watch' PARA QUE REACCIONE A 'isLoading'
+    final ventaProvider = context.watch<VentaProvider>();
 
-          ventas = ventaProvider.ventas
-              .where((v) => v.clienteId == clienteId) // Filtra por ID
-              .toList();
-        } else {
-          ventas = ventaProvider.ventas;
-        }
-
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(
-              enModoFiltro ? 'Ventas de $filtroClienteNombre' : 'Ventas',
-            ),
-          ),
-          body: SafeArea(
-            child: ventas.isEmpty
-                ? Center(
-                    child: Text(
-                      enModoFiltro
-                          ? 'Este cliente no tiene ventas registradas.'
-                          : 'No hay ventas registradas.',
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16.0),
-                    itemCount: ventas.length,
-                    itemBuilder: (context, index) {
-                      final venta = ventas[index];
-                      return _VentaCard(venta: venta);
-                    },
-                  ),
-          ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/ventas/nueva');
-            },
-            backgroundColor: AppColors.primary,
-            child: const Icon(Icons.add, color: Colors.white),
-          ),
-          bottomNavigationBar: enModoFiltro
-              ? null
-              : const MainBottomNav(currentIndex: 0),
+    List<Venta> ventas;
+    if (enModoFiltro) {
+      final clienteProvider = context.read<ClienteProvider>();
+      int clienteId = 1; // ID de Mostrador por defecto
+      try {
+        final cliente = clienteProvider.clientes.firstWhere(
+          (c) => '${c.nombre} ${c.apellidos ?? ''}' == filtroClienteNombre,
         );
-      },
+        clienteId = cliente.id!;
+      } catch (e) {
+        // Cliente no encontrado, se mantiene el ID por defecto
+      }
+      ventas = ventaProvider.ventas
+          .where((v) => v.clienteId == clienteId)
+          .toList();
+    } else {
+      ventas = ventaProvider.ventas;
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(enModoFiltro ? 'Ventas de $filtroClienteNombre' : 'Ventas'),
+      ),
+      body: SafeArea(
+        // --- 2. AÑADIR LÓGICA DE CARGA ---
+        child: ventaProvider.isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : ventas.isEmpty
+            ? Center(
+                child: Text(
+                  enModoFiltro
+                      ? 'Este cliente no tiene ventas registradas.'
+                      : 'No hay ventas registradas.',
+                ),
+              )
+            : ListView.builder(
+                padding: const EdgeInsets.all(16.0),
+                itemCount: ventas.length,
+                itemBuilder: (context, index) {
+                  final venta = ventas[index];
+                  return _VentaCard(venta: venta);
+                },
+              ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(context, '/ventas/nueva');
+        },
+        backgroundColor: AppColors.primary,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+      bottomNavigationBar: enModoFiltro
+          ? null
+          : const MainBottomNav(currentIndex: 0),
     );
   }
 }

@@ -253,6 +253,10 @@ class _InventarioCategoryCard extends StatelessWidget {
                   _buildStockColumn('Disponibles', categoria.disponibles),
                   _buildStockColumn('Alquilados', categoria.alquilados),
                   _buildStockColumn('Mantenimiento', categoria.mantenimiento),
+                  _buildStockColumn(
+                    'Vendidos',
+                    categoria.vendidos,
+                  ), // <-- AÑADIDO
                 ],
               ),
             ],

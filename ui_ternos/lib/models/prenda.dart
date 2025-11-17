@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 
 // El estado de una prenda individual
-enum PrendaEstado { Disponible, Alquilado, Mantenimiento }
+enum PrendaEstado {
+  Disponible,
+  Alquilado,
+  Mantenimiento,
+  Vendido,
+} // <-- 'Vendido' AÑADIDO
 
-// Extensión para darle al enum métodos útiles (color y texto)
 extension PrendaEstadoExtension on PrendaEstado {
   String get texto {
     switch (this) {
@@ -13,6 +17,8 @@ extension PrendaEstadoExtension on PrendaEstado {
         return 'Alquilado';
       case PrendaEstado.Mantenimiento:
         return 'Mantenimiento';
+      case PrendaEstado.Vendido:
+        return 'Vendido'; // <-- AÑADIDO
     }
   }
 
@@ -24,6 +30,8 @@ extension PrendaEstadoExtension on PrendaEstado {
         return Colors.orange;
       case PrendaEstado.Mantenimiento:
         return Colors.red;
+      case PrendaEstado.Vendido:
+        return Colors.blueGrey; // <-- AÑADIDO
     }
   }
 }

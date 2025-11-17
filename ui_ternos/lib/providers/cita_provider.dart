@@ -1,4 +1,4 @@
-// lib/providers/cita_provider.dart (CORREGIDO)
+// lib/providers/cita_provider.dart (VERSIÓN COMPLETA Y CORRECTA)
 
 import 'package:flutter/material.dart';
 import 'package:proyecto_tienda_ternos/data/repositories/cita_repository.dart';
@@ -16,17 +16,22 @@ class CitaProvider extends ChangeNotifier {
   List<Cita> get citas => _citas;
   bool get isLoading => _isLoading;
 
-  // 4. CONSTRUCTOR
-  CitaProvider(this._repository) {
-    fetchCitas();
-  }
+  // --- CORRECCIÓN 1: EL CONSTRUCTOR NO DEBE LLAMAR A fetchCitas() ---
+  // La llamada se hace desde main.dart
+  CitaProvider(this._repository);
 
-  // 5. MÉTODOS
+  // --- CORRECCIÓN 2: IMPLEMENTACIÓN COMPLETA DE LOS MÉTODOS ---
 
   Future<void> fetchCitas() async {
+    // 'Guardia' para evitar cargas múltiples si ya se llamó
+    if (_citas.isNotEmpty || _isLoading) return;
+
     _isLoading = true;
     notifyListeners();
+
+    // (Tu 'List.from' ya era correcto para evitar duplicados)
     _citas = List.from(await _repository.getCitas());
+
     _isLoading = false;
     notifyListeners();
   }
@@ -37,17 +42,13 @@ class CitaProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- MÉTODOS CORREGIDOS (USAN 'id' numérico) ---
+  // (Tus métodos de 'marcarComoCompletada', 'cancelarCita' y 'editarCita'
+  // ya eran correctos y usaban 'id')
 
   Future<void> marcarComoCompletada(Cita cita) async {
-    // Usamos 'cita.id'. El '!' es seguro porque una cita que
-    // se marca como completada DEBE tener un id.
     final citaActualizada = await _repository.marcarComoCompletada(cita.id!);
 
-    // Actualiza el estado local
-    final index = _citas.indexWhere(
-      (c) => c.id == citaActualizada.id, // <-- Compara por 'id'
-    );
+    final index = _citas.indexWhere((c) => c.id == citaActualizada.id);
     if (index != -1) {
       _citas[index] = citaActualizada;
       notifyListeners();
@@ -57,10 +58,7 @@ class CitaProvider extends ChangeNotifier {
   Future<void> cancelarCita(Cita cita) async {
     final citaActualizada = await _repository.cancelarCita(cita.id!);
 
-    // Actualiza el estado local
-    final index = _citas.indexWhere(
-      (c) => c.id == citaActualizada.id, // <-- Compara por 'id'
-    );
+    final index = _citas.indexWhere((c) => c.id == citaActualizada.id);
     if (index != -1) {
       _citas[index] = citaActualizada;
       notifyListeners();
@@ -70,10 +68,7 @@ class CitaProvider extends ChangeNotifier {
   Future<void> editarCita(Cita citaActualizada) async {
     final citaEditada = await _repository.editarCita(citaActualizada);
 
-    // Actualiza el estado local
-    final index = _citas.indexWhere(
-      (c) => c.id == citaEditada.id, // <-- Compara por 'id'
-    );
+    final index = _citas.indexWhere((c) => c.id == citaEditada.id);
     if (index != -1) {
       _citas[index] = citaEditada;
       notifyListeners();

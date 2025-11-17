@@ -8,7 +8,8 @@ import 'package:proyecto_tienda_ternos/screens/gestion_citas/editar_cita_screen.
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
 import 'package:proyecto_tienda_ternos/providers/cliente_provider.dart';
-import 'package:intl/intl.dart'; // <-- 1. IMPORTAR INTL
+import 'package:proyecto_tienda_ternos/utils/whatsapp_service.dart';
+import 'package:intl/intl.dart';
 
 class DetallesCitaScreen extends StatelessWidget {
   final Cita cita;
@@ -173,6 +174,44 @@ class DetallesCitaScreen extends StatelessWidget {
                     if (context.mounted) Navigator.pop(context);
                   },
                 ),
+
+                const SizedBox(height: 12),
+                _buildActionButton(
+                  label: 'Recordatorio WhatsApp',
+                  icon: Icons.chat_bubble_outline, // <-- Icono opcional
+                  color: Colors.green.shade600,
+                  textColor: Colors.white,
+                  onPressed: () {
+                    // 1. Validar que el cliente exista
+                    if (cliente == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Cliente no encontrado para enviar mensaje.',
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+
+                    // 2. Crear el mensaje (RF-36)
+                    final fecha = DateFormat(
+                      'dd/MM/yyyy',
+                    ).format(citaActualizada.fechaHora);
+                    final hora = DateFormat(
+                      'hh:mm a',
+                    ).format(citaActualizada.fechaHora);
+                    final mensaje =
+                        'Hola ${cliente.nombre}! Te recordamos tu cita de ${citaActualizada.proposito.texto} para el día $fecha a las $hora. ¡Te esperamos!';
+
+                    // 3. Llamar al servicio
+                    WhatsappService().launchWhatsApp(
+                      context: context,
+                      telefono: cliente.telefono,
+                      mensaje: mensaje,
+                    );
+                  },
+                ),
               ],
             ),
           );
@@ -234,7 +273,19 @@ class DetallesCitaScreen extends StatelessWidget {
     required Color color,
     required Color textColor,
     required VoidCallback onPressed,
+    IconData? icon,
   }) {
+    if (icon != null) {
+      return ElevatedButton.icon(
+        icon: Icon(icon, size: 18), // <-- AÑADIDO
+        label: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          // ... (el resto de tu estilo)
+        ),
+      );
+    }
+    // Si no, usa el botón normal
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(

@@ -1,45 +1,53 @@
-// lib/providers/venta_provider.dart
+// lib/providers/venta_provider.dart (VERSIÓN COMPLETA Y CORRECTA)
 
 import 'package:flutter/material.dart';
 import 'package:proyecto_tienda_ternos/data/repositories/venta_repository.dart';
+import 'package:proyecto_tienda_ternos/providers/pago_provider.dart'; // Importa el Provider
 import 'package:proyecto_tienda_ternos/models/venta.dart';
 
 class VentaProvider extends ChangeNotifier {
-  // 1. DEPENDENCIA
-  final VentaRepository _repository;
+  final VentaRepository _ventaRepository;
+  PagoProvider _pagoProvider; // Dependencia del PagoProvider
 
-  // 2. ESTADO
   List<Venta> _ventas = [];
   bool _isLoading = false;
 
-  // 3. GETTERS
   List<Venta> get ventas => _ventas;
   bool get isLoading => _isLoading;
 
-  // 4. CONSTRUCTOR
-  VentaProvider(this._repository) {
-    fetchVentas();
+  // --- CORRECCIÓN 1: EL CONSTRUCTOR NO DEBE LLAMAR A fetchVentas() ---
+  // La llamada se hace desde main.dart
+  VentaProvider(this._ventaRepository, this._pagoProvider);
+
+  // Método para que main.dart actualice el PagoProvider (necesario para ProxyProvider)
+  void updatePagoProvider(PagoProvider newPagoProvider) {
+    _pagoProvider = newPagoProvider;
   }
 
-  // 5. MÉTODOS
+  // --- CORRECCIÓN 2: IMPLEMENTACIÓN COMPLETA DE LOS MÉTODOS ---
 
   Future<void> fetchVentas() async {
+    // 'Guardia' para evitar cargas múltiples si ya se llamó
+    if (_ventas.isNotEmpty || _isLoading) return;
+
     _isLoading = true;
     notifyListeners();
 
-    _ventas = List.from(await _repository.getVentas());
+    // Usar List.from() para crear una copia (soluciona el bug de duplicados)
+    _ventas = List.from(await _ventaRepository.getVentas());
+
     _isLoading = false;
     notifyListeners();
   }
 
   Future<void> agregarVenta(Venta nuevaVenta) async {
-    final ventaAgregada = await _repository.agregarVenta(nuevaVenta);
+    final ventaAgregada = await _ventaRepository.agregarVenta(nuevaVenta);
     _ventas.add(ventaAgregada);
-    notifyListeners();
+    notifyListeners(); // Notifica a la lista de ventas y al panel de admin
   }
 
   Future<void> editarVenta(Venta ventaActualizada) async {
-    final ventaEditada = await _repository.editarVenta(ventaActualizada);
+    final ventaEditada = await _ventaRepository.editarVenta(ventaActualizada);
     final index = _ventas.indexWhere((v) => v.codigo == ventaEditada.codigo);
     if (index != -1) {
       _ventas[index] = ventaEditada;
@@ -47,9 +55,16 @@ class VentaProvider extends ChangeNotifier {
     }
   }
 
+  // Esta función ya estaba correcta en tu código
   Future<void> anularVenta(Venta ventaAnular) async {
-    await _repository.anularVenta(ventaAnular.codigo);
+    // 1. Llama al repositorio de ventas
+    await _ventaRepository.anularVenta(ventaAnular.codigo);
+
+    // 2. Llama al MÉTODO del PagoProvider
+    await _pagoProvider.eliminarPagoPorTransaccionId(ventaAnular.codigo);
+
+    // 3. Actualiza el estado local
     _ventas.removeWhere((v) => v.codigo == ventaAnular.codigo);
-    notifyListeners();
+    notifyListeners(); // Notifica a la lista de ventas y al panel de admin
   }
 }

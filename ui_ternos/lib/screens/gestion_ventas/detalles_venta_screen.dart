@@ -8,8 +8,9 @@ import 'package:proyecto_tienda_ternos/models/venta.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/providers/venta_provider.dart'; // <-- 1. IMPORTA PROVIDER
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
+import 'package:proyecto_tienda_ternos/utils/pdf_service.dart';
+import 'package:share_plus/share_plus.dart';
 
 class DetallesVentaScreen extends StatelessWidget {
   final Venta venta;
@@ -39,18 +40,7 @@ S/ ${v.total.toStringAsFixed(2)}
   @override
   Widget build(BuildContext context) {
     final ventaProvider = Provider.of<VentaProvider>(context, listen: false);
-    final clienteProvider = Provider.of<ClienteProvider>(
-      context,
-      listen: false,
-    );
-    Cliente? cliente;
-    try {
-      cliente = clienteProvider.clientes.firstWhere(
-        (c) => c.dni == venta.clienteId,
-      );
-    } catch (e) {
-      cliente = null;
-    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detalle de Venta'),
@@ -58,19 +48,33 @@ S/ ${v.total.toStringAsFixed(2)}
         elevation: 0,
       ),
       body: SafeArea(
-        // Usamos un Consumer para que los datos se actualicen si se editan
-        child: Consumer<VentaProvider>(
-          builder: (context, provider, child) {
-            // Busca la versión más actualizada de la venta
+        // --- 1. CAMBIO A Consumer2 ---
+        child: Consumer2<VentaProvider, ClienteProvider>(
+          builder: (context, provider, clienteProvider, child) {
             final ventaActualizada = provider.ventas.firstWhere(
               (v) => v.codigo == venta.codigo,
-              orElse: () => venta, // Si no la encuentra, usa la original
+              orElse: () => venta,
             );
+
+            // --- 2. BUSCAR EL CLIENTE AQUÍ ---
+            Cliente? cliente;
+            if (clienteProvider.isLoading) {
+              cliente = null;
+            } else {
+              try {
+                cliente = clienteProvider.clientes.firstWhere(
+                  (c) => c.id == ventaActualizada.clienteId,
+                );
+              } catch (e) {
+                cliente = null;
+              }
+            }
+            // --- FIN DE LA BÚSQUEDA ---
 
             return ListView(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
               children: [
-                // --- Encabezado ---
+                // Encabezado
                 Text(
                   'Venta ${ventaActualizada.codigo}',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -79,7 +83,6 @@ S/ ${v.total.toStringAsFixed(2)}
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  // <-- CORREGIDO -->
                   'Serie 001-000001\nFecha: ${DateFormat('dd/MM/yyyy').format(ventaActualizada.fecha)}',
                   style: Theme.of(
                     context,
@@ -87,18 +90,18 @@ S/ ${v.total.toStringAsFixed(2)}
                 ),
                 const SizedBox(height: 24),
 
-                // --- Tarjeta de Cliente y Estado ---
+                // --- 3. PASAR EL CLIENTE AL HELPER ---
                 _buildClienteEstadoCard(
                   context,
                   ventaActualizada,
-                ), // <-- Pasa la Venta
+                  cliente, // <-- Pasar el cliente encontrado
+                ),
                 const SizedBox(height: 24),
 
-                // --- Tarjeta de Detalle de Ítems ---
-                _buildItemsCard(context, ventaActualizada), // <-- Pasa la Venta
+                _buildItemsCard(context, ventaActualizada),
                 const SizedBox(height: 24),
 
-                // --- Botones de Acción ---
+                // --- 4. CONECTAR EL BOTÓN DE PDF ---
                 ElevatedButton.icon(
                   icon: const Icon(Icons.download),
                   label: const Text('Descargar PDF'),
@@ -111,9 +114,15 @@ S/ ${v.total.toStringAsFixed(2)}
                     ),
                   ),
                   onPressed: () {
-                    // Lógica de PDF (futuro)
+                    // LLAMAR AL SERVICIO DE PDF
+                    PdfGenerationService().generateVentaPdf(
+                      ventaActualizada,
+                      cliente, // <-- Pasar el cliente
+                    );
                   },
                 ),
+
+                // --- FIN DE LA CONEXIÓN ---
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -158,17 +167,20 @@ S/ ${v.total.toStringAsFixed(2)}
                       titulo: 'Anular Venta',
                       contenido:
                           '¿Está seguro de que desea anular esta venta? Esta acción no se puede deshacer.',
-                      onConfirmar: () {
-                        ventaProvider.anularVenta(ventaActualizada);
-                        Navigator.pop(context); // Cierra el diálogo
-                        Navigator.pop(context); // Cierra la pantalla de detalle
+                      onConfirmar: () async {
+                        // <-- Hecho asíncrono
+                        await ventaProvider.anularVenta(ventaActualizada);
+                        if (context.mounted) {
+                          Navigator.pop(context); // Cierra el diálogo
+                          Navigator.pop(
+                            context,
+                          ); // Cierra la pantalla de detalle
+                        }
                       },
                     );
                   },
                 ),
                 const SizedBox(height: 24),
-
-                // --- Notas / Observaciones ---
                 Text(
                   'Notas / Observaciones',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -192,29 +204,20 @@ S/ ${v.total.toStringAsFixed(2)}
   }
 
   // Helper para la tarjeta de Cliente y Estado
-  Widget _buildClienteEstadoCard(BuildContext context, Venta venta) {
+  Widget _buildClienteEstadoCard(
+    BuildContext context,
+    Venta venta,
+    Cliente? cliente, // <-- ACEPTA EL CLIENTE
+  ) {
     // --- 1. Envolver la lógica en un Consumer<ClienteProvider> ---
     return Consumer<ClienteProvider>(
       builder: (context, clienteProvider, child) {
-        // --- 2. Lógica de búsqueda (ahora es segura) ---
-        String nombreCliente;
-        if (clienteProvider.isLoading) {
-          nombreCliente = 'Cargando cliente...';
-        } else {
-          try {
-            // Asumimos que el cliente "Mostrador" tiene id 1 (como en nueva_venta)
-            if (venta.clienteId == 1) {
-              nombreCliente = 'Mostrador';
-            } else {
-              final cliente = clienteProvider.clientes.firstWhere(
-                (c) => c.id == venta.clienteId, // Compara int con int
-              );
-              nombreCliente = '${cliente.nombre} ${cliente.apellidos ?? ''}';
-            }
-          } catch (e) {
-            nombreCliente = 'Cliente (ID: ${venta.clienteId})'; // Fallback
-          }
-        }
+        // --- 2. Lógica de búsqueda (eliminada) ---
+        final String nombreCliente = cliente != null
+            ? '${cliente.nombre} ${cliente.apellidos ?? ''}'
+            : (venta.clienteId == 1
+                  ? 'Mostrador'
+                  : 'Cliente (ID: ${venta.clienteId})');
         // --- Fin de la lógica de búsqueda ---
 
         // --- 3. Devolver la UI de la tarjeta ---

@@ -5,6 +5,7 @@ class Venta {
   final int clienteId;
   final DateTime fecha; // <-- CAMBIO: De 'String' a 'DateTime'
   final String producto;
+  final String prendaId;
   final int cantidad;
   final double precioUnitario;
   final String metodoPago;
@@ -15,6 +16,7 @@ class Venta {
     required this.clienteId,
     required this.fecha, // <-- 'DateTime'
     required this.producto,
+    required this.prendaId,
     required this.cantidad,
     required this.precioUnitario,
     required this.metodoPago,

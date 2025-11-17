@@ -267,6 +267,10 @@ class _RegistrarDevolucionScreenState extends State<RegistrarDevolucionScreen> {
                       minimumSize: const Size.fromHeight(48),
                       foregroundColor: primary,
                       textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                      disabledForegroundColor: Colors.white.withOpacity(
+                        0.7,
+                      ), // <-- AÑADE ESTA LÍNEA
+                      disabledBackgroundColor: Colors.grey.shade400,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),

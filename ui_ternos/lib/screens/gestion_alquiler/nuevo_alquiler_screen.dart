@@ -1,13 +1,14 @@
-// lib/screens/gestion_alquiler/nuevo_alquiler_screen.dart (CORREGIDO)
+// lib/screens/gestion_alquiler/nuevo_alquiler_screen.dart (CORREGIDO CON GARANTÍA FIJA VISIBLE)
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/models/alquiler.dart';
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
+import 'package:proyecto_tienda_ternos/models/prenda.dart';
 import 'package:proyecto_tienda_ternos/providers/alquiler_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/providers/prenda_provider.dart';
-import 'package:intl/intl.dart'; // <-- 1. IMPORTAR INTL
+import 'package:intl/intl.dart';
 import 'package:proyecto_tienda_ternos/providers/pago_provider.dart';
 import 'package:proyecto_tienda_ternos/models/pago.dart';
 
@@ -21,36 +22,80 @@ class NuevoAlquilerScreen extends StatefulWidget {
 class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controladores (Solo para mostrar texto)
+  // Controladores
   final TextEditingController _fechaAlquilerCtrl = TextEditingController();
   final TextEditingController _fechaDevolucionCtrl = TextEditingController();
-  final TextEditingController _garantiaCtrl = TextEditingController();
   final TextEditingController _montoTotalCtrl = TextEditingController();
+  // --- 1. AÑADIR EL CONTROLADOR DE GARANTÍA DE VUELTA ---
+  late TextEditingController _garantiaCtrl;
 
-  // --- 2. AÑADIR ESTADO PARA DATETIME ---
+  // Variables de estado
   Cliente? _selectedCliente;
   String? _selectedTraje;
   String _selectedPaymentMethod = 'Yape - Plin';
   bool _isSaving = false;
-  DateTime? _selectedFechaInicio; // <-- AÑADIDO
-  DateTime? _selectedFechaDevolucion; // <-- AÑADIDO
+  DateTime? _selectedFechaInicio;
+  DateTime? _selectedFechaDevolucion;
+
+  // --- 2. AÑADIR initState PARA INICIALIZAR EL CONTROLADOR ---
+  @override
+  void initState() {
+    super.initState();
+    _garantiaCtrl = TextEditingController(text: '150.00'); // <-- Valor fijo
+  }
 
   @override
   void dispose() {
     _fechaAlquilerCtrl.dispose();
     _fechaDevolucionCtrl.dispose();
-    _garantiaCtrl.dispose();
     _montoTotalCtrl.dispose();
+    _garantiaCtrl.dispose(); // <-- 3. AÑADIR A DISPOSE
     super.dispose();
   }
 
-  // --- 3. CORREGIR _submitForm ---
+  // --- (Función _submitForm ya era correcta) ---
   Future<void> _submitForm() async {
-    if (!_formKey.currentState!.validate() ||
-        _selectedCliente == null /*...*/ ) {
-      // ... (tus validaciones están bien)
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedCliente == null ||
+        _selectedFechaInicio == null ||
+        _selectedFechaDevolucion == null ||
+        _selectedTraje == null) {
+      _showError('Por favor, complete todos los campos requeridos.');
       return;
     }
+    if (_selectedCliente!.vetado == true) {
+      _showError(
+        'Error: El cliente seleccionado (${_selectedCliente!.nombre}) está vetado y no puede realizar transacciones.',
+      );
+      return;
+    }
+
+    final prendaProvider = context.read<PrendaProvider>();
+    final double monto = double.tryParse(_montoTotalCtrl.text) ?? 0.0;
+    final double montoMinimoAlquiler = 50.0; // Define un mínimo (ej. S/ 50)
+
+    if (monto < montoMinimoAlquiler) {
+      _showError(
+        'El monto (S/ ${monto.toStringAsFixed(2)}) es demasiado bajo. El mínimo es S/ $montoMinimoAlquiler.',
+      );
+      return; // Detiene el alquiler
+    }
+
+    Prenda? prendaAActualizar;
+    try {
+      prendaAActualizar = prendaProvider.prendas.firstWhere(
+        (p) =>
+            p.nombre == _selectedTraje && p.estado == PrendaEstado.Disponible,
+      );
+    } catch (e) {
+      prendaAActualizar = null;
+    }
+
+    if (prendaAActualizar == null) {
+      _showError('¡No hay stock disponible para "$_selectedTraje"!');
+      return;
+    }
+
     setState(() => _isSaving = true);
 
     try {
@@ -58,21 +103,21 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
           'ALQ-${DateTime.now().millisecondsSinceEpoch}';
 
       final nuevoAlquiler = Alquiler(
-        codigo: codigoAlquiler, // <-- Usar variable
+        codigo: codigoAlquiler,
         clienteId: _selectedCliente!.id!,
-        producto: _selectedTraje ?? 'Traje (No seleccionado)',
+        producto: _selectedTraje!,
+        prendaId: prendaAActualizar.id,
         fechaInicio: _selectedFechaInicio!,
         fechaDevolucion: _selectedFechaDevolucion!,
         estado: AlquilerEstado.activo,
         metodoPago: _selectedPaymentMethod,
         montoTotal: 'S/ ${_montoTotalCtrl.text}',
-        garantia: 'S/ ${_garantiaCtrl.text}',
+        garantia: 'S/ 150.00', // <-- El valor fijo se sigue usando aquí
       );
 
-      // --- ¡AÑADIDO! ---
       final nuevoPago = Pago(
         id: 'PGO-${DateTime.now().millisecondsSinceEpoch}',
-        fecha: _selectedFechaInicio!, // El pago se hace al inicio
+        fecha: _selectedFechaInicio!,
         clienteId: _selectedCliente!.id!,
         monto: 'S/ ${_montoTotalCtrl.text}',
         tipo: TipoPago.Alquiler,
@@ -80,16 +125,22 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
         transaccionId: codigoAlquiler,
       );
 
-      // Llamar a ambos providers
+      final prendaAlquilada = Prenda(
+        id: prendaAActualizar.id,
+        nombre: prendaAActualizar.nombre,
+        talla: prendaAActualizar.talla,
+        categoria: prendaAActualizar.categoria,
+        estado: PrendaEstado.Alquilado,
+        usos: prendaAActualizar.usos + 1,
+      );
+
       await context.read<AlquilerProvider>().agregarAlquiler(nuevoAlquiler);
-      await context.read<PagoProvider>().agregarPago(
-        nuevoPago,
-      ); // <-- ¡AÑADIDO!
-      // ------------------
+      await context.read<PagoProvider>().agregarPago(nuevoPago);
+      await prendaProvider.editarPrenda(prendaAlquilada);
 
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      // ... (tu catch/finally)
+      if (mounted) _showError('Error al guardar: $e');
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -106,6 +157,12 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
         await Navigator.pushNamed(context, Routes.seleccionarCliente)
             as Cliente?;
     if (clienteSeleccionado != null) {
+      if (clienteSeleccionado.vetado == true) {
+        _showError(
+          'Este cliente está vetado y no puede realizar nuevos alquileres.',
+        );
+        return;
+      }
       setState(() {
         _selectedCliente = clienteSeleccionado;
       });
@@ -182,7 +239,7 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
               ),
               const SizedBox(height: 16),
 
-              // --- 4. CORREGIR FILA DE FECHAS ---
+              // (Fila de Fechas - sin cambios)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -226,7 +283,7 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
               ),
               const SizedBox(height: 16),
 
-              // (Montos - sin cambios)
+              // (Monto Total - sin cambios)
               _buildTextField(
                 controller: _montoTotalCtrl,
                 label: 'Monto Total',
@@ -234,13 +291,17 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
                 hint: '150',
               ),
               const SizedBox(height: 16),
+
+              // --- 4. CAMPO DE GARANTÍA (AHORA FIJO Y NO EDITABLE) ---
               _buildTextField(
-                controller: _garantiaCtrl,
-                label: 'Monto de garantía',
+                controller:
+                    _garantiaCtrl, // <-- Usa el controlador inicializado
+                label: 'Monto de garantía (Fijo)',
                 prefix: 'S/ ',
-                hint: '50',
+                isReadOnly: true, // <-- Lo hace no editable
               ),
               const SizedBox(height: 24),
+              // --- FIN DE LA CORRECCIÓN ---
 
               // (Botón de registrar - sin cambios)
               ElevatedButton(
@@ -275,11 +336,13 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
     );
   }
 
-  // --- 5. CORREGIR _buildDateField ---
+  // --- (WIDGETS HELPER) ---
+
+  // (Helper _buildDateField - sin cambios)
   Widget _buildDateField({
     required TextEditingController controller,
     required String label,
-    required ValueChanged<DateTime> onDateSelected, // <-- AÑADIDO
+    required ValueChanged<DateTime> onDateSelected,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -295,7 +358,7 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
           controller: controller,
           readOnly: true,
           decoration: const InputDecoration(
-            hintText: 'dd/MM/yyyy', // <-- Cambiado el formato
+            hintText: 'dd/MM/yyyy',
             border: OutlineInputBorder(),
             suffixIcon: Icon(Icons.calendar_today),
             contentPadding: EdgeInsets.symmetric(horizontal: 12),
@@ -311,11 +374,8 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
               lastDate: DateTime(2030),
             );
             if (picked != null) {
-              // Actualiza el estado y el texto
-              onDateSelected(picked); // <-- AÑADIDO
-              controller.text = DateFormat(
-                'dd/MM/yyyy',
-              ).format(picked); // <-- CORREGIDO
+              onDateSelected(picked);
+              controller.text = DateFormat('dd/MM/yyyy').format(picked);
             }
           },
         ),
@@ -323,7 +383,7 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
     );
   }
 
-  // --- (Tus 4 widgets helper no necesitan cambios) ---
+  // (Helper _buildDropdownField - sin cambios)
   Widget _buildDropdownField({
     required String label,
     required String hint,
@@ -331,7 +391,6 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
     required List<String> items,
     required ValueChanged<String?> onChanged,
   }) {
-    // ... (Tu código es correcto)
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -353,20 +412,22 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
             return DropdownMenuItem<String>(value: item, child: Text(item));
           }).toList(),
           onChanged: onChanged,
-          validator: (value) => value == null ? 'Campo requerido' : null,
+          validator: (value) =>
+              (value == null && items.isNotEmpty) ? 'Campo requerido' : null,
         ),
       ],
     );
   }
 
+  // --- 5. HELPER _buildTextField (ACTUALIZADO) ---
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
     String? prefix,
     String? hint,
     IconData? icon,
+    bool isReadOnly = false, // <-- AÑADIDO
   }) {
-    // ... (Tu código es correcto)
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -379,7 +440,9 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
-          keyboardType: (icon != null)
+          readOnly: isReadOnly, // <-- AÑADIDO
+          keyboardType:
+              (icon != null || isReadOnly) // <-- MODIFICADO
               ? TextInputType.text
               : TextInputType.number,
           decoration: InputDecoration(
@@ -388,13 +451,21 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
                 : null,
             prefixText: prefix,
             hintText: hint,
-            border: OutlineInputBorder(),
+            border: const OutlineInputBorder(),
+            // --- AÑADIDO: Lógica visual para 'solo lectura' ---
+            filled: isReadOnly,
+            fillColor: isReadOnly
+                ? Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.borderDark
+                      : AppColors.borderLight.withOpacity(0.5)
+                : null,
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Campo requerido';
             }
-            if (icon == null && double.tryParse(value) == null) {
+            // No validar como número si es readOnly
+            if (icon == null && !isReadOnly && double.tryParse(value) == null) {
               return 'Monto inválido';
             }
             return null;
@@ -404,8 +475,8 @@ class _NuevoAlquilerScreenState extends State<NuevoAlquilerScreen> {
     );
   }
 
+  // (Helper _buildPaymentButton - sin cambios)
   Widget _buildPaymentButton(String method) {
-    // ... (Tu código es correcto)
     final bool isSelected = _selectedPaymentMethod == method;
 
     return Expanded(

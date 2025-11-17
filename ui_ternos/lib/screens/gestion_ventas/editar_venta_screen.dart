@@ -101,9 +101,10 @@ class _EditarVentaScreenState extends State<EditarVentaScreen> {
     try {
       final ventaActualizada = Venta(
         codigo: widget.venta.codigo,
-        clienteId: widget.venta.clienteId, // Mantenemos el ID original
+        clienteId: widget.venta.clienteId,
         fecha: widget.venta.fecha,
         producto: _selectedTraje ?? 'Producto no seleccionado',
+        prendaId: widget.venta.prendaId, // <-- ¡CORRECCIÓN! CAMPO AÑADIDO
         cantidad: int.tryParse(_cantidadCtrl.text) ?? 0,
         precioUnitario: double.tryParse(_precioCtrl.text) ?? 0.0,
         metodoPago: _selectedPaymentMethod,

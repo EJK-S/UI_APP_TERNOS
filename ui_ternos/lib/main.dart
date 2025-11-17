@@ -35,6 +35,7 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
+        // --- NIVEL 0: REPOSITORIOS (No tienen dependencias) ---
         Provider(create: (context) => ClienteRepository()),
         Provider(create: (context) => VentaRepository()),
         Provider(create: (context) => AlquilerRepository()),
@@ -42,59 +43,66 @@ void main() {
         Provider(create: (context) => PrendaRepository()),
         Provider(create: (context) => PagoRepository()),
 
-        // <-- Corchetes de LISTA
-        ChangeNotifierProxyProvider<AlquilerRepository, AlquilerProvider>(
-          create: (context) => AlquilerProvider(
-            Provider.of<AlquilerRepository>(context, listen: false),
-          ),
-          update: (context, repository, previousProvider) =>
-              previousProvider ?? AlquilerProvider(repository),
+        // --- NIVEL 1: PROVIDERS BÁSICOS (Dependen solo de Repositorios) ---
+        ChangeNotifierProvider(create: (context) => SettingsProvider()),
+
+        ChangeNotifierProxyProvider<ClienteRepository, ClienteProvider>(
+          create: (context) =>
+              ClienteProvider(context.read<ClienteRepository>())
+                ..fetchClientes(), // <-- CORREGIDO
+          update: (context, repo, prev) => prev ?? ClienteProvider(repo),
         ),
         ChangeNotifierProxyProvider<CitaRepository, CitaProvider>(
           create: (context) =>
-              CitaProvider(Provider.of<CitaRepository>(context, listen: false)),
-          update: (context, repository, previousProvider) =>
-              previousProvider ?? CitaProvider(repository),
+              CitaProvider(context.read<CitaRepository>())
+                ..fetchCitas(), // <-- CORREGIDO
+          update: (context, repo, prev) => prev ?? CitaProvider(repo),
         ),
-        ChangeNotifierProxyProvider<VentaRepository, VentaProvider>(
-          create: (context) => VentaProvider(
-            Provider.of<VentaRepository>(context, listen: false),
-          ),
-          update: (context, repository, previousProvider) =>
-              previousProvider ?? VentaProvider(repository),
-        ),
-        ChangeNotifierProxyProvider<ClienteRepository, ClienteProvider>(
-          create: (context) => ClienteProvider(
-            Provider.of<ClienteRepository>(context, listen: false),
-          ),
-          update: (context, repository, previousProvider) =>
-              previousProvider ?? ClienteProvider(repository),
-        ),
-        ChangeNotifierProvider(create: (context) => SettingsProvider()),
         ChangeNotifierProxyProvider<PrendaRepository, PrendaProvider>(
-          create: (context) => PrendaProvider(
-            Provider.of<PrendaRepository>(context, listen: false),
-          ),
-          update: (context, repository, previousProvider) =>
-              previousProvider ?? PrendaProvider(repository),
+          create: (context) =>
+              PrendaProvider(context.read<PrendaRepository>())
+                ..fetchPrendas(), // <-- CORREGIDO
+          update: (context, repo, prev) => prev ?? PrendaProvider(repo),
         ),
-        ChangeNotifierProxyProvider<PrendaProvider, InventarioProvider>(
-          create: (context) => InventarioProvider(
-            Provider.of<PrendaProvider>(context, listen: false),
-          ),
-
-          update: (context, prendaProvider, inventarioProvider) {
-            if (inventarioProvider == null)
-              return InventarioProvider(prendaProvider);
-            return inventarioProvider..update(prendaProvider);
-          },
-        ),
-
         ChangeNotifierProxyProvider<PagoRepository, PagoProvider>(
           create: (context) =>
-              PagoProvider(Provider.of<PagoRepository>(context, listen: false)),
-          update: (context, repository, previousProvider) =>
-              previousProvider ?? PagoProvider(repository),
+              PagoProvider(context.read<PagoRepository>())
+                ..fetchPagos(), // <-- CORREGIDO
+          update: (context, repo, prev) => prev ?? PagoProvider(repo),
+        ),
+
+        // --- NIVEL 2: PROVIDERS COMPUESTOS (Dependen de otros Providers) ---
+        ChangeNotifierProxyProvider<PrendaProvider, InventarioProvider>(
+          create: (context) =>
+              InventarioProvider(context.read<PrendaProvider>()),
+          update: (context, prendaProvider, invProvider) =>
+              invProvider!..update(prendaProvider),
+        ),
+
+        ChangeNotifierProxyProvider2<
+          AlquilerRepository,
+          PagoProvider,
+          AlquilerProvider
+        >(
+          create: (context) => AlquilerProvider(
+            context.read<AlquilerRepository>(),
+            context.read<PagoProvider>(),
+          )..fetchAlquileres(), // <-- CORREGIDO
+          update: (context, alqRepo, pagoProvider, previous) =>
+              previous!..updatePagoProvider(pagoProvider),
+        ),
+
+        ChangeNotifierProxyProvider2<
+          VentaRepository,
+          PagoProvider,
+          VentaProvider
+        >(
+          create: (context) => VentaProvider(
+            context.read<VentaRepository>(),
+            context.read<PagoProvider>(),
+          )..fetchVentas(), // <-- CORREGIDO
+          update: (context, ventaRepo, pagoProvider, previous) =>
+              previous!..updatePagoProvider(pagoProvider),
         ),
       ],
       child: const AppRoot(),

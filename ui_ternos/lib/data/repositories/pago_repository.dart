@@ -17,4 +17,9 @@ class PagoRepository {
     _pagosDB.add(nuevoPago);
     return nuevoPago;
   }
+
+  Future<void> eliminarPagoPorTransaccionId(String transaccionId) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    _pagosDB.removeWhere((p) => p.transaccionId == transaccionId);
+  }
 }

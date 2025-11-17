@@ -84,11 +84,19 @@ class InventarioProvider extends ChangeNotifier {
         PrendaEstado.Mantenimiento,
       );
 
+      // --- AÑADIDO ---
+      final vendidos = _prendaProvider.contarPorCategoriaYEstado(
+        nombreCategoria,
+        PrendaEstado.Vendido,
+      );
+      // --- FIN DE LA ADICIÓN ---
+
       return InventarioCategoria(
         nombre: nombreCategoria,
         disponibles: disponibles,
         alquilados: alquilados,
         mantenimiento: mantenimiento,
+        vendidos: vendidos, // <-- AÑADIDO
       );
     }).toList();
   }

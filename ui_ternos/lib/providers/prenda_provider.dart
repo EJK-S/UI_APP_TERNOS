@@ -1,4 +1,4 @@
-// lib/providers/prenda_provider.dart
+// lib/providers/prenda_provider.dart (VERSIÓN COMPLETA Y CORRECTA)
 
 import 'package:flutter/material.dart';
 import 'package:proyecto_tienda_ternos/data/repositories/prenda_repository.dart';
@@ -16,17 +16,22 @@ class PrendaProvider extends ChangeNotifier {
   List<Prenda> get prendas => _prendas;
   bool get isLoading => _isLoading;
 
-  // 4. CONSTRUCTOR
-  PrendaProvider(this._repository) {
-    fetchPrendas();
-  }
+  // --- CORRECCIÓN 1: EL CONSTRUCTOR NO DEBE LLAMAR A fetchPrendas() ---
+  // La llamada se hace desde main.dart
+  PrendaProvider(this._repository);
 
-  // 5. MÉTODOS (ASÍNCRONOS)
+  // --- CORRECCIÓN 2: IMPLEMENTACIÓN COMPLETA DE LOS MÉTODOS ---
 
   Future<void> fetchPrendas() async {
+    // 'Guardia' para evitar cargas múltiples si ya se llamó
+    if (_prendas.isNotEmpty || _isLoading) return;
+
     _isLoading = true;
     notifyListeners();
+
+    // (Tu 'List.from' ya era correcto para evitar duplicados)
     _prendas = List.from(await _repository.getPrendas());
+
     _isLoading = false;
     notifyListeners();
   }
@@ -52,17 +57,20 @@ class PrendaProvider extends ChangeNotifier {
     notifyListeners(); // Avisa al InventarioProvider y a las pantallas
   }
 
-  // --- MÉTODOS DE CÁLCULO (SÍNCRONOS) ---
-  // Estos métodos leen el ESTADO LOCAL (_prendas), no la base de datos.
-  // El InventarioProvider depende de ellos.
-
+  // (Tus métodos de cálculo síncronos ya eran correctos)
   int contarPorCategoriaYEstado(String categoria, PrendaEstado estado) {
+    final categoriaTrimmed = categoria.trim();
     return _prendas
-        .where((p) => p.categoria == categoria && p.estado == estado)
+        .where(
+          (p) => p.categoria.trim() == categoriaTrimmed && p.estado == estado,
+        )
         .length;
   }
 
   List<Prenda> getPrendasPorCategoria(String categoria) {
-    return _prendas.where((p) => p.categoria == categoria).toList();
+    final categoriaTrimmed = categoria.trim();
+    return _prendas
+        .where((p) => p.categoria.trim() == categoriaTrimmed)
+        .toList();
   }
 }

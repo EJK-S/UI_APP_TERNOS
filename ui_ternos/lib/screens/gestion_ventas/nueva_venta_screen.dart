@@ -3,8 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto_tienda_ternos/models/cliente.dart';
+import 'package:proyecto_tienda_ternos/models/prenda.dart';
 import 'package:proyecto_tienda_ternos/models/venta.dart';
-import 'package:proyecto_tienda_ternos/providers/prenda_provider.dart'; // <-- Importado
+import 'package:proyecto_tienda_ternos/providers/prenda_provider.dart';
 import 'package:proyecto_tienda_ternos/providers/venta_provider.dart';
 import 'package:proyecto_tienda_ternos/theme/app_theme.dart';
 import 'package:proyecto_tienda_ternos/providers/pago_provider.dart';
@@ -29,7 +30,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
   String? _selectedTraje;
   String _selectedPaymentMethod = 'Yape-Plin';
   double _total = 0.0;
-  bool _isSaving = false; // <-- 1. AÑADIR ESTADO DE CARGA
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -64,11 +65,44 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
     }
   }
 
-  // --- 2. FUNCIÓN '_submitForm' (CORREGIDA CON ASYNC/AWAIT) ---
+  // --- FUNCIÓN _submitForm (CORREGIDA) ---
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+
+    // Validar que se seleccionó un traje
+    if (_selectedTraje == null) {
+      _showError('Por favor, seleccione un tipo de traje.');
+      return;
+    }
+
+    final prendaProvider = context.read<PrendaProvider>();
+    final double precio = double.tryParse(_precioCtrl.text) ?? 0.0;
+    final double precioMinimoVenta = 100.0; // Define un mínimo (ej. S/ 100)
+
+    if (precio < precioMinimoVenta) {
+      _showError(
+        'El precio (S/ ${precio.toStringAsFixed(2)}) es demasiado bajo. El mínimo es S/ $precioMinimoVenta.',
+      );
+      return; // Detiene la venta
+    }
+
+    Prenda? prendaAActualizar;
+    try {
+      prendaAActualizar = prendaProvider.prendas.firstWhere(
+        (p) =>
+            p.nombre == _selectedTraje && p.estado == PrendaEstado.Disponible,
+      );
+    } catch (e) {
+      prendaAActualizar = null;
+    }
+
+    if (prendaAActualizar == null) {
+      _showError('¡No hay stock disponible para "$_selectedTraje"!');
+      return;
+    }
+
     setState(() => _isSaving = true);
 
     try {
@@ -77,17 +111,17 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
       final DateTime fechaActual = DateTime.now();
 
       final nuevaVenta = Venta(
-        codigo: codigoVenta, // <-- Usar variable
+        codigo: codigoVenta,
         clienteId: clienteId,
-        fecha: fechaActual, // <-- Usar variable
-        producto: _selectedTraje ?? 'Producto no seleccionado',
+        fecha: fechaActual,
+        producto: _selectedTraje!,
+        prendaId: prendaAActualizar.id, // <-- ¡CORRECCIÓN! CAMPO AÑADIDO
         cantidad: int.tryParse(_cantidadCtrl.text) ?? 0,
         precioUnitario: double.tryParse(_precioCtrl.text) ?? 0.0,
         metodoPago: _selectedPaymentMethod,
         total: _total,
       );
 
-      // --- ¡AÑADIDO! ---
       final nuevoPago = Pago(
         id: 'PGO-${DateTime.now().millisecondsSinceEpoch}',
         fecha: fechaActual,
@@ -98,26 +132,37 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
         transaccionId: codigoVenta,
       );
 
-      // Llamar a ambos providers
+      final prendaVendida = Prenda(
+        id: prendaAActualizar.id,
+        nombre: prendaAActualizar.nombre,
+        talla: prendaAActualizar.talla,
+        categoria: prendaAActualizar.categoria,
+        estado: PrendaEstado.Vendido,
+        usos: prendaAActualizar.usos,
+      );
+
       await context.read<VentaProvider>().agregarVenta(nuevaVenta);
-      await context.read<PagoProvider>().agregarPago(
-        nuevoPago,
-      ); // <-- ¡AÑADIDO!
-      // ------------------
+      await context.read<PagoProvider>().agregarPago(nuevoPago);
+      await prendaProvider.editarPrenda(prendaVendida);
 
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      // ... (tu catch/finally)
+      if (mounted) _showError('Error al guardar: $e');
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
   }
 
+  // Helper para mostrar errores
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // --- 3. CONECTARSE AL PRENDA PROVIDER (CON 'watch') ---
-    // Usamos 'watch' para que la pantalla se actualice si las prendas
-    // estaban cargando y terminan de cargar.
+    // (Tu método 'build' y tus 'helpers' ya eran correctos)
     final prendaProvider = context.watch<PrendaProvider>();
     final List<String> productosDeInventario = prendaProvider.prendas
         .map((prenda) => prenda.nombre)
@@ -135,7 +180,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                 child: ListView(
                   padding: const EdgeInsets.all(16.0),
                   children: [
-                    // --- Campo de Cliente (Tu lógica ya era correcta) ---
+                    // Campo de Cliente
                     Text(
                       'Cliente (opcional)',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -175,12 +220,12 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // --- 4. DROPDOWN CORREGIDO ---
+                    // Dropdown de Traje
                     _buildDropdownField(
                       label: 'Tipo de traje',
                       hint: 'Seleccionar tipo',
                       value: _selectedTraje,
-                      items: productosDeInventario, // <-- USA LA LISTA DINÁMICA
+                      items: productosDeInventario,
                       onChanged: (value) {
                         setState(() {
                           _selectedTraje = value;
@@ -189,7 +234,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // (Resto del formulario sin cambios)
+                    // Cantidad y Precio
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -214,6 +259,8 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
+
+                    // Método de pago
                     Text(
                       'Método de pago',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -246,6 +293,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                 ),
                 child: Column(
                   children: [
+                    // Total
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -266,7 +314,7 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // --- 5. BOTÓN DE GUARDAR CORREGIDO ---
+                    // Botón de Registrar
                     ElevatedButton(
                       onPressed: _isSaving ? null : _submitForm,
                       style: ElevatedButton.styleFrom(
@@ -302,7 +350,8 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
     );
   }
 
-  // --- (Tus 3 widgets helper no necesitan cambios) ---
+  // --- (WIDGETS HELPER) ---
+
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -313,7 +362,6 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
     TextInputType? keyboardType,
     bool isReadOnly = false,
   }) {
-    // ... (Tu código es correcto)
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -367,7 +415,6 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
     required List<String> items,
     required ValueChanged<String?> onChanged,
   }) {
-    // ... (Tu código es correcto)
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -389,14 +436,14 @@ class _NuevaVentaScreenState extends State<NuevaVentaScreen> {
             return DropdownMenuItem<String>(value: item, child: Text(item));
           }).toList(),
           onChanged: onChanged,
-          validator: (value) => value == null ? 'Campo requerido' : null,
+          validator: (value) =>
+              (value == null && items.isNotEmpty) ? 'Campo requerido' : null,
         ),
       ],
     );
   }
 
   Widget _buildPaymentButton(String method) {
-    // ... (Tu código es correcto)
     final bool isSelected = _selectedPaymentMethod == method;
     return Expanded(
       child: Padding(

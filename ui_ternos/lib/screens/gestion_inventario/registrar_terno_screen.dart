@@ -20,7 +20,6 @@ class _RegistrarTernoScreenState extends State<RegistrarTernoScreen> {
   final _formKey = GlobalKey<FormState>();
 
   // Controladores
-  final _idCtrl = TextEditingController();
   final _nombreCtrl = TextEditingController();
   final _tallaCtrl = TextEditingController();
   // final _categoriaCtrl = TextEditingController(); // <-- 2. ELIMINADO
@@ -42,7 +41,6 @@ class _RegistrarTernoScreenState extends State<RegistrarTernoScreen> {
 
   @override
   void dispose() {
-    _idCtrl.dispose();
     _nombreCtrl.dispose();
     _tallaCtrl.dispose();
     // _categoriaCtrl.dispose(); // <-- ELIMINADO
@@ -68,8 +66,13 @@ class _RegistrarTernoScreenState extends State<RegistrarTernoScreen> {
     setState(() => _isSaving = true);
 
     try {
+      // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
+      // 1. Genera un ID único basado en la hora actual
+      final String nuevoId = 'P-${DateTime.now().millisecondsSinceEpoch}';
+
+      // 2. Crea la nueva prenda
       final nuevaPrenda = Prenda(
-        id: _idCtrl.text.trim(),
+        id: nuevoId, // <-- Usa el ID autogenerado
         nombre: _nombreCtrl.text.trim(),
         talla: _tallaCtrl.text.trim(),
         categoria: _selectedCategoria!,
@@ -87,16 +90,13 @@ class _RegistrarTernoScreenState extends State<RegistrarTernoScreen> {
           ),
         );
 
-        // --- 4. SOLUCIÓN AL PROBLEMA #2 ---
         if (_mantenerEnPantalla) {
-          // Si el check está activo, solo limpia los campos únicos
+          // Limpia los campos (¡pero ya no necesitamos limpiar _idCtrl!)
           setState(() {
-            _idCtrl.clear();
             _tallaCtrl.clear();
             // Mantenemos el nombre y la categoría
           });
         } else {
-          // Si no, regresa a la pantalla anterior
           Navigator.pop(context);
         }
       }
@@ -133,12 +133,6 @@ class _RegistrarTernoScreenState extends State<RegistrarTernoScreen> {
           child: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
-              _buildTextField(
-                controller: _idCtrl,
-                label: 'ID Único / Código',
-                hint: 'Ej. TC-023',
-              ),
-              const SizedBox(height: 16),
               _buildTextField(
                 controller: _nombreCtrl,
                 label: 'Nombre de la prenda',

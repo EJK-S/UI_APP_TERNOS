@@ -57,14 +57,10 @@ class _SeleccionarClienteScreenState extends State<SeleccionarClienteScreen> {
 
   // --- 3. WIDGET AUXILIAR PARA LA LISTA (Más limpio) ---
   Widget _buildListaClientes(List<Cliente> todosLosClientes) {
-    // --- 4. LÓGICA DE FILTRADO CORREGIDA ---
     final List<Cliente> clientesFiltrados = todosLosClientes.where((cliente) {
       final nombreCompleto = '${cliente.nombre} ${cliente.apellidos ?? ''}'
           .toLowerCase();
-
-      // CORRECCIÓN: Usar 'cliente.dni' (String) en lugar de 'cliente.id' (int?)
       final dni = cliente.dni.toLowerCase();
-
       final busqueda = _filtro.toLowerCase();
       return nombreCompleto.contains(busqueda) || dni.contains(busqueda);
     }).toList();
@@ -73,19 +69,63 @@ class _SeleccionarClienteScreenState extends State<SeleccionarClienteScreen> {
       return const Center(child: Text('No se encontraron clientes.'));
     }
 
+    // --- CORRECCIÓN DE LÓGICA DE VETO (RN-21) ---
     return ListView.builder(
       itemCount: clientesFiltrados.length,
       itemBuilder: (context, index) {
         final cliente = clientesFiltrados[index];
+        final bool estaVetado = cliente.vetado ?? false; // 1. Chequear estado
+
         return ListTile(
-          leading: const CircleAvatar(child: Icon(Icons.person)),
-          title: Text('${cliente.nombre} ${cliente.apellidos ?? ''}'),
-          // (Tu subtítulo ya era correcto)
-          subtitle: Text('DNI: ${cliente.dni}'),
-          onTap: () {
-            // Devuelve el objeto 'cliente' completo
-            Navigator.pop(context, cliente);
-          },
+          // 2. Modificación Visual
+          leading: CircleAvatar(
+            backgroundColor: estaVetado
+                ? Colors.red.shade100
+                : Theme.of(context).primaryColor.withOpacity(0.1),
+            child: Icon(
+              estaVetado ? Icons.block : Icons.person, // Icono de bloqueo
+              color: estaVetado
+                  ? Colors.red.shade700
+                  : Theme.of(context).primaryColor,
+            ),
+          ),
+          title: Text(
+            '${cliente.nombre} ${cliente.apellidos ?? ''}',
+            style: TextStyle(
+              // Texto gris y cursiva si está vetado
+              color: estaVetado ? Colors.grey.shade600 : null,
+              fontStyle: estaVetado ? FontStyle.italic : FontStyle.normal,
+              decoration: estaVetado ? TextDecoration.lineThrough : null,
+            ),
+          ),
+          subtitle: Text(
+            estaVetado
+                ? 'CLIENTE VETADO (Motivo: ${cliente.motivoVeto ?? 'N/A'})'
+                : 'DNI: ${cliente.dni}',
+            style: TextStyle(
+              color: estaVetado ? Colors.red.shade700 : null,
+              fontSize: 12,
+            ),
+          ),
+
+          // 3. Lógica de Negocio (RN-21)
+          onTap:
+              estaVetado // Si el cliente está vetado...
+              ? () {
+                  // ...mostrar un mensaje de error
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Este cliente está vetado y no puede realizar nuevos alquileres.',
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              : () {
+                  // ...si no, devolver el cliente
+                  Navigator.pop(context, cliente);
+                },
         );
       },
     );

@@ -6,6 +6,7 @@ class Alquiler {
   final String codigo;
   final int clienteId;
   final String producto;
+  final String prendaId;
   final DateTime fechaInicio; // <-- CAMBIO: De 'String' a 'DateTime'
   final DateTime fechaDevolucion; // <-- CAMBIO: De 'String' a 'DateTime'
   final AlquilerEstado estado;
@@ -17,6 +18,7 @@ class Alquiler {
     required this.codigo,
     required this.clienteId,
     required this.producto,
+    required this.prendaId,
     required this.fechaInicio, // <-- 'DateTime'
     required this.fechaDevolucion, // <-- 'DateTime'
     required this.estado,

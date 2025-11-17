@@ -34,19 +34,19 @@ class GestionAlquileresScreen extends StatelessWidget {
             context,
             listen: false,
           );
-          String clienteId = '';
+          int clienteId = 1;
           try {
             // Buscamos el cliente por nombre
             final cliente = clienteProvider.clientes.firstWhere(
               (c) => '${c.nombre} ${c.apellidos ?? ''}' == filtroClienteNombre,
             );
-            clienteId = cliente.dni; // Usamos su DNI (ID)
+            clienteId = cliente.id!; // Usamos su DNI (ID)
           } catch (e) {
             // Maneja el caso si el cliente no se encuentra
           }
 
           alquileresFiltrados = todosLosAlquileres
-              .where((a) => a.clienteId == clienteId) // Filtra por ID
+              .where((a) => a.clienteId == clienteId)
               .toList();
         } else {
           alquileresFiltrados = todosLosAlquileres;
@@ -200,7 +200,7 @@ class _AlquilerCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  _StatusTag(alquiler: alquiler),
+                  _StatusTag(alquiler: alquiler), // <-- Pasa el objeto completo
                 ],
               ),
             ),
@@ -213,30 +213,23 @@ class _AlquilerCard extends StatelessWidget {
 
 // --- (El _StatusTag no cambia) ---
 class _StatusTag extends StatelessWidget {
-  // --- CAMBIADO: Ahora acepta el alquiler completo ---
   final Alquiler alquiler;
   const _StatusTag({required this.alquiler});
 
   @override
   Widget build(BuildContext context) {
-    // --- LÓGICA DE CÁLCULO AÑADIDA ---
     AlquilerEstado estadoCalculado = alquiler.estado;
     final now = DateTime.now();
-    // (Añadimos un chequeo de 2 días de gracia como dice RF-05)
     final fechaMora = alquiler.fechaDevolucion.add(const Duration(days: 2));
 
-    // Si el alquiler aún dice "activo" PERO la fecha de mora ya pasó...
     if (alquiler.estado == AlquilerEstado.activo && now.isAfter(fechaMora)) {
-      // ...fuerza el estado a "atrasado" (En Mora)
       estadoCalculado = AlquilerEstado.atrasado;
     }
-    // --- FIN DE LÓGICA ---
 
     String text;
     Color color;
     Color backgroundColor;
 
-    // El switch ahora usa el estado 'calculado'
     switch (estadoCalculado) {
       case AlquilerEstado.activo:
         text = 'Activo';

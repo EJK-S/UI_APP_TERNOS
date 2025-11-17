@@ -17,6 +17,7 @@ class _ConfiguracionSistemaScreenState
   late TextEditingController _nombreNegocioCtrl;
   late TextEditingController _rucCtrl;
   late TextEditingController _telefonoCtrl;
+  late TextEditingController _tipoCambioCtrl;
 
   bool _isInitialized = false;
 
@@ -29,6 +30,7 @@ class _ConfiguracionSistemaScreenState
       _nombreNegocioCtrl = TextEditingController(text: settings.nombreNegocio);
       _rucCtrl = TextEditingController(text: settings.ruc);
       _telefonoCtrl = TextEditingController(text: settings.telefono);
+      _tipoCambioCtrl = TextEditingController(text: settings.tipoCambio);
       _isInitialized = true;
     }
   }
@@ -39,6 +41,7 @@ class _ConfiguracionSistemaScreenState
     _rucCtrl.dispose();
     _telefonoCtrl.dispose();
     super.dispose();
+    _tipoCambioCtrl.dispose();
   }
 
   void _guardarCambios() {
@@ -49,6 +52,7 @@ class _ConfiguracionSistemaScreenState
     settings.setNombreNegocio(_nombreNegocioCtrl.text);
     settings.setRuc(_rucCtrl.text);
     settings.setTelefono(_telefonoCtrl.text);
+    settings.setTipoCambio(_tipoCambioCtrl.text);
 
     // Mostramos un mensaje
     ScaffoldMessenger.of(context).showSnackBar(
@@ -117,6 +121,19 @@ class _ConfiguracionSistemaScreenState
                     decoration: const InputDecoration(
                       labelText: 'Teléfono',
                       prefixIcon: Icon(Icons.call),
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _tipoCambioCtrl,
+                    keyboardType: TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: const InputDecoration(
+                      labelText: 'Tipo de Cambio (USD a S/)',
+                      hintText: 'Ej. 3.80',
+                      prefixIcon: Icon(Icons.attach_money),
                     ),
                   ),
                 ],

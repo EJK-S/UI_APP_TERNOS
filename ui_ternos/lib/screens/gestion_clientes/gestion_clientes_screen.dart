@@ -111,13 +111,13 @@ class _GestionClientesScreenState extends State<GestionClientesScreen> {
                                 // 'c' es la variable del cliente (ej. Cliente(nombre: 'Juan Pérez', ...))
 
                                 if (val == 'alquileres') {
-                                  // --- 1. NAVEGACIÓN CORREGIDA ---
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => GestionAlquileresScreen(
-                                        filtroClienteNombre: c
-                                            .nombre, // <-- Le pasamos el nombre
+                                        // --- CORREGIDO: Pasar el nombre completo ---
+                                        filtroClienteNombre:
+                                            '${c.nombre} ${c.apellidos ?? ''}',
                                       ),
                                     ),
                                   );
@@ -129,8 +129,8 @@ class _GestionClientesScreenState extends State<GestionClientesScreen> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => GestionVentasScreen(
-                                        filtroClienteNombre: c
-                                            .nombre, // <-- Le pasamos el nombre
+                                        filtroClienteNombre:
+                                            '${c.nombre} ${c.apellidos ?? ''}', // <-- Le pasamos el nombre
                                       ),
                                     ),
                                   );

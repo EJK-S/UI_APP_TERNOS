@@ -9,12 +9,14 @@ class SettingsProvider extends ChangeNotifier {
   String _nombreNegocio = 'Mi Tienda de Ternos';
   String _ruc = '00000000000';
   String _telefono = '987654321';
+  String _tipoCambio = '3.80';
 
   // --- Getters (para que la UI pueda leer los datos) ---
   bool get isDarkMode => _isDarkMode;
   String get nombreNegocio => _nombreNegocio;
   String get ruc => _ruc;
   String get telefono => _telefono;
+  String get tipoCambio => _tipoCambio;
 
   // Constructor
   SettingsProvider() {
@@ -29,6 +31,7 @@ class SettingsProvider extends ChangeNotifier {
         _prefs?.getString('nombreNegocio') ?? 'Mi Tienda de Ternos';
     _ruc = _prefs?.getString('ruc') ?? '00000000000';
     _telefono = _prefs?.getString('telefono') ?? '987654321';
+    _tipoCambio = _prefs?.getString('tipoCambio') ?? '3.80';
 
     // Notifica a la app que los ajustes se cargaron
     notifyListeners();
@@ -57,6 +60,12 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> setTelefono(String value) async {
     _telefono = value;
     await _prefs?.setString('telefono', value);
+    notifyListeners();
+  }
+
+  Future<void> setTipoCambio(String value) async {
+    _tipoCambio = value;
+    await _prefs?.setString('tipoCambio', value);
     notifyListeners();
   }
 }
